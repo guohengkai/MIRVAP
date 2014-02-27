@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>571</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Medical Image Registration Visualization and Analysis Platform</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QMdiArea" name="mdiArea">
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="viewMode">
+       <enum>QMdiArea::TabbedView</enum>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="tabsMovable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuLoad">
+     <property name="title">
+      <string>Load</string>
+     </property>
+    </widget>
+    <addaction name="menuLoad"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuStart">
+    <property name="title">
+     <string>Start</string>
+    </property>
+    <widget class="QMenu" name="menuRegister">
+     <property name="title">
+      <string>Register</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuPlugin">
+     <property name="title">
+      <string>Plugin</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuProcess">
+     <property name="title">
+      <string>Process</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuAnalysis">
+     <property name="title">
+      <string>Analysis</string>
+     </property>
+    </widget>
+    <addaction name="menuRegister"/>
+    <addaction name="menuPlugin"/>
+    <addaction name="menuProcess"/>
+    <addaction name="menuAnalysis"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuStart"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="styleSheet">
+    <string notr="true">QStatusBar::item{border: 0px}</string>
+   </property>
+  </widget>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

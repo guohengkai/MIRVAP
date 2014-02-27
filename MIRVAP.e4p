@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-4.6.dtd">
+<!-- eric4 project file for project MIRVAP -->
+<!-- Saved: 2014-02-26, 16:39:41 -->
+<!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
+<Project version="4.6">
+  <Language></Language>
+  <ProgLanguage mixed="0">Python</ProgLanguage>
+  <ProjectType>Qt4</ProjectType>
+  <Description>Medical Image Registration Visualization and Analysis Platform</Description>
+  <Version>0.1</Version>
+  <Author>Hengkai Guo</Author>
+  <Email>guohengkaighk@gmail.com</Email>
+  <Sources>
+    <Source>__init__.py</Source>
+    <Source>Core/__init__.py</Source>
+    <Source>GUI/__init__.py</Source>
+    <Source>Script/__init__.py</Source>
+    <Source>Script/Registration/__init__.py</Source>
+    <Source>Script/Load/__init__.py</Source>
+    <Source>Core/GuiBase.py</Source>
+    <Source>GUI/PyQtGui.py</Source>
+    <Source>Script/Load/LoadDicomFile.py</Source>
+    <Source>Core/DataBase.py</Source>
+    <Source>Core/LoadBase.py</Source>
+    <Source>Core/ScriptBase.py</Source>
+    <Source>Script/Load/LoadMatFile.py</Source>
+    <Source>Test/TestGui.py</Source>
+    <Source>Test/__init__.py</Source>
+    <Source>Core/DataModel.py</Source>
+    <Source>main.py</Source>
+    <Source>GUI/MainWindow.py</Source>
+    <Source>GUI/Ui_MainWindow.py</Source>
+    <Source>GUI/MdiChild.py</Source>
+    <Source>GUI/Ui_MdiChildLoad.py</Source>
+    <Source>Script/Analysis/__init__.py</Source>
+    <Source>Script/Process/__init__.py</Source>
+    <Source>Core/RegistrationBase.py</Source>
+    <Source>Script/Registration/MI_Rigid_itk.py</Source>
+    <Source>GUI/Plugin/ContourPlugin.py</Source>
+    <Source>Core/PluginBase.py</Source>
+    <Source>GUI/Plugin/__init__.py</Source>
+    <Source>GUI/Plugin/NullPlugin.py</Source>
+    <Source>GUI/Plugin/ContourViewPlugin.py</Source>
+    <Source>Core/AnalysisBase.py</Source>
+    <Source>Core/ProcessBase.py</Source>
+    <Source>GUI/Ui_MdiChildRegistration.py</Source>
+    <Source>GUI/Plugin/CenterPlugin.py</Source>
+    <Source>GUI/Plugin/CenterViewPlugin.py</Source>
+    <Source>GUI/Plugin/ClipPlugin.py</Source>
+  </Sources>
+  <Forms>
+    <Form>GUI/MainWindow.ui</Form>
+    <Form>GUI/MdiChildLoad.ui</Form>
+    <Form>GUI/MdiChildRegistration.ui</Form>
+    <Form>GUI/MdiChildProcess.ui</Form>
+  </Forms>
+  <Translations>
+  </Translations>
+  <Resources>
+  </Resources>
+  <Interfaces>
+  </Interfaces>
+  <Others>
+  </Others>
+  <MainScript>main.py</MainScript>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.qm" type="TRANSLATIONS" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES" />
+    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
+    <FiletypeAssociation pattern="*.ts" type="TRANSLATIONS" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
+    <FiletypeAssociation pattern="*.qrc" type="RESOURCES" />
+  </FiletypeAssociations>
+</Project>

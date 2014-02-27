@@ -7,13 +7,8 @@
 # Packages
 *.egg
 *.egg-info
-dist/
-build/
-eggs/
-parts/
-var/
-sdist/
-develop-eggs/
+Data/
+Test/Data
 .installed.cfg
 
 # Installer logs
@@ -29,11 +24,5 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
-#Eric4
-*.e4p
-*.e4t
-*.e4q
-*.db
-
-#Qt
-*.ui
+#Matlab
+*.mat
