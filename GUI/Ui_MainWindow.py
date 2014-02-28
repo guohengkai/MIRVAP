@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\Python Programs\MIRVAP\GUI\MainWindow.ui'
+# Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Tue Feb 25 14:02:35 2014
+# Created: Fri Feb 28 14:21:31 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -52,8 +52,6 @@ class Ui_MainWindow(object):
         self.menuRegister.setObjectName(_fromUtf8("menuRegister"))
         self.menuPlugin = QtGui.QMenu(self.menuStart)
         self.menuPlugin.setObjectName(_fromUtf8("menuPlugin"))
-        self.menuProcess = QtGui.QMenu(self.menuStart)
-        self.menuProcess.setObjectName(_fromUtf8("menuProcess"))
         self.menuAnalysis = QtGui.QMenu(self.menuStart)
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
         MainWindow.setMenuBar(self.menubar)
@@ -70,7 +68,6 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuPlugin.menuAction())
-        self.menuStart.addAction(self.menuProcess.menuAction())
         self.menuStart.addAction(self.menuAnalysis.menuAction())
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuStart.menuAction())
@@ -86,7 +83,6 @@ class Ui_MainWindow(object):
         self.menuStart.setTitle(_translate("MainWindow", "Start", None))
         self.menuRegister.setTitle(_translate("MainWindow", "Register", None))
         self.menuPlugin.setTitle(_translate("MainWindow", "Plugin", None))
-        self.menuProcess.setTitle(_translate("MainWindow", "Process", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.actionSave.setText(_translate("MainWindow", "Save...", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))

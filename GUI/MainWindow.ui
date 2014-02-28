@@ -69,11 +69,6 @@
       <string>Plugin</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuProcess">
-     <property name="title">
-      <string>Process</string>
-     </property>
-    </widget>
     <widget class="QMenu" name="menuAnalysis">
      <property name="title">
       <string>Analysis</string>
@@ -81,7 +76,6 @@
     </widget>
     <addaction name="menuRegister"/>
     <addaction name="menuPlugin"/>
-    <addaction name="menuProcess"/>
     <addaction name="menuAnalysis"/>
    </widget>
    <addaction name="menuFile"/>

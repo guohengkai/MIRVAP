@@ -38,11 +38,6 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChildLoad):
         self.setWindowTitle(self.getName())
         self.plugin = NullPlugin()
         self.pluginIndex = self.gui.win.nullIndex
-#        print '************************************'
-#        print 'init'
-#        print 'index:', self.index
-#        print self.getData().pointSet.data
-#        print '************************************'
 
     def getName(self):
         name = self.getData().getName()
@@ -251,11 +246,6 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChildLoad):
         status = self.getDirectionAndSlice()
         self.plugin.updateBefore(self.view, int(status[1]), *arg)
     def setPlugin(self, plugin, index):
-        #print self.plugin
-        #print plugin
-        #print '----------------------'
-#        if self.plugin == plugin:
-#            return
         self.plugin.disable()
         self.plugin = plugin
         plugin.enable(self)
@@ -268,7 +258,6 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChildLoad):
         if self.dimension:
             return ('2D   ', 1)
         origin = self.reslice_mapper.GetSlicePlane().GetOrigin()
-        #print camera.GetFocalPoint()
         if self.view == 0:
             return ('Sagittal', origin[0] / self.space[0] + 1)
         elif self.view == 1:
@@ -277,7 +266,8 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChildLoad):
             return ('Axial   ', origin[2] / self.space[2] + 1)
     
     def save(self):
-        self.plugin.save()
+        if self.isShow:
+            self.plugin.save()
                 
     def closeEvent(self, event):
         super(MdiChildLoad, self).closeEvent(event)

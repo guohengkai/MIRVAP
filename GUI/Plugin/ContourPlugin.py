@@ -74,11 +74,6 @@ class ContourPlugin(PluginBase):
             
     def loadCurrentSlicePoint(self, view, slice, last = 0):
         point_array = self.parent.getData().pointSet.getSlicePoint(self.key, view, slice - 1 + last)
-#        print '***********************************'
-#        print 'load'
-#        print point_array
-#        print 'index:', self.parent.index
-#        print '***********************************'
         result = False
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
@@ -110,7 +105,6 @@ class ContourPlugin(PluginBase):
             space += [1]
         for i in range(3):
             point_array = self.getAllPoint(i) / space
-            # self.parent.getData() == None --> Error
             self.parent.getData().pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
 
     def getAllPoint(self, cnt = -1):
@@ -122,10 +116,6 @@ class ContourPlugin(PluginBase):
         for i in range(n):
             self.contourRep[cnt].GetNthNodeWorldPosition(i, l)
             point_array[i, :] = l
-        '''
-        if self.parent.dimension:
-            point_array = point_array[:, :-1]
-        '''
         return point_array
     def MouseMoveCallback(self, obj, event):
         if not self.editable:

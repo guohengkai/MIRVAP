@@ -15,7 +15,9 @@ import itk
 import scipy.io as sio
         
 class ImageInfo(DataBase):
-    def __init__(self, data = {}):
+    def __init__(self, data = None):
+        if not data:
+            data = {} # Default value of dictionary will point to the same address
         self.data = data
         
     def getData(self, key = None):
@@ -105,7 +107,9 @@ class ImageData(DataBase):
         self.info.setName(name)
 
 class PointSetData(DataBase):
-    def __init__(self, data = {}):
+    def __init__(self, data = None):
+        if not data:
+            data = {}
         self.data = data
     def getData(self, key):
         if key not in self.data:
@@ -127,9 +131,11 @@ class PointSetData(DataBase):
         self.data[key] = npy.append(self.data[key], data, axis = 0)
 
 class BasicData(ImageData):
-    def __init__(self, data = None, info = None, pointSet = {}):
+    def __init__(self, data = None, info = None, pointSet = None):
         super(BasicData, self).__init__(data, info)
         
+        if not pointSet:
+            pointSet = {}
         self.pointSet = PointSetData(pointSet)
         self.result = False
     def getPointSet(self, key = None):

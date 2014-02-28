@@ -27,11 +27,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.statusbar.addWidget(self.msgLabel)
         
         self.menuScript = {'Load': self.menuLoad, 'Registration': self.menuRegister, 
-            'Analysis': self.menuAnalysis, 'Process': self.menuProcess}
+            'Analysis': self.menuAnalysis}
         self.script = {}
         self.actionScript = {}
         self.runScript = {'Load': self.runLoadScript, 'Registration': self.runRegisterScript, 
-            'Analysis': self.runAnalysisScript, 'Process': self.runProcessScript}
+            'Analysis': self.runAnalysisScript}
         
         self.getAllScript()
         self.getAllPlugin()
@@ -58,13 +58,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 db.saveMatData(dir, data)
                 window.setWindowTitle(name)
     def getAllPlugin(self):
-        dir = pb.getAllPluginDir()
-        self.plugins = [pb.getPluginInstance(x) for x in dir]
-        self.actionPlugin = [QtGui.QAction(x.getName(), self, checkable = True,
-            triggered = partial(self.enablePlugin, self.plugins.index(x))) for x in self.plugins]
-#        self.pluginDir = pb.getAllPluginDir()
-#        self.actionPlugin = [QtGui.QAction(pb.getPluginInstance(x).getName(), self, checkable = True,
-#            triggered = partial(self.enablePlugin, self.pluginDir.index(x))) for x in self.pluginDir]
+        self.pluginDir = pb.getAllPluginDir()
+        self.actionPlugin = [QtGui.QAction(pb.getPluginInstance(x).getName(), self, checkable = True,
+            triggered = partial(self.enablePlugin, self.pluginDir.index(x))) for x in self.pluginDir]
         self.pluginGroup = QtGui.QActionGroup(self)
         for x in self.actionPlugin:
             self.pluginGroup.addAction(x)
@@ -78,18 +74,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             del self.lastWindow
             self.lastWindow = None
             return
+        window = window.widget()
+        if window == self.lastWindow:
+            return
         if self.lastWindow:
             if self.lastWindow.isShow:
                 self.lastWindow.save()
             else:
                 del self.lastWindow
-        window = window.widget()
+        
         self.lastWindow = window
         self.actionPlugin[window.pluginIndex].setChecked(True)
-        
-        if window.isShow:
-            self.enablePlugin(window.pluginIndex)
-            window.updateAfter()
         
     def enablePlugin(self, index):
         window = self.mdiArea.currentSubWindow()
@@ -97,10 +92,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.showErrorMessage('Error', 'There\'re no data!')
         else:
             window = window.widget()
-            window.save() # Bug may result from this when set new index is in the sentence below
+            window.save()
             
-            #window.setPlugin(pb.getPluginInstance(self.pluginDir[index]), index)
-            window.setPlugin(self.plugins[index], index)
+            window.setPlugin(pb.getPluginInstance(self.pluginDir[index]), index)
             
     def getAllScript(self):
         for key in self.menuScript.keys():
@@ -130,14 +124,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         data = self.script['Analysis'][index]()
         if data:
             self.showMessageOnStatusBar("Analysising...")
-            index = self.gui.dataModel.append(data)
-            child = self.createMdiChild(index)
-            child.show()
-    def runProcessScript(self, index):
-        # TO BE DONE
-        data = self.script['Process'][index]()
-        if data:
-            self.showMessageOnStatusBar("Processing...")
             index = self.gui.dataModel.append(data)
             child = self.createMdiChild(index)
             child.show()

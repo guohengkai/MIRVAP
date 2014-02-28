@@ -32,7 +32,7 @@ class LoadDicomFile(LoadBase):
             data = data.reshape(data.shape[1:])
             
         info = self.loadDicomInfo(dir[0], len(data.shape))
-        fileData = db.BasicData(data = data, info = info, pointSet = {}) # if omitting pointSet, different data will have the same instance, Why?
+        fileData = db.BasicData(data = data, info = info)
         
         return fileData
         
