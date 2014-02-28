@@ -80,9 +80,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             return
         if self.lastWindow:
             if self.lastWindow.isShow:
-                pass
-                #self.lastWindow.updateBefore()
-                # The pointset is the same in different data???
+                self.lastWindow.save()
             else:
                 del self.lastWindow
         window = window.widget()
@@ -99,9 +97,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.showErrorMessage('Error', 'There\'re no data!')
         else:
             window = window.widget()
-            window.save() # Bug may result from this when set new index is in the sentence below, but when commenting it bug still exist!
+            window.save() # Bug may result from this when set new index is in the sentence below
             
-            # When closing a window, the data has been removed but still call the function "save", which causes an error
             #window.setPlugin(pb.getPluginInstance(self.pluginDir[index]), index)
             window.setPlugin(self.plugins[index], index)
             

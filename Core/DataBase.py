@@ -188,7 +188,7 @@ def loadMatData(dir):
         name = point.dtype.names
         pointSet = dict(zip(name, [point[key][0][0] for key in name]))
     else:
-        pointSet = None
+        pointSet = {}
     
     header = data['header']
     resolution = header['resolution'][0][0][0]

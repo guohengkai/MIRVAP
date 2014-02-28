@@ -29,7 +29,6 @@ class ContourPlugin(PluginBase):
         self.parent = parent
         self.contourRep = []
         self.contourWidget = []
-        print 'enable'
         # The flag of showing the contour
         self.contour = [True, True, True]
         # Avoid putting point when modifying the window level
@@ -74,13 +73,6 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetEnabled(0)
             
     def loadCurrentSlicePoint(self, view, slice, last = 0):
-#        print '************************************'
-#        print 'load'
-#        print 'index:', self.parent.index
-#        print self.parent.getData().pointSet.data
-#        print '************************************'
-        # BUG: When open a new data and then open the contour plugin, the pointSet will be the same as the former data
-        # And it's difficult to change between data which have contour widgets
         point_array = self.parent.getData().pointSet.getSlicePoint(self.key, view, slice - 1 + last)
 #        print '***********************************'
 #        print 'load'
@@ -113,11 +105,6 @@ class ContourPlugin(PluginBase):
         self.parent.render_window.Render()
         return result
     def saveCurrentSlicePoint(self, view, slice):
-#        print '************************************'
-#        print 'save'
-#        print 'index:', self.parent.index
-#        print self.parent.getData().pointSet.data
-#        print '************************************'
         space = self.parent.space
         if len(space) == 2:
             space += [1]
@@ -125,12 +112,7 @@ class ContourPlugin(PluginBase):
             point_array = self.getAllPoint(i) / space
             # self.parent.getData() == None --> Error
             self.parent.getData().pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
-#            if i == 0:
-#                print '***********************************'
-#                print 'save'
-#                print point_array
-#                print 'index:', self.parent.index
-#                print '***********************************'
+
     def getAllPoint(self, cnt = -1):
         if cnt == -1:
             cnt = self.currentContour
