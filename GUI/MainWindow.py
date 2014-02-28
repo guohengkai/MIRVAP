@@ -8,7 +8,7 @@ Created on 2014-02-01
 
 from PyQt4 import QtCore, QtGui
 from Ui_MainWindow import Ui_MainWindow
-from MdiChild import MdiChildLoad
+from MdiChild import MdiChildLoad, MdiChildRegistration
 import MIRVAP.Core.DataBase as db
 import MIRVAP.Core.ScriptBase as sb
 import MIRVAP.Core.PluginBase as pb
@@ -117,7 +117,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if data:
             self.showMessageOnStatusBar("Registering...")
             index = self.gui.dataModel.append(data)
-            child = self.createMdiChild(index)
+            child = self.createMdiChild(index, MdiChildRegistration)
             child.show()
     def runAnalysisScript(self, index):
         # TO BE DONE
@@ -129,10 +129,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             child.show()
     def addNewDataView(self, data):
         index = self.gui.dataModel.append(data)
-        child = self.createMdiChild(index)
+        child = self.createMdiChild(index, MdiChildLoad)
         child.show()
-    def createMdiChild(self, index):
-        child = MdiChildLoad(self.gui, index)
+    def createMdiChild(self, index, mdiChild):
+        child = mdiChild(self.gui, index)
         self.mdiArea.addSubWindow(child)
         return child
         

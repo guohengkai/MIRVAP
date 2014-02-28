@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-02-26, 16:39:41 -->
+<!-- Saved: 2014-02-28, 23:20:44 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -34,7 +34,6 @@
     <Source>GUI/MdiChild.py</Source>
     <Source>GUI/Ui_MdiChildLoad.py</Source>
     <Source>Script/Analysis/__init__.py</Source>
-    <Source>Script/Process/__init__.py</Source>
     <Source>Core/RegistrationBase.py</Source>
     <Source>Script/Registration/MI_Rigid_itk.py</Source>
     <Source>GUI/Plugin/ContourPlugin.py</Source>
@@ -43,17 +42,16 @@
     <Source>GUI/Plugin/NullPlugin.py</Source>
     <Source>GUI/Plugin/ContourViewPlugin.py</Source>
     <Source>Core/AnalysisBase.py</Source>
-    <Source>Core/ProcessBase.py</Source>
     <Source>GUI/Ui_MdiChildRegistration.py</Source>
     <Source>GUI/Plugin/CenterPlugin.py</Source>
     <Source>GUI/Plugin/CenterViewPlugin.py</Source>
     <Source>GUI/Plugin/ClipPlugin.py</Source>
+    <Source>Script/Registration/TestRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
     <Form>GUI/MdiChildLoad.ui</Form>
     <Form>GUI/MdiChildRegistration.ui</Form>
-    <Form>GUI/MdiChildProcess.ui</Form>
   </Forms>
   <Translations>
   </Translations>

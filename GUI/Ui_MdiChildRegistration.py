@@ -57,7 +57,7 @@ class Ui_MdiChildRegistration(object):
     def retranslateUi(self, MdiChildRegistration):
         pass
 
-from QVTKWidget import QVTKWidget
+from vtk import QVTKWidget
 
 if __name__ == "__main__":
     import sys

@@ -17,6 +17,7 @@ class LoadMatFile(LoadBase):
         pass
     def load(self, dir):
         data, info, point = db.loadMatData(dir[0])
+        # Need to add registration data reader
         fileData = db.BasicData(data, info, point)
         return fileData
         
