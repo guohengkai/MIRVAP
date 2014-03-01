@@ -8,7 +8,7 @@ Created on 2014-02-01
 
 from PyQt4 import QtCore, QtGui
 from Ui_MainWindow import Ui_MainWindow
-from MdiChild import MdiChildLoad, MdiChildRegistration
+from MdiChild import MdiChildLoad#, MdiChildRegistration
 import MIRVAP.Core.DataBase as db
 import MIRVAP.Core.ScriptBase as sb
 import MIRVAP.Core.PluginBase as pb
@@ -84,7 +84,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 del self.lastWindow
         
         self.lastWindow = window
-        self.actionPlugin[window.pluginIndex].setChecked(True)
+        self.actionPlugin[window.widgetView.pluginIndex].setChecked(True)
         
     def enablePlugin(self, index):
         window = self.mdiArea.currentSubWindow()

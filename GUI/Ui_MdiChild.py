@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\Python Programs\MIRVAP\GUI\MdiChildLoad.ui'
+# Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MdiChild.ui'
 #
-# Created: Sun Feb 09 18:17:53 2014
+# Created: Sun Mar 02 00:13:12 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,24 +23,24 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_MdiChildLoad(object):
-    def setupUi(self, MdiChildLoad):
-        MdiChildLoad.setObjectName(_fromUtf8("MdiChildLoad"))
-        MdiChildLoad.resize(800, 600)
-        MdiChildLoad.setWindowTitle(_fromUtf8(""))
-        self.centralWidget = QtGui.QWidget(MdiChildLoad)
+class Ui_MdiChild(object):
+    def setupUi(self, MdiChild):
+        MdiChild.setObjectName(_fromUtf8("MdiChild"))
+        MdiChild.resize(800, 600)
+        MdiChild.setWindowTitle(_fromUtf8(""))
+        self.centralWidget = QtGui.QWidget(MdiChild)
         self.centralWidget.setObjectName(_fromUtf8("centralWidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralWidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.qvtkWidget = QVTKWidget(self.centralWidget)
         self.qvtkWidget.setObjectName(_fromUtf8("qvtkWidget"))
         self.verticalLayout.addWidget(self.qvtkWidget)
-        MdiChildLoad.setCentralWidget(self.centralWidget)
+        MdiChild.setCentralWidget(self.centralWidget)
 
-        self.retranslateUi(MdiChildLoad)
-        QtCore.QMetaObject.connectSlotsByName(MdiChildLoad)
+        self.retranslateUi(MdiChild)
+        QtCore.QMetaObject.connectSlotsByName(MdiChild)
 
-    def retranslateUi(self, MdiChildLoad):
+    def retranslateUi(self, MdiChild):
         pass
 
 from vtk import QVTKWidget
@@ -48,9 +48,9 @@ from vtk import QVTKWidget
 if __name__ == "__main__":
     import sys
     app = QtGui.QApplication(sys.argv)
-    MdiChildLoad = QtGui.QMainWindow()
-    ui = Ui_MdiChildLoad()
-    ui.setupUi(MdiChildLoad)
-    MdiChildLoad.show()
+    MdiChild = QtGui.QMainWindow()
+    ui = Ui_MdiChild()
+    ui.setupUi(MdiChild)
+    MdiChild.show()
     sys.exit(app.exec_())
 

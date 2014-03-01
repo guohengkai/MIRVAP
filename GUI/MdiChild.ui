@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MdiChildLoad</class>
- <widget class="QMainWindow" name="MdiChildLoad">
+ <class>MdiChild</class>
+ <widget class="QMainWindow" name="MdiChild">
   <property name="geometry">
    <rect>
     <x>0</x>

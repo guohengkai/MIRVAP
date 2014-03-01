@@ -73,7 +73,7 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetEnabled(0)
             
     def loadCurrentSlicePoint(self, view, slice, last = 0):
-        point_array = self.parent.getData().pointSet.getSlicePoint(self.key, view, slice - 1 + last)
+        point_array = self.parent.parent.getData().pointSet.getSlicePoint(self.key, view, slice - 1 + last)
         result = False
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
@@ -105,7 +105,7 @@ class ContourPlugin(PluginBase):
             space += [1]
         for i in range(3):
             point_array = self.getAllPoint(i) / space
-            self.parent.getData().pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
+            self.parent.parent.getData().pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
 
     def getAllPoint(self, cnt = -1):
         if cnt == -1:
@@ -178,8 +178,8 @@ class ContourPlugin(PluginBase):
             self.contourWidget[self.currentContour].ProcessEventsOff()
             self.currentContour = temp
             newMessage = self.getNewMessage()
-            show = self.parent.gui.getMessageOnStatusBar().replace(oldMessage, newMessage)
-            self.parent.gui.showMessageOnStatusBar(show)
+            show = self.parent.parent.gui.getMessageOnStatusBar().replace(oldMessage, newMessage)
+            self.parent.parent.gui.showMessageOnStatusBar(show)
         
     def LeftButtonPressCallback(self, obj, event):
         if not self.editable:
@@ -197,7 +197,7 @@ class ContourPlugin(PluginBase):
             self.loadCurrentSlicePoint(view, slice)
         if self.editable:
             newMessage = self.getNewMessage()
-            self.parent.gui.showMessageOnStatusBar(self.parent.gui.getMessageOnStatusBar() + newMessage)
+            self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
     def updateBefore(self, view, slice, *arg):
         if self.editable:
             self.saveCurrentSlicePoint(view, slice)
