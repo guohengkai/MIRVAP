@@ -16,9 +16,11 @@ class LoadMatFile(LoadBase):
     def getLoadParameters(self):
         pass
     def load(self, dir):
-        data, info, point = db.loadMatData(dir[0])
-        # Need to add registration data reader
-        fileData = db.BasicData(data, info, point)
+        data, info, point = db.loadMatData(dir[0], self.gui.dataModel)
+        if info.getData('fix') is not None:
+            fileData = db.ResultData(data, info, point)
+        else:
+            fileData = db.BasicData(data, info, point)
         return fileData
         
 if __name__ == "__main__":

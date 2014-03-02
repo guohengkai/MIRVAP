@@ -53,7 +53,7 @@ class PyQtGui(GuiBase):
         return self.win.getMessageOnStatusBar()
     def addNewDataView(self, data):
         return self.win.addNewDataView(data)
-    def startApplication(self):        
+    def startApplication(self): 
         self.win.show()
         sys.exit(self.app.exec_())
 

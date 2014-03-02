@@ -57,7 +57,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 name = str(name)
                 data.setName(name)
                 dir = './Data/' + name
-                db.saveMatData(dir, data)
+                db.saveMatData(dir, self.gui.dataModel, window.index)
                 window.setWindowTitle(name)
     def getAllPlugin(self):
         self.pluginDir = gb.getAllGuiDir('Plugin')
@@ -130,19 +130,20 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 self.menuScript[key].addAction(action)
     def runLoadScript(self, index):
         temp = self.getMessageOnStatusBar()
-        self.showMessageOnStatusBar("Loading...")
         data = self.script['Load'][index]()
         if data:
+            self.showMessageOnStatusBar("Loading...")
             self.addNewDataView(data)
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):
+        temp = self.getMessageOnStatusBar()
         data = self.script['Registration'][index]()
         if data:
             self.showMessageOnStatusBar("Registering...")
-            index = self.gui.dataModel.append(data)
-            child = self.createMdiChild(index, MdiChildRegistration)
-            child.show()
+            self.addNewDataView(data)
+        else:
+            self.showMessageOnStatusBar(temp)
     def runAnalysisScript(self, index):
         # TO BE DONE
         data = self.script['Analysis'][index]()
@@ -153,7 +154,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             child.show()
     def addNewDataView(self, data):
         index = self.gui.dataModel.append(data)
-        child = self.createMdiChild(index, MdiChildLoad)
+        if type(data) is db.ResultData:
+            child = self.createMdiChild(index, MdiChildRegistration)
+        else:
+            child = self.createMdiChild(index, MdiChildLoad)
         child.show()
     def createMdiChild(self, index, mdiChild):
         child = mdiChild(self.gui, index)

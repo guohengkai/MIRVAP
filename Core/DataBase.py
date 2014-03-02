@@ -183,7 +183,7 @@ def loadDicomArray(dir):
         array = npy.concatenate((array[0], array[1]), axis = 0)
     return array
 
-def loadMatData(dir):
+def loadMatData(dir, datamodel):
     data = sio.loadmat(dir)
     
     image = data['image']
@@ -204,10 +204,49 @@ def loadMatData(dir):
     view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
     info.addData('view', view)
     info.addData('flip', flip)
+    
+    fixedImage = data.get('fixedImage')
+    if fixedImage is not None:
+        movingImage = data.get('movingImage')
         
+        resolution = header['resolution'][0][1][0]
+        orientation = header['orientation'][0][1][0]
+        modality = str(header['modality'][0][1][0])
+        name = str(header['name'][0][1][0])
+        info1 = ImageInfo({'modality': modality, 'resolution': resolution, 'orientation': orientation, 'name': name})
+        view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
+        info1.addData('view', view)
+        info1.addData('flip', flip)
+        
+        resolution = header['resolution'][0][2][0]
+        orientation = header['orientation'][0][2][0]
+        modality = str(header['modality'][0][2][0])
+        name = str(header['name'][0][2][0])
+        info2 = ImageInfo({'modality': modality, 'resolution': resolution, 'orientation': orientation, 'name': name})
+        view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
+        info2.addData('view', view)
+        info2.addData('flip', flip)
+        
+        point = data.get('fixedPoint')
+        if point is not None:
+            name = point.dtype.names
+            pointSet1 = dict(zip(name, [point[key][0][0] for key in name]))
+        else:
+            pointSet1 = {}
+            
+        point = data.get('movingPoint')
+        if point is not None:
+            name = point.dtype.names
+            pointSet2 = dict(zip(name, [point[key][0][0] for key in name]))
+        else:
+            pointSet2 = {}
+            
+        info.addData('fix', datamodel.append(BasicData(fixedImage, info1, pointSet1)))
+        info.addData('move', datamodel.append(BasicData(movingImage, info2, pointSet2)))
     return image, info, pointSet
 
-def saveMatData(dir, data):
+def saveMatData(dir, datamodel, index):
+    data = datamodel[index]
     image = data.data
     point = data.getPointSet()
     
@@ -215,14 +254,35 @@ def saveMatData(dir, data):
     orientation = data.info.getData('orientation')
     modality = npy.array([data.getModality()])
     name = npy.array([data.getName()])
-    header = npy.array([(resolution, orientation, modality, name)], 
-        dtype = [('resolution', 'O'), ('orientation', 'O'), ('modality', 'O'), ('name', 'O')] )
+    headerType = [('resolution', 'O'), ('orientation', 'O'), ('modality', 'O'), ('name', 'O')]
+    header = npy.array([(resolution, orientation, modality, name)], dtype = headerType)
+    
+    dict = {'image': image}
+    if type(data) is ResultData:
+        fixedIndex = data.getFixedIndex()
+        fixedData = datamodel[fixedIndex]
+        movingIndex = data.getMovingIndex()
+        movingData = datamodel[movingIndex]
+        header = npy.append(header, npy.array([(fixedData.info.getResolution(), fixedData.info.getData('orientation'), 
+                                                npy.array([fixedData.getModality()]), npy.array([fixedData.getName()])), 
+                                               (movingData.info.getResolution(), movingData.info.getData('orientation'), 
+                                                npy.array([movingData.getModality()]), npy.array([movingData.getName()]))], dtype = headerType))
+        dict['fixedImage'] = datamodel[data.getFixedIndex()].data
+        dict['movingImage'] = datamodel[data.getMovingIndex()].data
+        
+        temp = fixedData.getPointSet()
+        if temp:
+            pointSet = npy.array([tuple(temp.values())], dtype = [(key, 'O') for key in temp.keys()])
+            dict['fixedPoint'] = pointSet
+        temp = movingData.getPointSet()
+        if temp:
+            pointSet = npy.array([tuple(temp.values())], dtype = [(key, 'O') for key in temp.keys()])
+            dict['movingPoint'] = pointSet
+            
+    dict['header'] = header
     if point:
-        pointSet = npy.array([tuple(point.values())], 
-            dtype = [(key, 'O') for key in point.keys()])
-        dict = {'image': image, 'point': pointSet, 'header': header}
-    else:
-        dict = {'image': image, 'header': header}
+        pointSet = npy.array([tuple(point.values())], dtype = [(key, 'O') for key in point.keys()])
+        dict['point'] = pointSet
     
     sio.savemat(dir, dict)
 
