@@ -59,11 +59,11 @@ class SingleDataView(WidgetViewBase):
         self.reslice_mapper.BackgroundOn()
         
         array = data.getData()
-        minI = array.min()
-        maxI = array.max()
+        self.minI = array.min()
+        self.maxI = array.max()
         image_property = vtk.vtkImageProperty()
-        image_property.SetColorWindow(maxI - minI)
-        image_property.SetColorLevel((maxI + minI) / 2.0)
+        image_property.SetColorWindow(self.maxI - self.minI)
+        image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
         image_property.SetAmbient(0.0)
         image_property.SetDiffuse(1.0)
         image_property.SetOpacity(1.0)
@@ -126,7 +126,6 @@ class SingleDataView(WidgetViewBase):
     def KeyPressCallback(self, obj, event):
         if self.plugin.KeyPressCallback(obj, event):
             return
-            
         ch = self.window_interactor.GetKeySym()
         if ch == 'r':
             self.interactor_style.OnChar()

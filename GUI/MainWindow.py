@@ -130,17 +130,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 self.menuScript[key].addAction(action)
     def runLoadScript(self, index):
         temp = self.getMessageOnStatusBar()
+        self.showMessageOnStatusBar("Loading...")
         data = self.script['Load'][index]()
         if data:
-            self.showMessageOnStatusBar("Loading...")
             self.addNewDataView(data)
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):
         temp = self.getMessageOnStatusBar()
+        self.showMessageOnStatusBar("Registering...")
         data = self.script['Registration'][index]()
         if data:
-            self.showMessageOnStatusBar("Registering...")
             self.addNewDataView(data)
         else:
             self.showMessageOnStatusBar(temp)
