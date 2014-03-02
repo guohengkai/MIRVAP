@@ -15,7 +15,7 @@ class RegistrationBase(ScriptBase):
         super(RegistrationBase, self).__init__(gui)
         
     def run(self, *args, **kwargs):
-        indexes = self.gui.getDataIndexes()
+        indexes = self.gui.getRegisterDataIndex()
         if indexes:
             if len(indexes) == 2:
                 data = self.register(self.gui.dataModel[indexes[0]], self.gui.dataModel[indexes[1]]) 

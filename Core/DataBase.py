@@ -111,7 +111,7 @@ class PointSetData(DataBase):
     def __init__(self, data = None):
         if not data:
             data = {}
-        self.data = data
+        self.data = cp.deepcopy(data)
     def getData(self, key):
         if key not in self.data:
             self.data[key] = npy.array([[-1, -1, -1, -1]])
@@ -134,11 +134,9 @@ class PointSetData(DataBase):
 class BasicData(ImageData):
     def __init__(self, data = None, info = None, pointSet = None):
         super(BasicData, self).__init__(data, info)
-        
         if not pointSet:
             pointSet = {}
         self.pointSet = PointSetData(pointSet)
-        self.result = False
     def getPointSet(self, key = None):
         if key:
             return self.pointSet.getData(key)
@@ -148,7 +146,6 @@ class BasicData(ImageData):
 class ResultData(BasicData):
     def __init__(self, data = None, info = None, pointSet = None):
         super(ResultData, self).__init__(data, info, pointSet)
-        self.result = True
     def getFixedIndex(self):
         return self.info.getData('fix')
     def getMovingIndex(self):

@@ -14,6 +14,13 @@ class DataModel(object):
     
     def getIndexList(self):
         return sorted(list(self.data.keys()))
+    def getNameDict(self):
+        indexList = map(int, self.getIndexList())
+        names = {}
+        for index in indexList:
+            name = self.data[index].getName()
+            names[name] = index
+        return names
     def getCount(self):
         return len(self.data)
     def append(self, data):

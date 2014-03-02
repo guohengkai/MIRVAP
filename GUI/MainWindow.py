@@ -38,6 +38,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.getAllWidgetView()
         
         self.actionSave.triggered.connect(self.saveData)
+        self.actionClear_all.triggered.connect(self.clearAllData)
         self.mdiArea.subWindowActivated.connect(self.updateStatus)
         self.lastWindow = None
         
@@ -45,7 +46,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def saveData(self):
         window = self.mdiArea.currentSubWindow()
         if not window:
-            self.showErrorMessage('Error', 'There\'re no data!')
+            self.gui.showErrorMessage('Error', 'There\'re no data!')
         else:
             window = window.widget()
             window.save()
@@ -101,18 +102,20 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.actionView[window.viewIndex].setChecked(True)
         
     def enablePlugin(self, index):
+        # Need to check if the window can put it
         window = self.mdiArea.currentSubWindow()
         if not window:
-            self.showErrorMessage('Error', 'There\'re no data!')
+            self.gui.showErrorMessage('Error', 'There\'re no data!')
         else:
             window = window.widget()
             window.save()
             
             window.setPlugin(gb.getGuiClass(self.pluginDir[index])(), index)
     def enableView(self, index):
+        # Need to check if the window can put it
         window = self.mdiArea.currentSubWindow()
         if not window:
-            self.showErrorMessage('Error', 'There\'re no data!')
+            self.gui.showErrorMessage('Error', 'There\'re no data!')
         else:
             window = window.widget()
             window.save()
@@ -156,44 +159,16 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         child = mdiChild(self.gui, index)
         self.mdiArea.addSubWindow(child)
         return child
-        
-    def getFileNames(self, *args):
-        # The argument need to be setted
-        temp = QtGui.QFileDialog.getOpenFileNames()
-        fileNames = map(str, temp)
-        return fileNames
-    def getDataIndexes(self):
-        indexList = map(int, self.gui.dataModel.getIndexList())
-        names = {}
-        for index in indexList:
-            name = self.gui.dataModel[index].getName()
-            print name, index
-            if not name:
-                name = 'Data %d' % index
-            names[name] = index
-        items = names.keys()
-        item, ok = QtGui.QInputDialog.getItem(self, "Select the fixed image", 
-            "Fixed image:", items, 0, False)
-        if ok and item:
-            item = str(item)
-            fixedIndex = names[item]
-            items.remove(item)
-            item, ok = QtGui.QInputDialog.getItem(self, "Select the moving image", 
-                "Moving image:", items, 0, False)
-            if ok and item:
-                item = str(item)
-                movingIndex = names[item]
-                return (fixedIndex, movingIndex)
-    def showErrorMessage(self, title, message):
-        QtGui.QMessageBox.information(self, title, message)
     def showMessageOnStatusBar(self, text):
-        # Need to be changed to label in statusbar
-        #self.statusbar.showMessage(text)
         self.msgLabel.setText(text)
     def getMessageOnStatusBar(self):
-        #return str(self.statusbar.currentMessage())
         return str(self.msgLabel.text())
-        
+    def clearAllData(self):
+        self.showMessageOnStatusBar("Clearing...")
+        self.mdiArea.closeAllSubWindows()
+        self.gui.dataModel.data.clear()
+        self.gui.showErrorMessage('Success', 'Sucessfully clear all the data!')
+        self.showMessageOnStatusBar("")
     def closeEvent(self, event):
         reply = QtGui.QMessageBox.question(self, "Quit", "Are you sure to quit?", 
             QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)

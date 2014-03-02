@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Sun Mar 02 13:28:51 2014
+# Created: Sun Mar 02 15:35:49 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -65,8 +65,11 @@ class Ui_MainWindow(object):
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
+        self.actionClear_all = QtGui.QAction(MainWindow)
+        self.actionClear_all.setObjectName(_fromUtf8("actionClear_all"))
         self.menuFile.addAction(self.menuLoad.menuAction())
         self.menuFile.addAction(self.actionSave)
+        self.menuFile.addAction(self.actionClear_all)
         self.menuFile.addAction(self.actionExit)
         self.menuStart.addAction(self.menuPlugin.menuAction())
         self.menuStart.addAction(self.menuWidget_View.menuAction())
@@ -90,6 +93,7 @@ class Ui_MainWindow(object):
         self.menuWidget_View.setTitle(_translate("MainWindow", "Widget View", None))
         self.actionSave.setText(_translate("MainWindow", "Save...", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
+        self.actionClear_all.setText(_translate("MainWindow", "Clear all", None))
 
 
 if __name__ == "__main__":

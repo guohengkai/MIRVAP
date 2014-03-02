@@ -53,6 +53,7 @@
     </widget>
     <addaction name="menuLoad"/>
     <addaction name="actionSave"/>
+    <addaction name="actionClear_all"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuStart">
@@ -100,6 +101,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionClear_all">
+   <property name="text">
+    <string>Clear all</string>
    </property>
   </action>
  </widget>

@@ -17,11 +17,36 @@ class PyQtGui(GuiBase):
         self.win = MainWindow(self)
         
     def getFileNames(self, *args):
-        return self.win.getFileNames(*args)
-    def getDataIndexes(self):
-        return self.win.getDataIndexes()
+        # The argument need to be setted
+        temp = QtGui.QFileDialog.getOpenFileNames()
+        fileNames = map(str, temp)
+        return fileNames
+    def getReloadDataIndex(self):
+        if self.dataModel.getCount() == 0:
+            self.showErrorMessage('Error', 'There\'re no enough data!')
+            return
+        names = self.dataModel.getNameDict()
+        return self.getDataIndex(names, "Select the data to be reloaded")
+    def getDataIndex(self, names, word):
+        items = names.keys()
+        item, ok = QtGui.QInputDialog.getItem(self.win, word, "Data:", items, 0, False)
+        if ok and item:
+            item = str(item)
+            index = int(names[item])
+            del names[item]
+            return index
+    def getRegisterDataIndex(self):
+        if self.dataModel.getCount() < 2:
+            self.showErrorMessage('Error', 'There\'re no enough data!')
+            return
+        names = self.dataModel.getNameDict()
+        fixedIndex = self.getDataIndex(names, "Select the fixed image")
+        if fixedIndex is not None:
+            movingIndex = self.getDataIndex(names, "Select the moving image")
+            if movingIndex is not None:
+                return (fixedIndex, movingIndex)
     def showErrorMessage(self, title, message):
-        return self.win.showErrorMessage(title, message)
+        QtGui.QMessageBox.information(self.win, title, message)
     def showMessageOnStatusBar(self, text):
         return self.win.showMessageOnStatusBar(text)
     def getMessageOnStatusBar(self):

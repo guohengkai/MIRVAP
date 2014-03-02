@@ -70,10 +70,11 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
     def save(self):
         if self.isShow:
             self.widgetView.save()
-                
+    
     def closeEvent(self, event):
         super(MdiChildLoad, self).closeEvent(event)
         self.save()
+        '''
         name, ok = QtGui.QInputDialog.getText(self, "Save the data", 
             "Name:", QtGui.QLineEdit.Normal, self.getName())
         if ok and name:
@@ -82,7 +83,7 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
             self.getData().setName(name)
             dir = './Data/' + name
             db.saveMatData(dir, self.getData())
-        self.gui.dataModel.remove(self.index)
+        '''
         self.gui.showMessageOnStatusBar("")
         import gc
         gc.collect()

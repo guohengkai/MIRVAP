@@ -101,7 +101,8 @@ class ClipPlugin(PluginBase):
                 bound = [(min[i], max[i] + 1) for i in range(3)]
                 bound = bound[::-1]
             
-            info = db.ImageInfo(dict(self.parent.parent.getData().getInfo().data))
+            info = db.ImageInfo(self.parent.parent.getData().getInfo().data)
+            info.setName(None)
             if not self.parent.dimension:
                 orientation = npy.array([1, 0, 0, 0, 1, 0])
                 info.addData('orientation', orientation)
@@ -110,9 +111,9 @@ class ClipPlugin(PluginBase):
                 view, flip = db.getViewAndFlipFromOrientation(orientation, resolution.shape[0])
                 info.addData('view', view)
                 info.addData('flip', flip)
-            
-                data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], bound[1][0]:bound[1][1], bound[2][0]:bound[2][1]], 
-                    info = info)
+
+                data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], 
+                    bound[1][0]:bound[1][1], bound[2][0]:bound[2][1]], info = info)
             else:
                 data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], bound[1][0]:bound[1][1]], info = info)
                 
