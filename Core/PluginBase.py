@@ -32,23 +32,4 @@ class PluginBase(object):
         pass
     def disable(self):
         pass
-import sys, os, importlib
-def getAllPluginDir():
-    path = sys.argv[0]
-    if os.path.isdir(path):
-        pass
-    elif os.path.isfile(path):
-        path = os.path.dirname(path)
         
-    path += '/GUI/Plugin/'
-    
-    dir = os.listdir(path)
-    dir = [str('MIRVAP.GUI.Plugin.' + x[:-3]) for x in dir if x.endswith('.py') and not x.startswith('_')]
-    
-    return dir
-def getPluginInstance(dir):
-    mod = importlib.import_module(dir)
-    name = dir.split('.')[-1]
-    cl = getattr(mod, name)
-    ins = cl()
-    return ins

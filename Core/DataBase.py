@@ -13,12 +13,12 @@ import numpy as npy
 import SimpleITK as sitk
 import itk
 import scipy.io as sio
-        
+import copy as cp
 class ImageInfo(DataBase):
     def __init__(self, data = None):
         if not data:
             data = {} # Default value of dictionary will point to the same address
-        self.data = data
+        self.data = cp.deepcopy(data)
         
     def getData(self, key = None):
         if key is not None:
@@ -102,7 +102,8 @@ class ImageData(DataBase):
     def getFlip(self):
         return self.info.getFlip()
     def getName(self):
-        return self.info.getName()
+        if self.info:
+            return self.info.getName()
     def setName(self, name):
         self.info.setName(name)
 
@@ -144,17 +145,17 @@ class BasicData(ImageData):
         else:
             return self.pointSet.data
         
-class ResultData(ImageData):        
-    def __init__(self, data = None, detail = {}):
-        super(ResultData, self).__init__(data)
+class ResultData(BasicData):
+    def __init__(self, data = None, info = None, pointSet = None):
+        super(ResultData, self).__init__(data, info, pointSet)
         self.result = True
-        self.detail = detail
     def getFixedIndex(self):
-        return self.detail.get('fix', None)
+        return self.info.getData('fix')
     def getMovingIndex(self):
-        return self.detail.get('move', None)
+        return self.info.getData('move')
     def addDetail(self, key, value):
-        self.detail[key] = value
+        self.info.addData(key, value)
+
 
 def loadDicomArray(dir):
     # When the amount of files exceeds 80+, the GetArrayFromImage function may crash, because of the memory limit of array in numpy

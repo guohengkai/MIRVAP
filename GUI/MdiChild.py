@@ -9,6 +9,7 @@ from PyQt4 import QtCore, QtGui
 from Ui_MdiChild import Ui_MdiChild
 import MIRVAP.Core.DataBase as db
 from MIRVAP.Core.WidgetViewBase import SingleDataView
+from WidgetView.ResultImageView import ResultImageView
 
 
 class MdiChildBase(QtGui.QMainWindow):
@@ -43,6 +44,7 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
         name = self.getData().getName()
         if not name:
             name = 'Data %d' % self.index
+            self.getData().setName(name)
         return name
     def getData(self):
         return self.gui.dataModel[self.index]
@@ -85,116 +87,36 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
         import gc
         gc.collect()
         event.accept()
-'''
-class MdiChildRegistration(MdiChildBase, Ui_MdiChildRegistration):
+
+class MdiChildRegistration(MdiChildLoad):
     def __init__(self, gui, index):
-        super(MdiChildRegistration, self).__init__(gui)
-        self.setupUi(self)
+        super(MdiChildRegistration, self).__init__(gui, index)
         
-        self.index = index
         self.fixedIndex = self.getData().getFixedIndex()
         self.movingIndex = self.getData().getMovingIndex()
         
         self.setWindowTitle(self.getName())
-    def getData(self, index = -1):
-        if index == -1:
-            index = self.index
-        return self.gui.dataModel[index]
+        
+        self.widgetView = ResultImageView(self)
+        self.viewIndex = self.gui.win.resultIndex
+    def getData(self, key = 'result'):
+        if key == 'result':
+            return self.gui.dataModel[self.index]
+        elif key == 'fix':
+            return self.gui.dataModel[self.fixedIndex]
+        elif key == 'move':
+            return self.gui.dataModel[self.movingIndex]
+    def setView(self, view, index):
+        self.widgetView = view(self)
+        self.viewIndex = index
+        self.setQVTKWidget()
     def setQVTKWidget(self):
-        data = self.getData(self.movingIndex)
-        image_type = data.getITKImageType()
-        self.image = data.getITKImage()
-        self.space = data.getResolution().tolist()
-        # Resolution: x(col), y(row), z(slice) 
-        if len(self.space) == 3:
-            self.space = [float(x) / self.space[-1] for x in self.space]
-        self.image.SetSpacing(self.space)
-        shapeList = data.getData().shape
-        y, x = shapeList[-2], shapeList[-1]
-        self.dimension = len(shapeList) == 2
-        
-        itk_vtk_converter = itk.ImageToVTKImageFilter[image_type].New()
-        itk_vtk_converter.SetInput(self.image)
-        image_resample = vtk.vtkImageResample()
-        image_resample.SetInput(itk_vtk_converter.GetOutput())
-        
-        self.renderer = vtk.vtkRenderer()
-        self.render_window = self.oriQvtkWidget.GetRenderWindow()
-        self.render_window.AddRenderer(self.renderer)
-        
-        self.reslice_mapper = vtk.vtkImageResliceMapper()
-        self.reslice_mapper.SetInput(image_resample.GetOutput())
-        self.reslice_mapper.SliceFacesCameraOn()
-        self.reslice_mapper.SliceAtFocalPointOn()
-        self.reslice_mapper.JumpToNearestSliceOn()
-        self.reslice_mapper.BorderOff()
-        self.reslice_mapper.BackgroundOn()
-        
-        array = data.getData()
-        minI = array.min()
-        maxI = array.max()
-        image_property = vtk.vtkImageProperty()
-        image_property.SetColorWindow(maxI - minI)
-        image_property.SetColorLevel((maxI + minI) / 2.0)
-        image_property.SetAmbient(0.0)
-        image_property.SetDiffuse(1.0)
-        image_property.SetOpacity(1.0)
-        image_property.SetInterpolationTypeToLinear()
-        
-        image_slice = vtk.vtkImageSlice()
-        image_slice.SetMapper(self.reslice_mapper)
-        image_slice.SetProperty(image_property)
-        
-        self.renderer.AddViewProp(image_slice)
-        
-        self.window_interactor = vtk.vtkRenderWindowInteractor()
-        self.interactor_style = vtk.vtkInteractorStyleImage()
-        self.interactor_style.SetInteractionModeToImage3D()
-        self.window_interactor.SetInteractorStyle(self.interactor_style)
-        self.render_window.SetInteractor(self.window_interactor)
-        point_picker = vtk.vtkPointPicker()
-        self.window_interactor.SetPicker(point_picker)
-        
-        self.render_window.GlobalWarningDisplayOff()
-        self.render_window.Render()
-        self.camera = self.renderer.GetActiveCamera()
-        self.camera.ParallelProjectionOn()
-        w, h = self.window_interactor.GetSize()
-        if h * x * self.space[0] < w * y * self.space[1]:
-            scale = y / 2.0 * self.space[1]
-        else:
-            scale = h * x  * self.space[0] / 2.0 / w
-        self.camera.SetParallelScale(scale)
-        point = self.camera.GetFocalPoint()
-        dis = self.camera.GetDistance()
-        self.camera.SetViewUp(0, -1, 0)
-        self.camera.SetPosition(point[0], point[1], point[2] - dis)
-        self.renderer.ResetCameraClippingRange()
-        
-        # View of image
-        self.view = 2
-                
-        self.interactor_style.AddObserver("MouseMoveEvent", self.MouseMoveCallback)
-        self.interactor_style.AddObserver("LeftButtonReleaseEvent", self.LeftButtonReleaseCallback)
-        self.interactor_style.AddObserver("LeftButtonPressEvent", self.LeftButtonPressCallback)
-        self.interactor_style.AddObserver("MiddleButtonPressEvent", self.MiddleButtonPressCallback)
-        self.interactor_style.AddObserver("RightButtonPressEvent", self.RightButtonPressCallback)
-        self.interactor_style.AddObserver("RightButtonReleaseEvent", self.RightButtonReleaseCallback)
-        self.interactor_style.AddObserver("KeyPressEvent", self.KeyPressCallback)
-        self.interactor_style.AddObserver("CharEvent", self.CharCallback)
-        
-        self.updateAfter()
-        
-        self.render_window.Render()
+        self.widgetView.setWidgetView(self.qvtkWidget)
 
     def getName(self):
-        name = 'Data %d' % self.index
+        name = self.getData().getName()
+        if not name:
+            name = 'Result %d' % self.index
+            self.getData().setName(name)
         return name
-    def closeEvent(self, event):
-        super(MdiChildRegistration, self).closeEvent(event)
-        
-        self.gui.dataModel.remove(self.index)
-        self.gui.showMessageOnStatusBar("")
-        
-        event.accept()
-'''
+

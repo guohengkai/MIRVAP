@@ -8,10 +8,10 @@ Created on 2014-02-01
 
 from PyQt4 import QtCore, QtGui
 from Ui_MainWindow import Ui_MainWindow
-from MdiChild import MdiChildLoad#, MdiChildRegistration
+from MdiChild import MdiChildLoad, MdiChildRegistration
 import MIRVAP.Core.DataBase as db
 import MIRVAP.Core.ScriptBase as sb
-import MIRVAP.Core.PluginBase as pb
+import MIRVAP.Core.GuiBase as gb
 from functools import partial
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
@@ -35,6 +35,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         self.getAllScript()
         self.getAllPlugin()
+        self.getAllWidgetView()
         
         self.actionSave.triggered.connect(self.saveData)
         self.mdiArea.subWindowActivated.connect(self.updateStatus)
@@ -58,8 +59,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 db.saveMatData(dir, data)
                 window.setWindowTitle(name)
     def getAllPlugin(self):
-        self.pluginDir = pb.getAllPluginDir()
-        self.actionPlugin = [QtGui.QAction(pb.getPluginInstance(x).getName(), self, checkable = True,
+        self.pluginDir = gb.getAllGuiDir('Plugin')
+        self.actionPlugin = [QtGui.QAction(gb.getGuiClass(x)().getName(), self, checkable = True,
             triggered = partial(self.enablePlugin, self.pluginDir.index(x))) for x in self.pluginDir]
         self.pluginGroup = QtGui.QActionGroup(self)
         for x in self.actionPlugin:
@@ -68,6 +69,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             if str(x.text()) == 'Null':
                 x.setChecked(True)
                 self.nullIndex = self.actionPlugin.index(x)
+    def getAllWidgetView(self):
+        self.viewDir = gb.getAllGuiDir('WidgetView')
+        self.actionView = [QtGui.QAction(gb.getGuiClass(x)().getName(), self, checkable = True,
+            triggered = partial(self.enableView, self.viewDir.index(x))) for x in self.viewDir]
+        self.viewGroup = QtGui.QActionGroup(self)
+        for x in self.actionView:
+            self.viewGroup.addAction(x)
+            self.menuWidget_View.addAction(x)
+            if str(x.text()) == 'Result Image View':
+                x.setChecked(True)
+                self.resultIndex = self.actionView.index(x)
     def updateStatus(self):
         window = self.mdiArea.currentSubWindow()
         if not window:
@@ -85,6 +97,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         self.lastWindow = window
         self.actionPlugin[window.widgetView.pluginIndex].setChecked(True)
+        if type(window) is MdiChildRegistration:
+            self.actionView[window.viewIndex].setChecked(True)
         
     def enablePlugin(self, index):
         window = self.mdiArea.currentSubWindow()
@@ -94,8 +108,16 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             window = window.widget()
             window.save()
             
-            window.setPlugin(pb.getPluginInstance(self.pluginDir[index]), index)
+            window.setPlugin(gb.getGuiClass(self.pluginDir[index])(), index)
+    def enableView(self, index):
+        window = self.mdiArea.currentSubWindow()
+        if not window:
+            self.showErrorMessage('Error', 'There\'re no data!')
+        else:
+            window = window.widget()
+            window.save()
             
+            window.setView(gb.getGuiClass(self.viewDir[index]), index)
     def getAllScript(self):
         for key in self.menuScript.keys():
             dir = sb.getAllScriptDir(key)
@@ -112,7 +134,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):
-        # TO BE DONE
         data = self.script['Registration'][index]()
         if data:
             self.showMessageOnStatusBar("Registering...")
@@ -146,6 +167,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         names = {}
         for index in indexList:
             name = self.gui.dataModel[index].getName()
+            print name, index
             if not name:
                 name = 'Data %d' % index
             names[name] = index
@@ -153,11 +175,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         item, ok = QtGui.QInputDialog.getItem(self, "Select the fixed image", 
             "Fixed image:", items, 0, False)
         if ok and item:
+            item = str(item)
             fixedIndex = names[item]
             items.remove(item)
             item, ok = QtGui.QInputDialog.getItem(self, "Select the moving image", 
                 "Moving image:", items, 0, False)
             if ok and item:
+                item = str(item)
                 movingIndex = names[item]
                 return (fixedIndex, movingIndex)
     def showErrorMessage(self, title, message):

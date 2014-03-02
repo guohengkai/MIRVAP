@@ -18,10 +18,11 @@ class WidgetViewBase(object):
         raise NotImplementedError('Method "getName" Not Impletemented!')
         
 class SingleDataView(WidgetViewBase):
-    def __init__(self, parent):
+    def __init__(self, parent = None):
         super(SingleDataView, self).__init__(parent)
-        self.plugin = NullPlugin()
-        self.pluginIndex = self.parent.gui.win.nullIndex
+        if parent:
+            self.plugin = NullPlugin()
+            self.pluginIndex = self.parent.gui.win.nullIndex
         
     def setWidgetView(self, widget):
         self.initView(self.parent.getData(), widget)

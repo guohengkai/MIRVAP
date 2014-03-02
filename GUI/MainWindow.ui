@@ -74,8 +74,14 @@
       <string>Analysis</string>
      </property>
     </widget>
-    <addaction name="menuRegister"/>
+    <widget class="QMenu" name="menuWidget_View">
+     <property name="title">
+      <string>Widget View</string>
+     </property>
+    </widget>
     <addaction name="menuPlugin"/>
+    <addaction name="menuWidget_View"/>
+    <addaction name="menuRegister"/>
     <addaction name="menuAnalysis"/>
    </widget>
    <addaction name="menuFile"/>

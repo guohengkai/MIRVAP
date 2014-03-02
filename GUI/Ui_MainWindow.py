@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Fri Feb 28 14:21:31 2014
+# Created: Sun Mar 02 13:28:51 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -54,6 +54,8 @@ class Ui_MainWindow(object):
         self.menuPlugin.setObjectName(_fromUtf8("menuPlugin"))
         self.menuAnalysis = QtGui.QMenu(self.menuStart)
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
+        self.menuWidget_View = QtGui.QMenu(self.menuStart)
+        self.menuWidget_View.setObjectName(_fromUtf8("menuWidget_View"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setStyleSheet(_fromUtf8("QStatusBar::item{border: 0px}"))
@@ -66,8 +68,9 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.menuLoad.menuAction())
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionExit)
-        self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuPlugin.menuAction())
+        self.menuStart.addAction(self.menuWidget_View.menuAction())
+        self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuAnalysis.menuAction())
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuStart.menuAction())
@@ -84,6 +87,7 @@ class Ui_MainWindow(object):
         self.menuRegister.setTitle(_translate("MainWindow", "Register", None))
         self.menuPlugin.setTitle(_translate("MainWindow", "Plugin", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
+        self.menuWidget_View.setTitle(_translate("MainWindow", "Widget View", None))
         self.actionSave.setText(_translate("MainWindow", "Save...", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
 

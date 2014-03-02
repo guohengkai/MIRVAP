@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-02, 00:15:02 -->
+<!-- Saved: 2014-03-02, 14:41:47 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -47,6 +47,10 @@
     <Source>Script/Registration/TestRegistration.py</Source>
     <Source>Core/WidgetViewBase.py</Source>
     <Source>GUI/Ui_MdiChild.py</Source>
+    <Source>GUI/WidgetView/__init__.py</Source>
+    <Source>GUI/WidgetView/FixedImageView.py</Source>
+    <Source>GUI/WidgetView/MovingImageView.py</Source>
+    <Source>GUI/WidgetView/ResultImageView.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
