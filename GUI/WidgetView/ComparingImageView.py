@@ -59,9 +59,9 @@ class ComparingImageView(SingleDataView):
         self.renderer2.AddViewProp(self.image_slice2)
         
         self.renderer.SetViewport(0, 0, 0.5, 1)
-        self.renderer2.SetViewport(0.5, 0, 1, 1) 
+        self.renderer2.SetViewport(0.5, 0, 1, 1)
         
-        self.renderer2.SetActiveCamera(self.renderer.GetActiveCamera())
+        self.renderer2.SetActiveCamera(self.camera)
         self.render_window.Render()
         
     def KeyPressCallback(self, obj, event):

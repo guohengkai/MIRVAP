@@ -127,8 +127,11 @@ class ContourPlugin(PluginBase):
             return
         if not self.leftMove:
             pos = self.parent.window_interactor.GetEventPosition()
-            self.parent.window_interactor.GetPicker().Pick(pos[0], pos[1], 0, self.parent.window_interactor.GetRenderWindow().GetRenderers().GetFirstRenderer())
+            self.parent.window_interactor.GetPicker().Pick(pos[0], pos[1], 0, self.parent.renderer)
             picker = self.parent.window_interactor.GetPicker().GetPickPosition()
+            print pos
+            print picker
+            print '---------------------'
             
             if self.key == 'Center' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
                 self.contourRep[self.currentContour].ClearAllNodes()
