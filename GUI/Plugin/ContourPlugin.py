@@ -25,7 +25,7 @@ class ContourPlugin(PluginBase):
         self.editable = True
         self.key = 'Contour'
         
-    def enable(self, parent, color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), key = 'result'):
+    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1))):
         self.parent = parent
         self.datakey = key
         self.contourRep = []
@@ -130,9 +130,6 @@ class ContourPlugin(PluginBase):
             pos = self.parent.window_interactor.GetEventPosition()
             self.parent.window_interactor.GetPicker().Pick(pos[0], pos[1], 0, self.parent.renderer)
             picker = self.parent.window_interactor.GetPicker().GetPickPosition()
-            print pos
-            print picker
-            print '---------------------'
             
             if self.key == 'Center' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
                 self.contourRep[self.currentContour].ClearAllNodes()

@@ -137,6 +137,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):
+        if self.lastWindow.isShow:
+            self.lastWindow.save()
         temp = self.getMessageOnStatusBar()
         self.showMessageOnStatusBar("Registering...")
         data = self.script['Registration'][index]()

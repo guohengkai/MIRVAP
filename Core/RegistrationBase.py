@@ -18,8 +18,8 @@ class RegistrationBase(ScriptBase):
         indexes = self.gui.getRegisterDataIndex()
         if indexes:
             if len(indexes) == 2:
-                data = self.register(self.gui.dataModel[indexes[0]], self.gui.dataModel[indexes[1]]) 
-                resultData = db.ResultData(data, db.ImageInfo(self.gui.dataModel[indexes[0]].info.data))
+                data, point = self.register(self.gui.dataModel[indexes[0]], self.gui.dataModel[indexes[1]]) 
+                resultData = db.ResultData(data, db.ImageInfo(self.gui.dataModel[indexes[0]].info.data), point)
                 resultData.addDetail('fix', indexes[0])
                 resultData.addDetail('move', indexes[1])
                 resultData.setName(None)
