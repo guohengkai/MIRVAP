@@ -27,6 +27,8 @@ class MdiChildBase(QtGui.QMainWindow):
         self.setQVTKWidget()
     def getName(self):
         raise NotImplementedError('Method "getName" Not Impletemented!')
+    def getData(self, key):
+        raise NotImplementedError('Method "getData" Not Impletemented!')
     def closeEvent(self, event):
         self.isShow = False
 
@@ -46,7 +48,7 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
             name = 'Data %d' % self.index
             self.getData().setName(name)
         return name
-    def getData(self):
+    def getData(self, key = None):
         return self.gui.dataModel[self.index]
     '''
         Move left button:     Modify window level

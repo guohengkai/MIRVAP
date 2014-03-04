@@ -25,8 +25,9 @@ class ContourPlugin(PluginBase):
         self.editable = True
         self.key = 'Contour'
         
-    def enable(self, parent):
+    def enable(self, parent, color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), key = 'result'):
         self.parent = parent
+        self.datakey = key
         self.contourRep = []
         self.contourWidget = []
         # The flag of showing the contour
@@ -44,12 +45,12 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetInteractor(self.parent.window_interactor)
             self.contourWidget[i].SetRepresentation(self.contourRep[i])
             
-        self.contourRep[0].GetLinesProperty().SetColor(1, 0, 0)
-        self.contourRep[1].GetLinesProperty().SetColor(0, 1, 0)
-        self.contourRep[2].GetLinesProperty().SetColor(0, 0, 1)
-        self.contourRep[0].GetProperty().SetColor(1, 0, 0)
-        self.contourRep[1].GetProperty().SetColor(0, 1, 0)
-        self.contourRep[2].GetProperty().SetColor(0, 0, 1)
+        self.contourRep[0].GetLinesProperty().SetColor(color[0])
+        self.contourRep[1].GetLinesProperty().SetColor(color[1])
+        self.contourRep[2].GetLinesProperty().SetColor(color[2])
+        self.contourRep[0].GetProperty().SetColor(color[0])
+        self.contourRep[1].GetProperty().SetColor(color[1])
+        self.contourRep[2].GetProperty().SetColor(color[2])
         self.contourRep[0].GetActiveProperty().SetColor(1, 1, 1)
         self.contourRep[1].GetActiveProperty().SetColor(1, 1, 1)
         self.contourRep[2].GetActiveProperty().SetColor(1, 1, 1)   
@@ -73,7 +74,7 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetEnabled(0)
             
     def loadCurrentSlicePoint(self, view, slice, last = 0):
-        point_array = self.parent.parent.getData().pointSet.getSlicePoint(self.key, view, slice - 1 + last)
+        point_array = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + last)
         result = False
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
@@ -105,7 +106,7 @@ class ContourPlugin(PluginBase):
             space += [1]
         for i in range(3):
             point_array = self.getAllPoint(i) / space
-            self.parent.parent.getData().pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
+            self.parent.parent.getData(self.datakey).pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
 
     def getAllPoint(self, cnt = -1):
         if cnt == -1:

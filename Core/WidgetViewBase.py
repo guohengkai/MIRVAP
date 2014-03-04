@@ -21,7 +21,7 @@ class SingleDataView(WidgetViewBase):
     def __init__(self, parent = None):
         super(SingleDataView, self).__init__(parent)
         if parent:
-            self.plugin = NullPlugin()
+            self.plugin = [NullPlugin()]
             self.pluginIndex = self.parent.gui.win.nullIndex
         
     def setWidgetView(self, widget):
@@ -115,16 +115,25 @@ class SingleDataView(WidgetViewBase):
         
         self.render_window.Render()
     def MouseMoveCallback(self, obj, event):
-        if self.plugin.MouseMoveCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.MouseMoveCallback(obj, event)
+        if flag:
             return
         self.interactor_style.OnMouseMove()
     def LeftButtonReleaseCallback(self, obj, event):
-        if self.plugin.LeftButtonReleaseCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.LeftButtonReleaseCallback(obj, event)
+        if flag:
             return
         self.interactor_style.OnLeftButtonUp()
         
     def KeyPressCallback(self, obj, event):
-        if self.plugin.KeyPressCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.KeyPressCallback(obj, event)
+        if flag:
             return
         ch = self.window_interactor.GetKeySym()
         if ch == 'r':
@@ -177,7 +186,10 @@ class SingleDataView(WidgetViewBase):
     def CharCallback(self, obj, event):
         pass
     def LeftButtonPressCallback(self, obj, event):
-        if self.plugin.LeftButtonPressCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.LeftButtonPressCallback(obj, event)
+        if flag:
             return
         self.window_interactor.SetAltKey(0)
         self.window_interactor.SetControlKey(0)
@@ -185,7 +197,10 @@ class SingleDataView(WidgetViewBase):
         self.interactor_style.OnLeftButtonDown()
         
     def MiddleButtonPressCallback(self, obj, event):
-        if self.plugin.MiddleButtonPressCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.MiddleButtonPressCallback(obj, event)
+        if flag:
             return
         self.window_interactor.SetAltKey(0)
         self.window_interactor.SetControlKey(0)
@@ -193,9 +208,10 @@ class SingleDataView(WidgetViewBase):
         self.interactor_style.OnMiddleButtonDown()
         
     def RightButtonPressCallback(self, obj, event):
-        if self.plugin.RightButtonPressCallback(obj, event):
-            return
-        if self.dimension:
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.RightButtonPressCallback(obj, event)
+        if flag or self.dimension:
             return
         self.updateBefore()
         self.window_interactor.SetAltKey(0)
@@ -203,21 +219,28 @@ class SingleDataView(WidgetViewBase):
         self.window_interactor.SetShiftKey(0)
         self.interactor_style.OnRightButtonDown()
     def RightButtonReleaseCallback(self, obj, event):
-        if self.plugin.RightButtonReleaseCallback(obj, event):
+        flag = False
+        for plugin in self.plugin:
+            flag = flag or plugin.RightButtonReleaseCallback(obj, event)
+        if flag:
             return
         self.interactor_style.OnRightButtonUp()
         self.updateAfter()
     def updateAfter(self, *arg):
         status = self.getDirectionAndSlice()
         self.parent.gui.showMessageOnStatusBar("View: %s   Slice: %d" % status)
-        self.plugin.updateAfter(self.view, int(status[1]), *arg)
+        for plugin in self.plugin:
+            plugin.updateAfter(self.view, int(status[1]), *arg)
     def updateBefore(self, *arg):
         status = self.getDirectionAndSlice()
-        self.plugin.updateBefore(self.view, int(status[1]), *arg)
+        for plugin in self.plugin:
+            plugin.updateBefore(self.view, int(status[1]), *arg)
         
     def setPlugin(self, plugin, index):
-        self.plugin.disable()
-        self.plugin = plugin
+        if len(self.plugin) > 1:
+            return
+        self.plugin[0].disable()
+        self.plugin[0] = plugin
         plugin.enable(self)
         self.pluginIndex = index
         self.render_window.Render()
@@ -235,4 +258,5 @@ class SingleDataView(WidgetViewBase):
         elif self.view == 2:
             return ('Axial   ', origin[2] / self.space[2] + 1)
     def save(self):
-        self.plugin.save()
+        for plugin in self.plugin:
+            plugin.save()
