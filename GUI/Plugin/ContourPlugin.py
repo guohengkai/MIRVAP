@@ -24,8 +24,8 @@ class ContourPlugin(PluginBase):
         super(ContourPlugin, self).__init__()
         self.editable = True
         self.key = 'Contour'
-        
-    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1))):
+    # BUG TO BE FIXED: can't see the point in x, y view
+    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, opacity = 1):
         self.parent = parent
         self.datakey = key
         self.contourRep = []
@@ -51,9 +51,20 @@ class ContourPlugin(PluginBase):
         self.contourRep[0].GetProperty().SetColor(color[0])
         self.contourRep[1].GetProperty().SetColor(color[1])
         self.contourRep[2].GetProperty().SetColor(color[2])
+        if self.editable or self.key == 'Center':
+            self.contourRep[0].GetProperty().SetOpacity(opacity)
+            self.contourRep[1].GetProperty().SetOpacity(opacity)
+            self.contourRep[2].GetProperty().SetOpacity(opacity)
+        else:
+            self.contourRep[0].GetProperty().SetOpacity(0)
+            self.contourRep[1].GetProperty().SetOpacity(0)
+            self.contourRep[2].GetProperty().SetOpacity(0)
         self.contourRep[0].GetActiveProperty().SetColor(1, 1, 1)
         self.contourRep[1].GetActiveProperty().SetColor(1, 1, 1)
-        self.contourRep[2].GetActiveProperty().SetColor(1, 1, 1)   
+        self.contourRep[2].GetActiveProperty().SetColor(1, 1, 1)
+        if dash:
+            for contourRep in self.contourRep:
+                contourRep.GetLinesProperty().SetLineStipplePattern(0xf0f0)
         
         for i in range(3):
             eventTranslator = self.contourWidget[i].GetEventTranslator()
@@ -74,8 +85,12 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetEnabled(0)
             
     def loadCurrentSlicePoint(self, view, slice, last = 0):
+        # Hint: the position of the point been moved is not integer (To be done)
         point_array = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + last)
         result = False
+        #print 'load'
+        #print point_array
+        #print self.parent.parent.getData(self.datakey).pointSet.data
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
             if point_array[i].shape[0]:
@@ -102,12 +117,14 @@ class ContourPlugin(PluginBase):
         return result
     def saveCurrentSlicePoint(self, view, slice):
         space = self.parent.space
+        #print 'save'
         if len(space) == 2:
             space += [1]
         for i in range(3):
             point_array = self.getAllPoint(i) / space
+            #print i, point_array
             self.parent.parent.getData(self.datakey).pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
-
+        #print self.parent.parent.getData(self.datakey).pointSet.data
     def getAllPoint(self, cnt = -1):
         if cnt == -1:
             cnt = self.currentContour
@@ -141,6 +158,8 @@ class ContourPlugin(PluginBase):
             self.leftMove = False
             self.leftClicked = False
     def KeyPressCallback(self, obj, event):
+        if not self.editable:
+            return
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'c':
             if self.key == 'Center':
@@ -166,8 +185,6 @@ class ContourPlugin(PluginBase):
             for i in range(point_array.shape[0]):
                 self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[ind[i], :].tolist())
             self.parent.render_window.Render()
-            return
-        if not self.editable:
             return
         if ch in ['1', '2', '3']:
             temp = int(ch) - 1
