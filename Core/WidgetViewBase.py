@@ -36,6 +36,7 @@ class SingleDataView(WidgetViewBase):
         # Resolution: x(col), y(row), z(slice) 
         if len(self.space) == 3:
             self.space = [float(x) / self.space[-1] for x in self.space]
+        #self.space = [1.0, 1.0, 1.0]
         self.image.SetSpacing(self.space)
         shapeList = data.getData().shape
         y, x = shapeList[-2], shapeList[-1]

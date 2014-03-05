@@ -45,8 +45,6 @@ class LoadDicomFile(LoadBase):
         if modality == 'MR' or modality == 'CT':
             ps = data.PixelSpacing
             if dimension == 3:
-                # The difference between slice thickness and spacing?
-                #resolution = [float(data.SliceThickness), float(ps[0]), float(ps[1])]
                 resolution = [float(data.SpacingBetweenSlices), float(ps[0]), float(ps[1])]
             else:
                 resolution = [float(ps[0]), float(ps[1])]   

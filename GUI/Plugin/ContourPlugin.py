@@ -24,7 +24,7 @@ class ContourPlugin(PluginBase):
         super(ContourPlugin, self).__init__()
         self.editable = True
         self.key = 'Contour'
-    # BUG TO BE FIXED: can't see the point in x, y view
+    
     def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, opacity = 1):
         self.parent = parent
         self.datakey = key
@@ -89,6 +89,7 @@ class ContourPlugin(PluginBase):
         point_array = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + last)
         result = False
         #print 'load'
+        #print slice - 1 + last
         #print point_array
         #print self.parent.parent.getData(self.datakey).pointSet.data
         for i in range(3):
@@ -103,7 +104,7 @@ class ContourPlugin(PluginBase):
                     if self.parent.dimension:
                         self.contourRep[i].AddNodeAtWorldPosition(point[0], point[1], 0)
                     else:
-                        point[view] = slice - 1
+                        point[view] = (slice - 1) * space[view]
                         self.contourRep[i].AddNodeAtWorldPosition(point)
                 self.contourWidget[i].SetWidgetState(2)
                 self.contourRep[i].ClosedLoopOn()
@@ -161,6 +162,11 @@ class ContourPlugin(PluginBase):
         if not self.editable:
             return
         ch = self.parent.window_interactor.GetKeySym()
+#        if ch == 'Return':
+#            space = self.parent.space
+#            print self.getAllPoint(0) / space
+#            print self.parent.parent.getData(self.datakey).pointSet.data
+#            return
         if ch == 'c':
             if self.key == 'Center':
                 return

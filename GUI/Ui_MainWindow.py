@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Sun Mar 02 15:35:49 2014
+# Created: Wed Mar 05 14:59:56 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -46,6 +46,8 @@ class Ui_MainWindow(object):
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
         self.menuLoad = QtGui.QMenu(self.menuFile)
         self.menuLoad.setObjectName(_fromUtf8("menuLoad"))
+        self.menuSave = QtGui.QMenu(self.menuFile)
+        self.menuSave.setObjectName(_fromUtf8("menuSave"))
         self.menuStart = QtGui.QMenu(self.menubar)
         self.menuStart.setObjectName(_fromUtf8("menuStart"))
         self.menuRegister = QtGui.QMenu(self.menuStart)
@@ -61,14 +63,12 @@ class Ui_MainWindow(object):
         self.statusbar.setStyleSheet(_fromUtf8("QStatusBar::item{border: 0px}"))
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         MainWindow.setStatusBar(self.statusbar)
-        self.actionSave = QtGui.QAction(MainWindow)
-        self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionClear_all = QtGui.QAction(MainWindow)
         self.actionClear_all.setObjectName(_fromUtf8("actionClear_all"))
         self.menuFile.addAction(self.menuLoad.menuAction())
-        self.menuFile.addAction(self.actionSave)
+        self.menuFile.addAction(self.menuSave.menuAction())
         self.menuFile.addAction(self.actionClear_all)
         self.menuFile.addAction(self.actionExit)
         self.menuStart.addAction(self.menuPlugin.menuAction())
@@ -86,12 +86,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Medical Image Registration Visualization and Analysis Platform", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuLoad.setTitle(_translate("MainWindow", "Load", None))
+        self.menuSave.setTitle(_translate("MainWindow", "Save", None))
         self.menuStart.setTitle(_translate("MainWindow", "Start", None))
         self.menuRegister.setTitle(_translate("MainWindow", "Register", None))
         self.menuPlugin.setTitle(_translate("MainWindow", "Plugin", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuWidget_View.setTitle(_translate("MainWindow", "Widget View", None))
-        self.actionSave.setText(_translate("MainWindow", "Save...", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionClear_all.setText(_translate("MainWindow", "Clear all", None))
 

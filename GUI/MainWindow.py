@@ -27,38 +27,25 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.statusbar.addWidget(self.msgLabel)
         
         self.menuScript = {'Load': self.menuLoad, 'Registration': self.menuRegister, 
-            'Analysis': self.menuAnalysis}
+            'Analysis': self.menuAnalysis, 'Save': self.menuSave}
         self.script = {}
         self.actionScript = {}
         self.runScript = {'Load': self.runLoadScript, 'Registration': self.runRegisterScript, 
-            'Analysis': self.runAnalysisScript}
+            'Analysis': self.runAnalysisScript, 'Save': self.runSaveScript}
         
         self.getAllScript()
         self.getAllPlugin()
         self.getAllWidgetView()
         
-        self.actionSave.triggered.connect(self.saveData)
+        #self.actionSave.triggered.connect(self.saveData)
         self.actionClear_all.triggered.connect(self.clearAllData)
         self.mdiArea.subWindowActivated.connect(self.updateStatus)
         self.lastWindow = None
-        
-    
-    def saveData(self):
-        window = self.mdiArea.currentSubWindow()
-        if not window:
-            self.gui.showErrorMessage('Error', 'There\'re no data!')
-        else:
-            window = window.widget()
-            window.save()
-            data = window.getData()
-            name, ok = QtGui.QInputDialog.getText(self, "Enter the name", 
+            
+    def getInputName(self, window):
+        name, ok = QtGui.QInputDialog.getText(self, "Enter the name", 
                 "Name:", QtGui.QLineEdit.Normal, window.getName())
-            if ok and name:
-                name = str(name)
-                data.setName(name)
-                dir = './Data/' + name
-                db.saveMatData(dir, self.gui.dataModel, window.index)
-                window.setWindowTitle(name)
+        return name, ok
     def getAllPlugin(self):
         self.pluginDir = gb.getAllGuiDir('Plugin')
         self.actionPlugin = [QtGui.QAction(gb.getGuiClass(x)().getName(), self, checkable = True,
@@ -128,6 +115,16 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.actionScript[key] = [QtGui.QAction(sb.getScriptName(x, self.gui), self, triggered = partial(self.runScript[key], dir.index(x))) for x in dir]
             for action in self.actionScript[key]:
                 self.menuScript[key].addAction(action)
+    def runSaveScript(self, index):
+        window = self.mdiArea.currentSubWindow()
+        if not window:
+            self.gui.showErrorMessage('Error', 'There\'re no data!')
+        else:
+            temp = self.getMessageOnStatusBar()
+            self.showMessageOnStatusBar("Saving...")
+            window = window.widget()
+            self.script['Save'][index](window)
+            self.showMessageOnStatusBar(temp)
     def runLoadScript(self, index):
         temp = self.getMessageOnStatusBar()
         self.showMessageOnStatusBar("Loading...")
