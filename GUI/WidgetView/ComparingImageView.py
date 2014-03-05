@@ -5,12 +5,12 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import SingleDataView
+from MIRVAP.Core.WidgetViewBase import RegistrationDataView
 import itk
 import vtk
 import numpy as npy
 
-class ComparingImageView(SingleDataView):
+class ComparingImageView(RegistrationDataView):
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
         

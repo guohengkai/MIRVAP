@@ -37,15 +37,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.getAllPlugin()
         self.getAllWidgetView()
         
-        #self.actionSave.triggered.connect(self.saveData)
         self.actionClear_all.triggered.connect(self.clearAllData)
         self.mdiArea.subWindowActivated.connect(self.updateStatus)
         self.lastWindow = None
-            
-    def getInputName(self, window):
-        name, ok = QtGui.QInputDialog.getText(self, "Enter the name", 
-                "Name:", QtGui.QLineEdit.Normal, window.getName())
-        return name, ok
+        self.updateStatus()
+        self.menuRegister.setDisabled(True)
     def getAllPlugin(self):
         self.pluginDir = gb.getAllGuiDir('Plugin')
         self.actionPlugin = [QtGui.QAction(gb.getGuiClass(x)().getName(), self, checkable = True,
@@ -65,7 +61,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         for x in self.actionView:
             self.viewGroup.addAction(x)
             self.menuWidget_View.addAction(x)
-            if str(x.text()) == 'Result Image View':
+            if str(x.text()) == 'Main(Result) Image View':
                 x.setChecked(True)
                 self.resultIndex = self.actionView.index(x)
     def updateStatus(self):
@@ -73,10 +69,17 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if not window:
             del self.lastWindow
             self.lastWindow = None
+            self.menuPlugin.setDisabled(True)
+            self.menuAnalysis.setDisabled(True)
+            self.menuWidget_View.setDisabled(True)
+            self.menuSave.setDisabled(True)
             return
         window = window.widget()
         if window == self.lastWindow:
             return
+        self.menuAnalysis.setDisabled(False)
+        self.menuSave.setDisabled(False)
+        self.menuWidget_View.setDisabled(False)
         if self.lastWindow:
             if self.lastWindow.isShow:
                 self.lastWindow.save()
@@ -85,8 +88,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         self.lastWindow = window
         self.actionPlugin[window.widgetView.pluginIndex].setChecked(True)
+        self.menuPlugin.setDisabled(False)
         if type(window) is MdiChildRegistration:
             self.actionView[window.viewIndex].setChecked(True)
+            if window.viewIndex != self.resultIndex:
+                self.menuPlugin.setDisabled(True)
         
     def enablePlugin(self, index):
         # Need to check if the window can put it
@@ -107,7 +113,15 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             window = window.widget()
             window.save()
             
-            window.setView(gb.getGuiClass(self.viewDir[index]), index)
+            if not window.setView(gb.getGuiClass(self.viewDir[index]), index):
+                self.gui.showErrorMessage('Error', 'This view isn\'t compatible with the window!')
+                self.actionView[window.viewIndex].setChecked(True)
+                return
+            
+            if index == self.resultIndex:
+                self.menuPlugin.setDisabled(False)
+            else:
+                self.menuPlugin.setDisabled(True)
     def getAllScript(self):
         for key in self.menuScript.keys():
             dir = sb.getAllScriptDir(key)
@@ -131,6 +145,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         data = self.script['Load'][index]()
         if data:
             self.addNewDataView(data)
+            if self.gui.dataModel.getCount() > 1:
+                self.menuRegister.setDisabled(False)
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):
@@ -172,6 +188,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.gui.dataModel.data.clear()
         self.gui.showErrorMessage('Success', 'Sucessfully clear all the data!')
         self.showMessageOnStatusBar("")
+        self.menuRegister.setDisabled(True)
     def closeEvent(self, event):
         reply = QtGui.QMessageBox.question(self, "Quit", "Are you sure to quit?", 
             QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)

@@ -23,7 +23,7 @@ class SingleDataView(WidgetViewBase):
         if parent:
             self.plugin = [NullPlugin()]
             self.pluginIndex = self.parent.gui.win.nullIndex
-        
+        self.type = 'load'
     def setWidgetView(self, widget):
         self.initView(self.parent.getData(), widget)
     def getName(self):
@@ -261,3 +261,8 @@ class SingleDataView(WidgetViewBase):
     def save(self):
         for plugin in self.plugin:
             plugin.save()
+
+class RegistrationDataView(SingleDataView):
+    def __init__(self, parent = None):
+        super(RegistrationDataView, self).__init__(parent)
+        self.type = 'registration'

@@ -8,7 +8,6 @@ Created on 2014-02-06
 from PyQt4 import QtCore, QtGui
 from Ui_MdiChild import Ui_MdiChild
 import MIRVAP.Core.DataBase as db
-from MIRVAP.Core.WidgetViewBase import SingleDataView
 from WidgetView.ResultImageView import ResultImageView
 
 
@@ -40,8 +39,10 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
         self.index = index
         self.setWindowTitle(self.getName())
         
-        self.widgetView = SingleDataView(self)
-
+        self.widgetView = ResultImageView(self)
+        self.viewIndex = self.gui.win.resultIndex
+        
+        self.type = 'load'
     def getName(self):
         name = self.getData().getName()
         if not name:
@@ -64,11 +65,16 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
     '''
     def setQVTKWidget(self):
         self.widgetView.setWidgetView(self.qvtkWidget)
-
-    
     def setPlugin(self, plugin, index):
         self.widgetView.setPlugin(plugin, index)
-    
+    def setView(self, view, index):
+        instance = view(self)
+        if instance.type != self.type and instance.type != 'any':
+            return False
+        self.widgetView = instance
+        self.viewIndex = index
+        self.setQVTKWidget()
+        return True
     def save(self):
         if self.isShow:
             self.widgetView.save()
@@ -76,19 +82,7 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
     def closeEvent(self, event):
         super(MdiChildLoad, self).closeEvent(event)
         self.save()
-        '''
-        name, ok = QtGui.QInputDialog.getText(self, "Save the data", 
-            "Name:", QtGui.QLineEdit.Normal, self.getName())
-        if ok and name:
-            self.gui.showMessageOnStatusBar("Saving...")
-            name = str(name)
-            self.getData().setName(name)
-            dir = './Data/' + name
-            db.saveMatData(dir, self.getData())
-        '''
         self.gui.showMessageOnStatusBar("")
-        import gc
-        gc.collect()
         event.accept()
 
 class MdiChildRegistration(MdiChildLoad):
@@ -99,9 +93,7 @@ class MdiChildRegistration(MdiChildLoad):
         self.movingIndex = self.getData().getMovingIndex()
         
         self.setWindowTitle(self.getName())
-        
-        self.widgetView = ResultImageView(self)
-        self.viewIndex = self.gui.win.resultIndex
+        self.type = 'registration'
     def getData(self, key = 'result'):
         if key == 'result':
             return self.gui.dataModel[self.index]
@@ -109,13 +101,6 @@ class MdiChildRegistration(MdiChildLoad):
             return self.gui.dataModel[self.fixedIndex]
         elif key == 'move':
             return self.gui.dataModel[self.movingIndex]
-    def setView(self, view, index):
-        self.widgetView = view(self)
-        self.viewIndex = index
-        self.setQVTKWidget()
-    def setQVTKWidget(self):
-        self.widgetView.setWidgetView(self.qvtkWidget)
-
     def getName(self):
         name = self.getData().getName()
         if not name:

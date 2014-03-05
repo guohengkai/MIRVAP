@@ -45,6 +45,10 @@ class PyQtGui(GuiBase):
             movingIndex = self.getDataIndex(names, "Select the moving image")
             if movingIndex is not None:
                 return (fixedIndex, movingIndex)
+    def getInputName(self, window):
+        name, ok = QtGui.QInputDialog.getText(self.win, "Enter the name", 
+                "Name:", QtGui.QLineEdit.Normal, window.getName())
+        return name, ok
     def showErrorMessage(self, title, message):
         QtGui.QMessageBox.information(self.win, title, message)
     def showMessageOnStatusBar(self, text):

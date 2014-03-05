@@ -5,11 +5,11 @@ Created on 2014-03-04
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import SingleDataView
+from MIRVAP.Core.WidgetViewBase import RegistrationDataView
 from MIRVAP.GUI.Plugin.ContourViewPlugin import ContourViewPlugin
 from MIRVAP.GUI.Plugin.CenterViewPlugin import CenterViewPlugin
 
-class ComparingPointView(SingleDataView):
+class ComparingPointView(RegistrationDataView):
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
         color = ((0.6, 0.2, 0.2), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6))

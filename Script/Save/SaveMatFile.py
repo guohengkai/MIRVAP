@@ -12,7 +12,7 @@ class SaveMatFile(SaveBase):
     def getName(self):
         return 'Save to mat files'
     def save(self, window, data):
-        name, ok = self.gui.win.getInputName(window)
+        name, ok = self.gui.getInputName(window)
         if ok and name:
             name = str(name)
             data.setName(name)

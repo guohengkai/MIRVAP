@@ -5,9 +5,9 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import SingleDataView
+from MIRVAP.Core.WidgetViewBase import RegistrationDataView
 
-class FixedImageView(SingleDataView):
+class FixedImageView(RegistrationDataView):
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
     def getName(self):
