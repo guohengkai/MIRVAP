@@ -25,11 +25,3 @@ class LoadMatFile(LoadBase):
         else:
             fileData = db.BasicData(data, info, point)
         return fileData
-        
-if __name__ == "__main__":
-    from MIRVAP.Test.TestGui import TestGui
-    load = LoadMatFile(TestGui())
-    image = load.load()
-    print image.getData().shape
-    print image.getResolution()
-    print image.getModality()

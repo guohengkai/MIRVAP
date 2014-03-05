@@ -20,6 +20,11 @@ class PyQtGui(GuiBase):
         temp = QtGui.QFileDialog.getOpenFileNames(self.win, title, dir, filter)
         fileNames = map(str, temp)
         return fileNames
+    def getSaveName(self, title, dir, filter):
+        temp = QtGui.QFileDialog.getSaveFileName(self.win, title, dir, filter)
+        fileName = str(temp)
+        return fileName
+        
     def getReloadDataIndex(self):
         if self.dataModel.getCount() == 0:
             self.showErrorMessage('Error', 'There\'re no enough data!')

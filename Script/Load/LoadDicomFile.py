@@ -68,17 +68,3 @@ class LoadDicomFile(LoadBase):
         info.addData('flip', flip)
 
         return info
-
-if __name__ == "__main__":
-    from MIRVAP.Test.TestGui import TestGui
-    load = LoadDicomFile(TestGui())
-    image = load.run()
-    data = image.getData()
-    print data.shape
-    #print image.getITKImage()
-    #print image.getSimpleITKImage()
-    #print image.getResolution()
-    #print image.getModality()
-    #data = dicom.read_file(TestGui().getFileNames()[0])
-    #print data
-    
