@@ -17,7 +17,10 @@ class LoadDicomFile(LoadBase):
     def getName(self):
         return 'Load from dicom files'
     def getLoadParameters(self):
-        pass
+        title = 'Open DICOM Image'
+        dir = 'Test/Data'
+        filter = 'DICOM Files(*.*)'
+        return title, dir, filter
     def load(self, dir):
         try:
             data = db.loadDicomArray(dir)

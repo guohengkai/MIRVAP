@@ -16,9 +16,8 @@ class PyQtGui(GuiBase):
         self.app = QtGui.QApplication(sys.argv)
         self.win = MainWindow(self)
         
-    def getFileNames(self, *args):
-        # The argument need to be setted
-        temp = QtGui.QFileDialog.getOpenFileNames()
+    def getFileNames(self, title, dir, filter):
+        temp = QtGui.QFileDialog.getOpenFileNames(self.win, title, dir, filter)
         fileNames = map(str, temp)
         return fileNames
     def getReloadDataIndex(self):

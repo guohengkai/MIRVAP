@@ -14,7 +14,10 @@ class LoadMatFile(LoadBase):
     def getName(self):
         return 'Load from mat files'
     def getLoadParameters(self):
-        pass
+        title = 'Open Matlab Data'
+        dir = 'Data'
+        filter = 'Mat Files(*.mat)'
+        return title, dir, filter
     def load(self, dir):
         data, info, point = db.loadMatData(dir[0], self.gui.dataModel)
         if info.getData('fix') is not None:

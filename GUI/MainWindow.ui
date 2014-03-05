@@ -87,6 +87,7 @@
     </widget>
     <addaction name="menuPlugin"/>
     <addaction name="menuWidget_View"/>
+    <addaction name="separator"/>
     <addaction name="menuRegister"/>
     <addaction name="menuAnalysis"/>
    </widget>

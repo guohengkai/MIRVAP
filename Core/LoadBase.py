@@ -13,7 +13,8 @@ class LoadBase(ScriptBase):
         super(LoadBase, self).__init__(gui)
         
     def run(self, *args, **kwargs):
-        dir = self.gui.getFileNames(self.getLoadParameters())
+        title, dir, filter = self.getLoadParameters()
+        dir = self.gui.getFileNames(title, dir, filter)
         if dir:
             return self.load(dir)
         

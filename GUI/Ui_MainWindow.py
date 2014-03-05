@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Wed Mar 05 14:59:56 2014
+# Created: Wed Mar 05 23:24:57 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,6 +73,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menuStart.addAction(self.menuPlugin.menuAction())
         self.menuStart.addAction(self.menuWidget_View.menuAction())
+        self.menuStart.addSeparator()
         self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuAnalysis.menuAction())
         self.menubar.addAction(self.menuFile.menuAction())
