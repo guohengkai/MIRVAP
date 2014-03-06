@@ -16,6 +16,26 @@ class WidgetViewBase(object):
         raise NotImplementedError('Method "setWidgetView" Not Impletemented!')
     def getName(self):
         raise NotImplementedError('Method "getName" Not Impletemented!')
+    def initView(self, data, widget):
+        image_type = data.getITKImageType()
+        self.image = data.getITKImage()
+        self.space = data.getResolution().tolist()
+        # Resolution: x(col), y(row), z(slice) 
+        if len(self.space) == 3:
+            self.space = [float(x) / self.space[-1] for x in self.space]
+        #self.space = [1.0, 1.0, 1.0]
+        self.image.SetSpacing(self.space)
+        
+        self.itk_vtk_converter = itk.ImageToVTKImageFilter[image_type].New()
+        self.itk_vtk_converter.SetInput(self.image)
+        self.image_resample = vtk.vtkImageResample()
+        self.image_resample.SetInput(self.itk_vtk_converter.GetOutput())
+        
+        self.renderer = vtk.vtkRenderer()
+        self.render_window = widget.GetRenderWindow()
+        self.render_window.AddRenderer(self.renderer)
+    def save(self):
+        pass
         
 class SingleDataView(WidgetViewBase):
     def __init__(self, parent = None):
@@ -30,29 +50,14 @@ class SingleDataView(WidgetViewBase):
         return "Data View"
         
     def initView(self, data, widget):
-        image_type = data.getITKImageType()
-        self.image = data.getITKImage()
-        self.space = data.getResolution().tolist()
-        # Resolution: x(col), y(row), z(slice) 
-        if len(self.space) == 3:
-            self.space = [float(x) / self.space[-1] for x in self.space]
-        #self.space = [1.0, 1.0, 1.0]
-        self.image.SetSpacing(self.space)
+        super(SingleDataView, self).initView(data, widget)
+        
         shapeList = data.getData().shape
         y, x = shapeList[-2], shapeList[-1]
         self.dimension = len(shapeList) == 2
         
-        itk_vtk_converter = itk.ImageToVTKImageFilter[image_type].New()
-        itk_vtk_converter.SetInput(self.image)
-        image_resample = vtk.vtkImageResample()
-        image_resample.SetInput(itk_vtk_converter.GetOutput())
-        
-        self.renderer = vtk.vtkRenderer()
-        self.render_window = widget.GetRenderWindow()
-        self.render_window.AddRenderer(self.renderer)
-        
         self.reslice_mapper = vtk.vtkImageResliceMapper()
-        self.reslice_mapper.SetInput(image_resample.GetOutput())
+        self.reslice_mapper.SetInput(self.image_resample.GetOutput())
         self.reslice_mapper.SliceFacesCameraOn()
         self.reslice_mapper.SliceAtFocalPointOn()
         self.reslice_mapper.JumpToNearestSliceOn()

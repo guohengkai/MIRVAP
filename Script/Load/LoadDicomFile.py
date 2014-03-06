@@ -47,8 +47,12 @@ class LoadDicomFile(LoadBase):
         info.addData('modality', modality)
         if modality == 'MR' or modality == 'CT':
             ps = data.PixelSpacing
+            if modality == 'MR':
+                z = data.SpacingBetweenSlices
+            else:
+                z = data.SliceThickness
             if dimension == 3:
-                resolution = [float(data.SpacingBetweenSlices), float(ps[0]), float(ps[1])]
+                resolution = [float(z), float(ps[0]), float(ps[1])]
             else:
                 resolution = [float(ps[0]), float(ps[1])]   
             resolution = npy.array(resolution)

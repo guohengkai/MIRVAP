@@ -73,6 +73,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.menuAnalysis.setDisabled(True)
             self.menuWidget_View.setDisabled(True)
             self.menuSave.setDisabled(True)
+            self.actionPlugin[self.nullIndex].setChecked(True)
+            self.actionView[self.resultIndex].setChecked(True)
             return
         window = window.widget()
         if window == self.lastWindow:
