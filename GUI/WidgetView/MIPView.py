@@ -40,7 +40,6 @@ class MIPView(WidgetViewBase):
         self.window_interactor = vtk.vtkRenderWindowInteractor()
         self.render_window.SetInteractor(self.window_interactor)
         
-        self.window_interactor.Initialize()
         self.render_window.Render()
         
         # Manually set to trackball style
