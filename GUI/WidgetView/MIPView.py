@@ -15,6 +15,7 @@ class MIPView(WidgetViewBase):
     def getName(self):
         return "MIP Image View"
     def setWidgetView(self, widget):
+        super(MIPView, self).setWidgetView(widget)
         self.initView(self.parent.getData(), widget)
         
         range = self.image_resample.GetOutput().GetScalarRange()

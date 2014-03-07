@@ -51,7 +51,7 @@ class ContourPlugin(PluginBase):
         self.contourRep[0].GetProperty().SetColor(color[0])
         self.contourRep[1].GetProperty().SetColor(color[1])
         self.contourRep[2].GetProperty().SetColor(color[2])
-        if self.editable or self.key == 'Center':
+        if self.editable or self.key == 'Centerline':
             self.contourRep[0].GetProperty().SetOpacity(opacity)
             self.contourRep[1].GetProperty().SetOpacity(opacity)
             self.contourRep[2].GetProperty().SetOpacity(opacity)
@@ -159,7 +159,7 @@ class ContourPlugin(PluginBase):
             self.parent.window_interactor.GetPicker().Pick(pos[0], pos[1], 0, self.parent.renderer)
             picker = self.parent.window_interactor.GetPicker().GetPickPosition()
             
-            if self.key == 'Center' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
+            if self.key == 'Centerline' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
                 self.contourRep[self.currentContour].ClearAllNodes()
             self.contourRep[self.currentContour].AddNodeAtWorldPosition(picker)
             self.contourWidget[self.currentContour].SetWidgetState(2)
@@ -178,7 +178,7 @@ class ContourPlugin(PluginBase):
 #            print self.parent.parent.getData(self.datakey).pointSet.data
 #            return
         if ch == 'c':
-            if self.key == 'Center':
+            if self.key == 'Centerline':
                 return
             if self.contour[self.currentContour]:
                 self.contourRep[self.currentContour].GetLinesProperty().SetOpacity(0)
@@ -188,7 +188,7 @@ class ContourPlugin(PluginBase):
             self.parent.render_window.Render()
             return
         if ch == 's':
-            if self.key == 'Center':
+            if self.key == 'Centerline':
                 return
             point_array = self.getAllPoint()
             if point_array.shape[0] < 4:
@@ -222,12 +222,15 @@ class ContourPlugin(PluginBase):
         self.leftMove = False
         self.leftClicked = True
     def getNewMessage(self):
-        return "     %s: " % self.key + self.contourInfo[self.currentContour]
-    def updateAfter(self, view, slice, *arg):
-        self.loadCurrentSlicePoint(view, slice, *arg)
         if self.editable:
-            newMessage = self.getNewMessage()
-            self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
+            return "     %s: " % self.key + self.contourInfo[self.currentContour]
+        else:
+            return ""
+    def updateAfter(self, view, slice, *arg):
+        super(ContourPlugin, self).updateAfter(view, slice, *arg)
+        self.loadCurrentSlicePoint(view, slice, *arg)
+        newMessage = self.getNewMessage()
+        self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
     def updateBefore(self, view, slice, *arg):
         if self.editable:
             self.saveCurrentSlicePoint(view, slice)

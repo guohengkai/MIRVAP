@@ -23,7 +23,7 @@ class PluginBase(object):
     def RightButtonReleaseCallback(self, obj, event):
         pass
     def updateAfter(self, view, slice, *arg):
-        pass
+        self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + "     Plugin: " + self.getName())
     def updateBefore(self, view, slice, *arg):
         pass
     def save(self):

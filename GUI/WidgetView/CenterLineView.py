@@ -14,8 +14,9 @@ class CenterLineView(WidgetViewBase):
         super(CenterLineView, self).__init__(parent)
         self.datatype = (3, )
     def getName(self):
-        return "Center Line View"
+        return "Centerline View"
     def setWidgetView(self, widget):
+        super(CenterLineView, self).setWidgetView(widget)
         point_array = self.parent.getData().pointSet
         point_data = point_array.getData('Center')
         if point_data is None or not point_data.shape[0]:

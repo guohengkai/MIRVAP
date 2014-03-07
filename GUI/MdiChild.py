@@ -51,18 +51,6 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
         return name
     def getData(self, key = None):
         return self.gui.dataModel[self.index]
-    '''
-        Move left button:     Modify window level
-        Move middle button:   Pan the camera
-        Wheel middle button:  Zoom the camera
-        Move right button:    Slice through the image
-        
-        Press R Key:          Reset the Window/Level
-        Press X Key:          Reset to a sagittal view
-        Press Y Key:          Reset to a coronal view
-        Press Z Key:          Reset to an axial view
-        Press Left/Right Key: Slice through the image
-    '''
     def setQVTKWidget(self):
         self.widgetView.setWidgetView(self.qvtkWidget)
     def setPlugin(self, plugin, index):

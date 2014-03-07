@@ -10,4 +10,4 @@ from ContourPlugin import ContourPlugin
 class CenterPlugin(ContourPlugin):
     def __init__(self):
         super(CenterPlugin, self).__init__()
-        self.key = 'Center'
+        self.key = 'Centerline'

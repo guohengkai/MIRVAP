@@ -11,4 +11,4 @@ class ResultImageView(SingleDataView):
     def __init__(self, parent = None):
         super(ResultImageView, self).__init__(parent)
     def getName(self):
-        return "Main(Result) Image View"
+        return "Main/Result Image View"

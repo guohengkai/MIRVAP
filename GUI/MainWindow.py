@@ -103,7 +103,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         else:
             window = window.widget()
             window.save()
-            
+            self.showMessageOnStatusBar("")
             window.setPlugin(gb.getGuiClass(self.pluginDir[index])(), index)
     def enableView(self, index):
         window = self.mdiArea.currentSubWindow()
@@ -112,10 +112,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         else:
             window = window.widget()
             window.save()
-            
+            temp = self.getMessageOnStatusBar()
+            self.showMessageOnStatusBar("")
             if not window.setView(gb.getGuiClass(self.viewDir[index]), index):
                 self.gui.showErrorMessage('Error', 'This view isn\'t compatible with the window!')
                 self.actionView[window.viewIndex].setChecked(True)
+                self.showMessageOnStatusBar(temp)
                 return
             
             if index == self.resultIndex:

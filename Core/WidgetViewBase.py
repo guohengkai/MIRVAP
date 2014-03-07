@@ -18,7 +18,7 @@ class WidgetViewBase(object):
             self.plugin = [NullPlugin()]
             self.pluginIndex = self.parent.gui.win.nullIndex
     def setWidgetView(self, widget):
-        raise NotImplementedError('Method "setWidgetView" Not Impletemented!')
+        self.parent.gui.showMessageOnStatusBar("Widget: " + self.getName())
     def getName(self):
         raise NotImplementedError('Method "getName" Not Impletemented!')
     def initView(self, data, widget):
@@ -43,6 +43,18 @@ class WidgetViewBase(object):
         pass
         
 class SingleDataView(WidgetViewBase):
+    '''
+        Move left button:     Modify window level
+        Move middle button:   Pan the camera
+        Wheel middle button:  Zoom the camera
+        Move right button:    Slice through the image
+        
+        Press R Key:          Reset the Window/Level
+        Press X Key:          Reset to a sagittal view
+        Press Y Key:          Reset to a coronal view
+        Press Z Key:          Reset to an axial view
+        Press Left/Right Key: Slice through the image
+    '''
     def __init__(self, parent = None):
         super(SingleDataView, self).__init__(parent)
         self.type = 'load'
@@ -236,7 +248,7 @@ class SingleDataView(WidgetViewBase):
         self.updateAfter()
     def updateAfter(self, *arg):
         status = self.getDirectionAndSlice()
-        self.parent.gui.showMessageOnStatusBar("View: %s   Slice: %d" % status)
+        self.parent.gui.showMessageOnStatusBar("Widget: %s     View: %s    Slice: %d" % (self.getName(), status[0], status[1]))
         for plugin in self.plugin:
             plugin.updateAfter(self.view, int(status[1]), *arg)
     def updateBefore(self, *arg):

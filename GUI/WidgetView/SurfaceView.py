@@ -16,6 +16,7 @@ class SurfaceView(WidgetViewBase):
     def getName(self):
         return "Surface View"
     def setWidgetView(self, widget):
+        super(SurfaceView, self).setWidgetView(widget)
         # Because the vtkVoxelContoursToSurfaceFilter can only accept points with integer coordinate, substitute needs to be found
         point_array = self.parent.getData().pointSet
         point_data = point_array.getData('Contour')
