@@ -16,7 +16,6 @@ class SurfaceView(WidgetViewBase):
     def getName(self):
         return "Surface View"
     def setWidgetView(self, widget):
-        # The pointset need to be interpolated into spline
         point_array = self.parent.getData().pointSet
         point_data = point_array.getData('Contour')
         if point_data is None or not point_data.shape[0]:
@@ -50,10 +49,10 @@ class SurfaceView(WidgetViewBase):
             point = point_data[npy.where(npy.round(point_data[:, -1]) == cnt)]
             if not point.shape[0]:
                 continue
-            k = 0
+                
             self.cells = vtk.vtkCellArray()
             self.points = vtk.vtkPoints()
-            
+            l = 0
             for i in range(zmin, zmax + 1):
                 data = point[npy.where(npy.round(point[:, 2]) == i)]
                 if data is not None:
@@ -61,12 +60,25 @@ class SurfaceView(WidgetViewBase):
                         continue
                     data = npy.round(data)
                     count = data.shape[0]
-                    self.cells.InsertNextCell(count)
+                    points = vtk.vtkPoints()
                     for j in range(count):
-                        self.points.InsertPoint(k, data[j, 0], data[j, 1], data[j, 2])
-                        self.cells.InsertCellPoint(k)
-                        k += 1
+                        points.InsertPoint(j, data[j, 0], data[j, 1], data[j, 2])
                     
+                    para_spline = vtk.vtkParametricSpline()
+                    para_spline.SetPoints(points)
+                    para_spline.ClosedOn()
+                    
+                    # The number of output points set to 10 times of input points
+                    numberOfOutputPoints = count * 10
+                    self.cells.InsertNextCell(numberOfOutputPoints)
+                    for k in range(0, numberOfOutputPoints):
+                        t = k * 1.0 / numberOfOutputPoints
+                        pt = [0, 0, 0]
+                        para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                        self.points.InsertPoint(l, int(pt[0] + 0.5), int(pt[1] + 0.5), int(pt[2] + 0.5))
+                        self.cells.InsertCellPoint(l)
+                        l += 1
+
             self.contours[cnt].SetPoints(self.points)
             self.contours[cnt].SetPolys(self.cells)
             
