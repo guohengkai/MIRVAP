@@ -84,9 +84,12 @@ class ContourPlugin(PluginBase):
         for i in range(3):
             self.contourWidget[i].SetEnabled(0)
             
-    def loadCurrentSlicePoint(self, view, slice, last = 0):
+    def loadCurrentSlicePoint(self, view, slice, *arg):
         # Hint: the position of the point been moved is not integer (To be done)
-        point_array = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + last)
+        point_array = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1)
+        if len(arg) and self.editable:
+            if not point_array[self.currentContour].shape[0]:
+                point_array[self.currentContour] = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + arg[0])[self.currentContour]
         result = False
         #print 'load'
         #print slice - 1 + last
@@ -213,12 +216,7 @@ class ContourPlugin(PluginBase):
     def getNewMessage(self):
         return "     %s: " % self.key + self.contourInfo[self.currentContour]
     def updateAfter(self, view, slice, *arg):
-        if len(arg):
-            if not self.loadCurrentSlicePoint(view, slice):
-                if self.editable:
-                    self.loadCurrentSlicePoint(view, slice, arg[0])
-        else:
-            self.loadCurrentSlicePoint(view, slice)
+        self.loadCurrentSlicePoint(view, slice, *arg)
         if self.editable:
             newMessage = self.getNewMessage()
             self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
