@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-06, 16:47:49 -->
+<!-- Saved: 2014-03-07, 21:43:42 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -59,6 +59,7 @@
     <Source>Script/Save/SaveMatFile.py</Source>
     <Source>GUI/WidgetView/MIPView.py</Source>
     <Source>GUI/WidgetView/SurfaceView.py</Source>
+    <Source>GUI/WidgetView/CenterLineView.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
