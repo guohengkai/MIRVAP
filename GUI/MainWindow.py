@@ -91,10 +91,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.lastWindow = window
         self.actionPlugin[window.widgetView.pluginIndex].setChecked(True)
         self.menuPlugin.setDisabled(False)
-        if type(window) is MdiChildRegistration:
-            self.actionView[window.viewIndex].setChecked(True)
-            if window.viewIndex != self.resultIndex:
-                self.menuPlugin.setDisabled(True)
+        self.actionView[window.viewIndex].setChecked(True)
+        if window.viewIndex != self.resultIndex:
+            self.menuPlugin.setDisabled(True)
         
     def enablePlugin(self, index):
         # Need to check if the window can put it
@@ -107,7 +106,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             
             window.setPlugin(gb.getGuiClass(self.pluginDir[index])(), index)
     def enableView(self, index):
-        # Need to check if the window can put it
         window = self.mdiArea.currentSubWindow()
         if not window:
             self.gui.showErrorMessage('Error', 'There\'re no data!')

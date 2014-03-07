@@ -10,6 +10,5 @@ from MIRVAP.Core.WidgetViewBase import SingleDataView
 class ResultImageView(SingleDataView):
     def __init__(self, parent = None):
         super(ResultImageView, self).__init__(parent)
-        self.type = 'any'
     def getName(self):
         return "Main(Result) Image View"

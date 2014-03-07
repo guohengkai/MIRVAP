@@ -12,6 +12,11 @@ import numpy as npy
 class WidgetViewBase(object):
     def __init__(self, parent):
         self.parent = parent
+        self.type = 'any'
+        self.datatype = (2, 3)
+        if parent:
+            self.plugin = [NullPlugin()]
+            self.pluginIndex = self.parent.gui.win.nullIndex
     def setWidgetView(self, widget):
         raise NotImplementedError('Method "setWidgetView" Not Impletemented!')
     def getName(self):
@@ -40,9 +45,6 @@ class WidgetViewBase(object):
 class SingleDataView(WidgetViewBase):
     def __init__(self, parent = None):
         super(SingleDataView, self).__init__(parent)
-        if parent:
-            self.plugin = [NullPlugin()]
-            self.pluginIndex = self.parent.gui.win.nullIndex
         self.type = 'load'
     def setWidgetView(self, widget):
         self.initView(self.parent.getData(), widget)

@@ -11,7 +11,7 @@ import vtk
 class MIPView(WidgetViewBase):
     def __init__(self, parent = None):
         super(MIPView, self).__init__(parent)
-        self.type = 'any'
+        self.datatype = (3, )
     def getName(self):
         return "MIP Image View"
     def setWidgetView(self, widget):

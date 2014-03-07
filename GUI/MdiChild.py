@@ -69,7 +69,7 @@ class MdiChildLoad(MdiChildBase, Ui_MdiChild):
         self.widgetView.setPlugin(plugin, index)
     def setView(self, view, index):
         instance = view(self)
-        if instance.type != self.type and instance.type != 'any':
+        if (instance.type != self.type and instance.type != 'any') or (self.getData().getDimension() not in instance.datatype):
             return False
         self.widgetView = instance
         self.viewIndex = index
