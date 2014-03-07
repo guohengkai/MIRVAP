@@ -66,6 +66,7 @@ class CenterLineView(WidgetViewBase):
             self.center_mapper[cnt].ScalarVisibilityOff()
             
             self.center_actor[cnt].SetMapper(self.center_mapper[cnt])
+            self.center_actor[cnt].SetScale(self.spacing)
             color = [0, 0, 0]
             color[cnt] = 1
             self.center_actor[cnt].GetProperty().SetColor(color[0], color[1], color[2])
