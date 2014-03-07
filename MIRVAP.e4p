@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-07, 22:35:22 -->
+<!-- Saved: 2014-03-07, 23:16:42 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -60,7 +60,7 @@
     <Source>GUI/WidgetView/MIPView.py</Source>
     <Source>GUI/WidgetView/SurfaceView.py</Source>
     <Source>GUI/WidgetView/CenterLineView.py</Source>
-    <Source>GUI/WidgetView/CheckerBoardView.py</Source>
+    <Source>GUI/WidgetView/CheckerboardView.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

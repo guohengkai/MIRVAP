@@ -13,6 +13,5 @@ class TestRegistration(RegistrationBase):
     def getName(self):
         return 'Doing nothing'
     def register(self, fixedData, movingData):
-        #return fixedData.getData()
-        return movingData.getData(), movingData.getPointSet()
+        return movingData.getData() + 50, movingData.getPointSet()
         

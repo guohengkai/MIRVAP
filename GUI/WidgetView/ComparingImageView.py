@@ -42,15 +42,16 @@ class ComparingImageView(RegistrationDataView):
         self.reslice_mapper2.BackgroundOn()
         
         array = data.getData()
-        self.minI2 = array.min()
-        self.maxI2 = array.max()
+        self.minI = min(array.min(), self.minI)
+        self.maxI = max(array.max(), self.maxI)
         image_property = vtk.vtkImageProperty()
-        image_property.SetColorWindow(self.maxI2 - self.minI2)
-        image_property.SetColorLevel((self.maxI2 + self.minI2) / 2.0)
+        image_property.SetColorWindow(self.maxI - self.minI)
+        image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
         image_property.SetAmbient(0.0)
         image_property.SetDiffuse(1.0)
         image_property.SetOpacity(1.0)
         image_property.SetInterpolationTypeToLinear()
+        self.image_slice.SetProperty(image_property)
         
         self.image_slice2 = vtk.vtkImageSlice()
         self.image_slice2.SetMapper(self.reslice_mapper2)
@@ -64,18 +65,5 @@ class ComparingImageView(RegistrationDataView):
         self.renderer2.SetActiveCamera(self.camera)
         self.render_window.Render()
         
-    def KeyPressCallback(self, obj, event):
-        ch = self.window_interactor.GetKeySym()
-        if ch == 'r':
-            image_property = self.image_slice.GetProperty()
-            image_property.SetColorWindow(self.maxI - self.minI)
-            image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
-            image_property = self.image_slice2.GetProperty()
-            image_property.SetColorWindow(self.maxI2 - self.minI2)
-            image_property.SetColorLevel((self.maxI2 + self.minI2) / 2.0)
-            self.render_window.Render()
-            return   
-        else:
-            super(ComparingImageView, self).KeyPressCallback(obj, event)
     def getName(self):
         return "Comparing Image View"
