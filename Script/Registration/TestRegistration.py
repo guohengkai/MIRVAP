@@ -5,7 +5,7 @@ Created on 2014-02-28
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.RegistrationBase import RegistrationBase
+from MIRVAP.Script.RegistrationBase import RegistrationBase
 
 class TestRegistration(RegistrationBase):
     def __init__(self, gui):

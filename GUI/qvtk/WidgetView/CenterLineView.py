@@ -5,7 +5,7 @@ Created on 2014-03-07
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import WidgetViewBase
+from MIRVAP.GUI.qvtk.WidgetViewBase import WidgetViewBase
 import vtk
 import numpy as npy
 

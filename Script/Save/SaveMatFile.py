@@ -6,7 +6,7 @@ Created on 2014-03-05
 """
 
 import MIRVAP.Core.DataBase as db
-from MIRVAP.Core.SaveBase import SaveBase
+from MIRVAP.Script.SaveBase import SaveBase
 
 class SaveMatFile(SaveBase):
     def getName(self):

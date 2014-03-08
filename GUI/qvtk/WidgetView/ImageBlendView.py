@@ -5,7 +5,7 @@ Created on 2014-03-08
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import RegistrationDataView
+from MIRVAP.GUI.qvtk.WidgetViewBase import RegistrationDataView
 import vtk, itk
 
 class ImageBlendView(RegistrationDataView):

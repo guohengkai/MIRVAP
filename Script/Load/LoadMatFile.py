@@ -6,7 +6,7 @@ Created on 2014-02-05
 """
 
 import MIRVAP.Core.DataBase as db
-from MIRVAP.Core.LoadBase import LoadBase
+from MIRVAP.Script.LoadBase import LoadBase
 
 class LoadMatFile(LoadBase):
     def __init__(self, gui):

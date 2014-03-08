@@ -5,7 +5,7 @@ Created on 2014-02-07
 @author: Hengkai Guo
 """
 
-from ScriptBase import ScriptBase
+from MIRVAP.Core.ScriptBase import ScriptBase
 import MIRVAP.Core.DataBase as db
 
 # Input two images, output one image

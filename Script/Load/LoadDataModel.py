@@ -5,7 +5,7 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.LoadBase import LoadBase
+from MIRVAP.Script.LoadBase import LoadBase
 
 class LoadDataModel(LoadBase):
     def __init__(self, gui):

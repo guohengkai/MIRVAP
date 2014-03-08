@@ -5,7 +5,7 @@ Created on 2014-02-02
 @author: Hengkai Guo
 """
 
-from ScriptBase import ScriptBase
+from MIRVAP.Core.ScriptBase import ScriptBase
 
 # Input nothing, output one image
 class LoadBase(ScriptBase):

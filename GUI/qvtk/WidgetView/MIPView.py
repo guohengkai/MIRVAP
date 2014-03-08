@@ -5,7 +5,7 @@ Created on 2014-03-06
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import WidgetViewBase
+from MIRVAP.GUI.qvtk.WidgetViewBase import WidgetViewBase
 import vtk
 
 class MIPView(WidgetViewBase):

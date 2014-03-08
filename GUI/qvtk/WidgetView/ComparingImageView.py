@@ -5,7 +5,7 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import RegistrationDataView
+from MIRVAP.GUI.qvtk.WidgetViewBase import RegistrationDataView
 import itk, vtk
 import numpy as npy
 

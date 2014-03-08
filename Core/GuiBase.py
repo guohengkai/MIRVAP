@@ -21,10 +21,10 @@ def getAllGuiDir(dir):
     elif os.path.isfile(path):
         path = os.path.dirname(path)
         
-    path += '/GUI/' + dir + '/'
+    path += '/GUI/qvtk/' + dir + '/'
     
     list = os.listdir(path)
-    list = [str('MIRVAP.GUI.' + dir + '.' + x[:-3]) for x in list if x.endswith('.py') and not x.startswith('_')]
+    list = [str('MIRVAP.GUI.qvtk.' + dir + '.' + x[:-3]) for x in list if x.endswith('.py') and not x.startswith('_')]
     
     return list
 def getGuiClass(dir):

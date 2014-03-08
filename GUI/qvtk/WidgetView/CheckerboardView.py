@@ -6,7 +6,7 @@ Created on 2014-03-07
 """
 
 
-from MIRVAP.Core.WidgetViewBase import RegistrationDataView
+from MIRVAP.GUI.qvtk.WidgetViewBase import RegistrationDataView
 import vtk, itk
 
 class CheckerboardView(RegistrationDataView):

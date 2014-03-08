@@ -5,7 +5,7 @@ Created on 2014-02-07
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.RegistrationBase import RegistrationBase
+from MIRVAP.Script.RegistrationBase import RegistrationBase
 import MIRVAP.Core.DataBase as db
 import itk
 

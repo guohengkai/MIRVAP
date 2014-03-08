@@ -4,7 +4,7 @@ Created on 2014-03-01
 
 @author: Hengkai Guo
 """
-from MIRVAP.GUI.Plugin.NullPlugin import NullPlugin
+from Plugin.NullPlugin import NullPlugin
 import itk, vtk
 import numpy as npy
 

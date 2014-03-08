@@ -5,7 +5,7 @@ Created on 2014-02-20
 @author: Hengkai Guo
 """
 
-from ScriptBase import ScriptBase
+from MIRVAP.Core.ScriptBase import ScriptBase
 
 # Input one image(After registration), output nothing but some information
 class AnalysisBase(ScriptBase):

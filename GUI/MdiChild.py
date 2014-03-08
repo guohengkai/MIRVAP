@@ -8,8 +8,7 @@ Created on 2014-02-06
 from PyQt4 import QtCore, QtGui
 from Ui_MdiChild import Ui_MdiChild
 import MIRVAP.Core.DataBase as db
-from WidgetView.ResultImageView import ResultImageView
-
+from qvtk.WidgetView.ResultImageView import ResultImageView
 
 class MdiChildBase(QtGui.QMainWindow):
     def __init__(self, gui):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-08, 13:20:19 -->
+<!-- Saved: 2014-03-08, 23:23:22 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -22,7 +22,6 @@
     <Source>GUI/PyQtGui.py</Source>
     <Source>Script/Load/LoadDicomFile.py</Source>
     <Source>Core/DataBase.py</Source>
-    <Source>Core/LoadBase.py</Source>
     <Source>Core/ScriptBase.py</Source>
     <Source>Script/Load/LoadMatFile.py</Source>
     <Source>Test/TestGui.py</Source>
@@ -33,36 +32,38 @@
     <Source>GUI/Ui_MainWindow.py</Source>
     <Source>GUI/MdiChild.py</Source>
     <Source>Script/Analysis/__init__.py</Source>
-    <Source>Core/RegistrationBase.py</Source>
     <Source>Script/Registration/MI_Rigid_itk.py</Source>
-    <Source>GUI/Plugin/ContourPlugin.py</Source>
-    <Source>Core/PluginBase.py</Source>
-    <Source>GUI/Plugin/__init__.py</Source>
-    <Source>GUI/Plugin/NullPlugin.py</Source>
-    <Source>GUI/Plugin/ContourViewPlugin.py</Source>
-    <Source>Core/AnalysisBase.py</Source>
-    <Source>GUI/Plugin/CenterPlugin.py</Source>
-    <Source>GUI/Plugin/CenterViewPlugin.py</Source>
-    <Source>GUI/Plugin/ClipPlugin.py</Source>
     <Source>Script/Registration/TestRegistration.py</Source>
-    <Source>Core/WidgetViewBase.py</Source>
     <Source>GUI/Ui_MdiChild.py</Source>
-    <Source>GUI/WidgetView/__init__.py</Source>
-    <Source>GUI/WidgetView/FixedImageView.py</Source>
-    <Source>GUI/WidgetView/MovingImageView.py</Source>
-    <Source>GUI/WidgetView/ResultImageView.py</Source>
     <Source>Script/Load/LoadDataModel.py</Source>
-    <Source>GUI/WidgetView/ComparingImageView.py</Source>
-    <Source>GUI/WidgetView/ComparingPointView.py</Source>
-    <Source>Core/SaveBase.py</Source>
     <Source>Script/Save/__init__.py</Source>
     <Source>Script/Save/SaveMatFile.py</Source>
-    <Source>GUI/WidgetView/MIPView.py</Source>
-    <Source>GUI/WidgetView/SurfaceView.py</Source>
-    <Source>GUI/WidgetView/CenterLineView.py</Source>
-    <Source>GUI/WidgetView/CheckerboardView.py</Source>
-    <Source>GUI/WidgetView/ImageBlendView.py</Source>
     <Source>Script/Save/SaveScreenshot.py</Source>
+    <Source>Script/AnalysisBase.py</Source>
+    <Source>Script/LoadBase.py</Source>
+    <Source>Script/RegistrationBase.py</Source>
+    <Source>Script/SaveBase.py</Source>
+    <Source>GUI/qvtk/PluginBase.py</Source>
+    <Source>GUI/qvtk/WidgetViewBase.py</Source>
+    <Source>GUI/qvtk/__init__.py</Source>
+    <Source>GUI/qvtk/Plugin/CenterPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/CenterViewPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/ClipPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/ContourPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/ContourViewPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/NullPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/__init__.py</Source>
+    <Source>GUI/qvtk/WidgetView/CenterLineView.py</Source>
+    <Source>GUI/qvtk/WidgetView/CheckerboardView.py</Source>
+    <Source>GUI/qvtk/WidgetView/ComparingImageView.py</Source>
+    <Source>GUI/qvtk/WidgetView/ComparingPointView.py</Source>
+    <Source>GUI/qvtk/WidgetView/FixedImageView.py</Source>
+    <Source>GUI/qvtk/WidgetView/ImageBlendView.py</Source>
+    <Source>GUI/qvtk/WidgetView/MIPView.py</Source>
+    <Source>GUI/qvtk/WidgetView/MovingImageView.py</Source>
+    <Source>GUI/qvtk/WidgetView/ResultImageView.py</Source>
+    <Source>GUI/qvtk/WidgetView/SurfaceView.py</Source>
+    <Source>GUI/qvtk/WidgetView/__init__.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

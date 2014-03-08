@@ -5,7 +5,7 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import SingleDataView
+from MIRVAP.GUI.qvtk.WidgetViewBase import SingleDataView
 
 class ResultImageView(SingleDataView):
     def __init__(self, parent = None):

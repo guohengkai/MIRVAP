@@ -5,7 +5,7 @@ Created on 2014-03-08
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.SaveBase import SaveBase
+from MIRVAP.Script.SaveBase import SaveBase
 import vtk
 
 class SaveScreenshot(SaveBase):

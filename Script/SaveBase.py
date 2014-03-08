@@ -5,7 +5,7 @@ Created on 2014-03-05
 @author: Hengkai Guo
 """
 
-from ScriptBase import ScriptBase
+from MIRVAP.Core.ScriptBase import ScriptBase
 
 class SaveBase(ScriptBase):
     def __init__(self, gui):

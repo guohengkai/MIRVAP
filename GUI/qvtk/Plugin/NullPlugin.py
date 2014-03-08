@@ -5,7 +5,7 @@ Created on 2014-02-17
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.PluginBase import PluginBase
+from MIRVAP.GUI.qvtk.PluginBase import PluginBase
 
 class NullPlugin(PluginBase):
     def getName(self):

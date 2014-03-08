@@ -5,7 +5,7 @@ Created on 2014-02-26
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.PluginBase import PluginBase
+from MIRVAP.GUI.qvtk.PluginBase import PluginBase
 import vtk
 import numpy as npy
 import MIRVAP.Core.DataBase as db

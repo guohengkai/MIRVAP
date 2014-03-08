@@ -5,9 +5,9 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.WidgetViewBase import RegistrationDataView
-from MIRVAP.GUI.Plugin.ContourViewPlugin import ContourViewPlugin
-from MIRVAP.GUI.Plugin.CenterViewPlugin import CenterViewPlugin
+from MIRVAP.GUI.qvtk.WidgetViewBase import RegistrationDataView
+from MIRVAP.GUI.qvtk.Plugin.ContourViewPlugin import ContourViewPlugin
+from MIRVAP.GUI.qvtk.Plugin.CenterViewPlugin import CenterViewPlugin
 
 class FixedImageView(RegistrationDataView):
     def setWidgetView(self, widget):

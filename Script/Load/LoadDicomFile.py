@@ -6,7 +6,7 @@ Created on 2014-02-02
 """
 
 import MIRVAP.Core.DataBase as db
-from MIRVAP.Core.LoadBase import LoadBase
+from MIRVAP.Script.LoadBase import LoadBase
 
 import numpy as npy
 import dicom
