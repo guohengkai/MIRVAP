@@ -18,12 +18,12 @@ class CenterLineView(WidgetViewBase):
     def setWidgetView(self, widget):
         super(CenterLineView, self).setWidgetView(widget)
         point_array = self.parent.getData().pointSet
-        point_data = npy.array(point_array.getData('Center'))
+        point_data = npy.array(point_array.getData('Centerline'))
         if point_data is None or not point_data.shape[0]:
             return
         
         #self.spacing = [1, 1, 1]
-        self.spacing = self.parent.getData().getResolution().tolist()[::-1]
+        self.spacing = self.parent.getData().getResolution().tolist()
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
         point_data[:, :2] *= self.spacing[:2]
         
@@ -72,7 +72,18 @@ class CenterLineView(WidgetViewBase):
             color[cnt] = 1
             self.center_actor[cnt].GetProperty().SetColor(color[0], color[1], color[2])
             self.renderer.AddViewProp(self.center_actor[cnt])
-            
+        
+        bound = npy.array(self.parent.getData().getData().shape)[::-1] * self.spacing
+        print bound
+        outline_source = vtk.vtkOutlineSource()
+        outline_source.SetBounds(0, bound[0], 0, bound[1], 0, bound[2])
+        
+        mapOutline = vtk.vtkPolyDataMapper()
+        mapOutline.SetInputConnection(outline_source.GetOutputPort())
+        outlineActor = vtk.vtkActor()
+        outlineActor.SetMapper(mapOutline)
+        outlineActor.GetProperty().SetColor(1, 1, 1)
+        self.renderer.AddViewProp(outlineActor)
         
         self.renderer.ResetCamera()
         point = self.renderer.GetActiveCamera().GetFocalPoint()
