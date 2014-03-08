@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-08, 12:30:00 -->
+<!-- Saved: 2014-03-08, 13:20:19 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -62,6 +62,7 @@
     <Source>GUI/WidgetView/CenterLineView.py</Source>
     <Source>GUI/WidgetView/CheckerboardView.py</Source>
     <Source>GUI/WidgetView/ImageBlendView.py</Source>
+    <Source>Script/Save/SaveScreenshot.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

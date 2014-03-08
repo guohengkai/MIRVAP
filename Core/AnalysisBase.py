@@ -6,7 +6,7 @@ Created on 2014-02-20
 """
 
 from ScriptBase import ScriptBase
-import MIRVAP.GUI.PyQtGui as gui
+
 # Input one image(After registration), output nothing but some information
 class AnalysisBase(ScriptBase):
     def __init__(self, gui):

@@ -14,6 +14,7 @@ import SimpleITK as sitk
 import itk
 import scipy.io as sio
 import copy as cp
+
 class ImageInfo(DataBase):
     def __init__(self, data = None):
         if not data:

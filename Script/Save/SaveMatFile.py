@@ -19,3 +19,4 @@ class SaveMatFile(SaveBase):
             dir = './Data/' + name
             db.saveMatData(dir, self.gui.dataModel, window.index)
             window.setWindowTitle(name)
+            return True

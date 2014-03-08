@@ -6,7 +6,6 @@ Created on 2014-02-07
 """
 
 from ScriptBase import ScriptBase
-import MIRVAP.GUI.PyQtGui as gui
 import MIRVAP.Core.DataBase as db
 
 # Input two images, output one image

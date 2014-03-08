@@ -4,6 +4,7 @@ Created on 2014-02-16
 
 @author: Hengkai Guo
 """
+
 # Operate on the image and get new feature or new data
 class PluginBase(object):
     def getName(self):

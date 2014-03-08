@@ -5,7 +5,6 @@ Created on 2014-03-02
 @author: Hengkai Guo
 """
 
-import MIRVAP.Core.DataBase as db
 from MIRVAP.Core.LoadBase import LoadBase
 
 class LoadDataModel(LoadBase):

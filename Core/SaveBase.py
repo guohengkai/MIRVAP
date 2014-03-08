@@ -6,7 +6,6 @@ Created on 2014-03-05
 """
 
 from ScriptBase import ScriptBase
-import MIRVAP.GUI.PyQtGui as gui
 
 class SaveBase(ScriptBase):
     def __init__(self, gui):
@@ -15,7 +14,8 @@ class SaveBase(ScriptBase):
     def run(self, window):
         window.save()
         data = window.getData()
-        self.save(window, data)
+        if self.save(window, data):
+            self.gui.showErrorMessage('Success', 'Save sucessfully!')
         
     def save(self, window, data):
         raise NotImplementedError('Method "save" Not Impletemented!')

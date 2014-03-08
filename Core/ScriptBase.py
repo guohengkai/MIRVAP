@@ -6,6 +6,7 @@ Created on 2014-02-02
 """
 
 import sys, os, importlib
+
 class ScriptBase(object):
     def __init__(self, gui):
         self.gui = gui

@@ -6,8 +6,7 @@ Created on 2014-03-02
 """
 
 from MIRVAP.Core.WidgetViewBase import RegistrationDataView
-import itk
-import vtk
+import itk, vtk
 import numpy as npy
 
 class ComparingImageView(RegistrationDataView):

@@ -5,7 +5,6 @@ Created on 2014-02-05
 @author: Hengkai Guo
 """
 
-import DataBase as db
 class DataModel(object):
     def __init__(self):
         self.data = {}

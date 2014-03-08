@@ -6,7 +6,7 @@ Created on 2014-02-02
 """
 
 from ScriptBase import ScriptBase
-import MIRVAP.GUI.PyQtGui as gui
+
 # Input nothing, output one image
 class LoadBase(ScriptBase):
     def __init__(self, gui):
