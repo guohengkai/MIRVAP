@@ -199,9 +199,11 @@ def loadMatData(dir, datamodel):
     header = data['header']
     resolution = header['resolution'][0][0][0]
     orientation = header['orientation'][0][0][0]
+    clip = header['clip'][0][0][0]
     modality = str(header['modality'][0][0][0])
     name = str(header['name'][0][0][0])
-    info = ImageInfo({'modality': modality, 'resolution': resolution, 'orientation': orientation, 'name': name})
+    info = ImageInfo({'modality': modality, 'resolution': resolution, 
+        'orientation': orientation, 'name': name, 'clip': clip})
     
     view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
     info.addData('view', view)
@@ -213,18 +215,22 @@ def loadMatData(dir, datamodel):
         
         resolution = header['resolution'][0][1][0]
         orientation = header['orientation'][0][1][0]
+        clip = header['clip'][0][1][0]
         modality = str(header['modality'][0][1][0])
         name = str(header['name'][0][1][0])
-        info1 = ImageInfo({'modality': modality, 'resolution': resolution, 'orientation': orientation, 'name': name})
+        info1 = ImageInfo({'modality': modality, 'resolution': resolution, 
+            'orientation': orientation, 'name': name, 'clip': clip})
         view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
         info1.addData('view', view)
         info1.addData('flip', flip)
         
         resolution = header['resolution'][0][2][0]
         orientation = header['orientation'][0][2][0]
+        clip = header['clip'][0][2][0]
         modality = str(header['modality'][0][2][0])
         name = str(header['name'][0][2][0])
-        info2 = ImageInfo({'modality': modality, 'resolution': resolution, 'orientation': orientation, 'name': name})
+        info2 = ImageInfo({'modality': modality, 'resolution': resolution, 
+            'orientation': orientation, 'name': name, 'clip': clip})
         view, flip = getViewAndFlipFromOrientation(orientation, resolution.shape[0])
         info2.addData('view', view)
         info2.addData('flip', flip)
@@ -254,11 +260,13 @@ def saveMatData(dir, datamodel, index):
     
     resolution = data.info.getResolution()
     orientation = data.info.getData('orientation')
+    clip = data.info.getData('clip')
+    if clip is None:
+        clip = npy.array([-1, -1, -1, -1, -1, -1])
     modality = npy.array([data.getModality()])
     name = npy.array([data.getName()])
-    headerType = [('resolution', 'O'), ('orientation', 'O'), ('modality', 'O'), ('name', 'O')]
-    header = npy.array([(resolution, orientation, modality, name)], dtype = headerType)
-    
+    headerType = [('resolution', 'O'), ('orientation', 'O'), ('modality', 'O'), ('name', 'O'), ('clip', 'O')]
+    header = npy.array([(resolution, orientation, modality, name, clip)], dtype = headerType)
     dict = {'image': image}
     if type(data) is ResultData:
         fixedIndex = data.getFixedIndex()

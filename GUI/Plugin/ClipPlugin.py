@@ -111,11 +111,14 @@ class ClipPlugin(PluginBase):
                 view, flip = db.getViewAndFlipFromOrientation(orientation, resolution.shape[0])
                 info.addData('view', view)
                 info.addData('flip', flip)
-
+                info.addData('clip', npy.array([bound[0][0], bound[0][1], bound[1][0], 
+                    bound[1][1], bound[2][0], bound[2][1]]))
                 data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], 
                     bound[1][0]:bound[1][1], bound[2][0]:bound[2][1]], info = info)
             else:
-                data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], bound[1][0]:bound[1][1]], info = info)
+                info.addData('clip', npy.array([bound[0][0], bound[0][1], bound[1][0], bound[1][1]]))
+                data = db.BasicData(data = self.parent.parent.getData().getData()[bound[0][0]:bound[0][1], 
+                    bound[1][0]:bound[1][1]], info = info)
                 
             self.parent.parent.gui.addNewDataView(data)
         

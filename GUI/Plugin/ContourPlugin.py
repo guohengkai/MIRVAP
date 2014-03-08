@@ -175,11 +175,13 @@ class ContourPlugin(PluginBase):
         if not self.editable:
             return
         ch = self.parent.window_interactor.GetKeySym()
-#        if ch == 'Return':
-#            space = self.parent.space
-#            print self.getAllPoint(0) / space
-#            print self.parent.parent.getData(self.datakey).pointSet.data
-#            return
+        if ch == 'Return':
+            space = self.parent.space
+            print self.getAllPoint(0) / space
+            print self.getAllPoint(1) / space
+            print self.getAllPoint(2) / space
+            #print self.parent.parent.getData(self.datakey).pointSet.data
+            return
         if ch == 'Escape':
             self.contourRep[self.currentContour].ClearAllNodes()
             self.contourWidget[self.currentContour].ProcessEventsOff()
