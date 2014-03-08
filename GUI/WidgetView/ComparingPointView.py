@@ -14,9 +14,13 @@ class ComparingPointView(RegistrationDataView):
         self.initView(self.parent.getData('fix'), widget)
         color = ((0.6, 0.2, 0.2), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6))
         self.plugin = [ContourViewPlugin(), ContourViewPlugin(), CenterViewPlugin(), CenterViewPlugin()]
-        self.plugin[0].enable(parent = self, color = color, dash = True)
-        self.plugin[1].enable(parent = self, key = 'fix')
-        self.plugin[2].enable(parent = self, color = color)
-        self.plugin[3].enable(parent = self, key = 'fix')
+        self.plugin[0].enable(parent = self, color = color, dash = True, show = False)
+        self.plugin[1].enable(parent = self, key = 'fix', show = False)
+        self.plugin[2].enable(parent = self, color = color, show = False)
+        self.plugin[3].enable(parent = self, key = 'fix', show = False)
     def getName(self):
         return "Comparing PointSet View"
+    def updateAfter(self, *arg):
+        super(ComparingPointView, self).updateAfter(*arg)
+        newMessage = "  (Fixed: Solid and light, Result: Dash and dark)"
+        self.parent.gui.showMessageOnStatusBar(self.parent.gui.getMessageOnStatusBar() + newMessage)

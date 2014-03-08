@@ -61,7 +61,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         for x in self.actionView:
             self.viewGroup.addAction(x)
             self.menuWidget_View.addAction(x)
-            if str(x.text()) == 'Main(Result) Image View':
+            if str(x.text()) == 'Main/Result Image View':
                 x.setChecked(True)
                 self.resultIndex = self.actionView.index(x)
     def updateStatus(self):

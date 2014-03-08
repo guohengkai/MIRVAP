@@ -67,3 +67,7 @@ class ComparingImageView(RegistrationDataView):
         
     def getName(self):
         return "Comparing Image View"
+    def updateAfter(self, *arg):
+        super(ComparingImageView, self).updateAfter(*arg)
+        newMessage = "  (Left: Fixed image, Right: Result image)"
+        self.parent.gui.showMessageOnStatusBar(self.parent.gui.getMessageOnStatusBar() + newMessage)

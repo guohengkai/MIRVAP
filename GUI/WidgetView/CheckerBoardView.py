@@ -144,6 +144,7 @@ class CheckerboardView(RegistrationDataView):
             else:
                 self.checkers.SetNumberOfDivisions(self.division, self.division, self.division)
             self.render_window.Render()
+            self.updateAfter()
             return
         if ch in ['x', 'y', 'z']:
             if ch == 'x':
@@ -154,3 +155,7 @@ class CheckerboardView(RegistrationDataView):
                 self.checkers.SetNumberOfDivisions(self.division, self.division, 0)
             self.render_window.Render()
         super(CheckerboardView, self).KeyPressCallback(obj, event)
+    def updateAfter(self, *arg):
+        super(CheckerboardView, self).updateAfter(*arg)
+        newMessage = "     Division: %d" % self.division
+        self.parent.gui.showMessageOnStatusBar(self.parent.gui.getMessageOnStatusBar() + newMessage)

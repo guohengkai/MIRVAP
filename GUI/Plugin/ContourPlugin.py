@@ -25,7 +25,7 @@ class ContourPlugin(PluginBase):
         self.editable = True
         self.key = 'Contour'
     
-    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, opacity = 1):
+    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, opacity = 1, show = True):
         self.parent = parent
         self.datakey = key
         self.contourRep = []
@@ -78,6 +78,8 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].On()
             
         status = self.parent.getDirectionAndSlice()
+        
+        self.show = show
         self.updateAfter(self.parent.view, int(status[1]))
             
     def disable(self):
@@ -227,10 +229,11 @@ class ContourPlugin(PluginBase):
         else:
             return ""
     def updateAfter(self, view, slice, *arg):
-        super(ContourPlugin, self).updateAfter(view, slice, *arg)
         self.loadCurrentSlicePoint(view, slice, *arg)
-        newMessage = self.getNewMessage()
-        self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
+        if self.show:
+            super(ContourPlugin, self).updateAfter(view, slice, *arg)
+            newMessage = self.getNewMessage()
+            self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + newMessage)
     def updateBefore(self, view, slice, *arg):
         if self.editable:
             self.saveCurrentSlicePoint(view, slice)
