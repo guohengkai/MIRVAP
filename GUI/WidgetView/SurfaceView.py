@@ -19,14 +19,15 @@ class SurfaceView(WidgetViewBase):
         super(SurfaceView, self).setWidgetView(widget)
         # Because the vtkVoxelContoursToSurfaceFilter can only accept points with integer coordinate, substitute needs to be found
         point_array = self.parent.getData().pointSet
-        point_data = point_array.getData('Contour')
+        point_data = npy.array(point_array.getData('Contour'))
         if point_data is None or not point_data.shape[0]:
             return
         zmin = int(npy.min(point_data[:, 2]) + 0.5)
         zmax = int(npy.max(point_data[:, 2]) + 0.5)
         #self.spacing = [1, 1, 1]
-        self.spacing = self.parent.getData().getResolution().tolist()[::-1]
+        self.spacing = self.parent.getData().getResolution().tolist()
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
+        point_data[:, :2] *= self.spacing[:2]
         
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
@@ -93,7 +94,6 @@ class SurfaceView(WidgetViewBase):
             self.renderer.AddViewProp(self.contours_actor[cnt])
             
             self.contour_to_surface[cnt].SetInput(self.contours[cnt])
-            self.contour_to_surface[cnt].SetSpacing(self.spacing[0], self.spacing[1], self.spacing[2])
             self.contour_to_surface[cnt].SetMemoryLimitInBytes(100000)
             self.contour_to_surface[cnt].Update()
             

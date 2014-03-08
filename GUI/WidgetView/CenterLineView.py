@@ -18,13 +18,14 @@ class CenterLineView(WidgetViewBase):
     def setWidgetView(self, widget):
         super(CenterLineView, self).setWidgetView(widget)
         point_array = self.parent.getData().pointSet
-        point_data = point_array.getData('Center')
+        point_data = npy.array(point_array.getData('Center'))
         if point_data is None or not point_data.shape[0]:
             return
         
         #self.spacing = [1, 1, 1]
         self.spacing = self.parent.getData().getResolution().tolist()[::-1]
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
+        point_data[:, :2] *= self.spacing[:2]
         
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
@@ -67,7 +68,6 @@ class CenterLineView(WidgetViewBase):
             self.center_mapper[cnt].ScalarVisibilityOff()
             
             self.center_actor[cnt].SetMapper(self.center_mapper[cnt])
-            self.center_actor[cnt].SetScale(self.spacing)
             color = [0, 0, 0]
             color[cnt] = 1
             self.center_actor[cnt].GetProperty().SetColor(color[0], color[1], color[2])
