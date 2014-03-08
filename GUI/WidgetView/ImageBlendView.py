@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2014-03-07
+Created on 2014-03-08
 
 @author: Hengkai Guo
 """
-
 
 from MIRVAP.Core.WidgetViewBase import RegistrationDataView
 import vtk
 import itk
 
-class CheckerboardView(RegistrationDataView):
+class ImageBlendView(RegistrationDataView):
     '''
         Press Up/Down Key: Increase/Decrease the number of checkerboard division
     '''
     def __init__(self, parent = None):
-        super(CheckerboardView, self).__init__(parent)
+        super(ImageBlendView, self).__init__(parent)
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
     def getName(self):
-        return "Checkerboard View"
+        return "Image Blend View"
         
     def initView(self, data, widget):
         image_type = data.getITKImageType()
@@ -53,18 +52,19 @@ class CheckerboardView(RegistrationDataView):
         self.image_resample2 = vtk.vtkImageResample()
         self.image_resample2.SetInput(self.itk_vtk_converter2.GetOutput())
         
-        self.checkers = vtk.vtkImageCheckerboard()
-        self.checkers.SetInput1(self.image_resample.GetOutput())
-        self.checkers.SetInput2(self.image_resample2.GetOutput())
-        self.division = 3
-        self.checkers.SetNumberOfDivisions(self.division, self.division, 0)
+        self.blend_filter = vtk.vtkImageBlend()
+        self.blend_filter.AddInput(self.image_resample.GetOutput())
+        self.blend_filter.AddInput(self.image_resample2.GetOutput())
+        self.opacity = 0.5
+        self.blend_filter.SetOpacity(0, 0.5)
+        self.blend_filter.SetOpacity(1, 0.5)
         
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
         self.render_window.AddRenderer(self.renderer)
         
         self.reslice_mapper = vtk.vtkImageResliceMapper()
-        self.reslice_mapper.SetInput(self.checkers.GetOutput())
+        self.reslice_mapper.SetInput(self.blend_filter.GetOutput())
         self.reslice_mapper.SliceFacesCameraOn()
         self.reslice_mapper.SliceAtFocalPointOn()
         self.reslice_mapper.JumpToNearestSliceOn()
@@ -131,27 +131,16 @@ class CheckerboardView(RegistrationDataView):
         ch = self.window_interactor.GetKeySym()
         if ch == 'Up' or ch == 'Down':
             if ch == 'Up':
-                d = 1
+                d = 0.1
             else:
-                d = -1
-            self.division = max(1, self.division + d)
-            if self.dimension:
-                self.checkers.SetNumberOfDivisions(self.division, self.division, 0)
-            else:
-                self.checkers.SetNumberOfDivisions(self.division, self.division, self.division)
+                d = -0.1
+            self.opacity = min(max(0.0, self.opacity + d), 1.0)
+            self.blend_filter.SetOpacity(1, self.opacity)
             self.render_window.Render()
             self.updateAfter()
             return
-        if ch in ['x', 'y', 'z']:
-            if ch == 'x':
-                self.checkers.SetNumberOfDivisions(0, self.division, self.division)
-            elif ch == 'y':
-                self.checkers.SetNumberOfDivisions(self.division, 0, self.division)
-            elif ch == 'z':
-                self.checkers.SetNumberOfDivisions(self.division, self.division, 0)
-            self.render_window.Render()
-        super(CheckerboardView, self).KeyPressCallback(obj, event)
+        super(ImageBlendView, self).KeyPressCallback(obj, event)
     def updateAfter(self, *arg):
-        super(CheckerboardView, self).updateAfter(*arg)
-        newMessage = "     Division: %d" % self.division
+        super(ImageBlendView, self).updateAfter(*arg)
+        newMessage = "     Opacity: %0.1f" % self.opacity
         self.parent.gui.showMessageOnStatusBar(self.parent.gui.getMessageOnStatusBar() + newMessage)
