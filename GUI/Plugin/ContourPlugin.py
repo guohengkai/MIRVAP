@@ -16,8 +16,9 @@ class ContourPlugin(PluginBase):
         
         Press C Key:          Show or not show the active contour
         Press S Key:          Sort the points on the active contour
+        Press Escape Key:     Delete all the points on the active contour
         Press Delete Key:     Delete the active point
-        Press Left/Right Key: Slice through the image (Automatic copy points from last slice if empty)
+        Press Left/Right Key: Slice through the image (Automatic copy points from last slice if empty and controll key pressed)
         Press 1/2/3 Key:      Change 1/2/3 contour into active state
     '''
     def __init__(self):
@@ -179,6 +180,11 @@ class ContourPlugin(PluginBase):
 #            print self.getAllPoint(0) / space
 #            print self.parent.parent.getData(self.datakey).pointSet.data
 #            return
+        if ch == 'Escape':
+            self.contourRep[self.currentContour].ClearAllNodes()
+            self.contourWidget[self.currentContour].ProcessEventsOff()
+            self.contourWidget[self.currentContour].SetWidgetState(1)
+            self.parent.render_window.Render()
         if ch == 'c':
             if self.key == 'Centerline':
                 return

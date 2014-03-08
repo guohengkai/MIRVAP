@@ -157,7 +157,7 @@ class SingleDataView(WidgetViewBase):
         ch = self.window_interactor.GetKeySym()
         if ch == 'r':
             self.interactor_style.OnChar()
-            return            
+            return
         if self.dimension:
             return
         if ch in ['x', 'y', 'z']:
@@ -198,8 +198,10 @@ class SingleDataView(WidgetViewBase):
             self.camera.SetPosition(pos)
             self.camera.SetFocalPoint(point)
             self.render_window.Render()
-            
-            self.updateAfter(last)
+            if self.window_interactor.GetControlKey():
+                self.updateAfter(last)
+            else:
+                self.updateAfter()
             return
         
     def CharCallback(self, obj, event):
@@ -247,7 +249,8 @@ class SingleDataView(WidgetViewBase):
         self.updateAfter()
     def updateAfter(self, *arg):
         status = self.getDirectionAndSlice()
-        self.parent.gui.showMessageOnStatusBar("Widget: %s     View: %s    Slice: %d" % (self.getName(), status[0], status[1]))
+        self.parent.gui.showMessageOnStatusBar("Widget: %s     View: %s    Slice: %d" 
+            % (self.getName(), status[0], status[1]))
         for plugin in self.plugin:
             plugin.updateAfter(self.view, int(status[1]), *arg)
     def updateBefore(self, *arg):
