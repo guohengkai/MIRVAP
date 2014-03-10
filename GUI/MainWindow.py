@@ -124,6 +124,8 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 self.menuPlugin.setDisabled(False)
             else:
                 self.menuPlugin.setDisabled(True)
+                self.actionPlugin[window.widgetView.pluginIndex].setChecked(True)
+                
     def getAllScript(self):
         for key in self.menuScript.keys():
             dir = sb.getAllScriptDir(key)
