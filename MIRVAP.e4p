@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-08, 23:23:22 -->
+<!-- Saved: 2014-03-11, 13:25:08 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -18,13 +18,10 @@
     <Source>Script/__init__.py</Source>
     <Source>Script/Registration/__init__.py</Source>
     <Source>Script/Load/__init__.py</Source>
-    <Source>Core/GuiBase.py</Source>
-    <Source>GUI/PyQtGui.py</Source>
     <Source>Script/Load/LoadDicomFile.py</Source>
     <Source>Core/DataBase.py</Source>
     <Source>Core/ScriptBase.py</Source>
     <Source>Script/Load/LoadMatFile.py</Source>
-    <Source>Test/TestGui.py</Source>
     <Source>Test/__init__.py</Source>
     <Source>Core/DataModel.py</Source>
     <Source>main.py</Source>
@@ -64,6 +61,9 @@
     <Source>GUI/qvtk/WidgetView/ResultImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/SurfaceView.py</Source>
     <Source>GUI/qvtk/WidgetView/__init__.py</Source>
+    <Source>Core/GuiControllerBase.py</Source>
+    <Source>GUI/PyQtGuiController.py</Source>
+    <Source>Test/TestGuiController.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

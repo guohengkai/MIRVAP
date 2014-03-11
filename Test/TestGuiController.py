@@ -5,11 +5,11 @@ Created on 2014-02-05
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.GuiBase import GuiBase
+from MIRVAP.Core.GuiControllerBase import GuiControllerBase
 
-class TestGui(GuiBase):
+class TestGuiController(GuiControllerBase):
     def __init__(self):
-        super(TestGui, self).__init__()
+        super(TestGuiController, self).__init__()
         
     def getFileNames(self, *args):
         # For Test

@@ -7,7 +7,7 @@ Created on 2014-02-05
 import sys
 sys.path.append("..")
 
-from MIRVAP.GUI.PyQtGui import PyQtGui
-gui = PyQtGui()
+from MIRVAP.GUI.PyQtGuiController import PyQtGuiController
+gui = PyQtGuiController()
 gui.startApplication()
 

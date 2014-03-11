@@ -5,14 +5,14 @@ Created on 2014-02-02
 @author: Hengkai Guo
 """
 
-from MIRVAP.Core.GuiBase import GuiBase
+from MIRVAP.Core.GuiControllerBase import GuiControllerBase
 from PyQt4 import QtGui
 import sys
 from MainWindow import MainWindow
 
-class PyQtGui(GuiBase):
+class PyQtGuiController(GuiControllerBase):
     def __init__(self):
-        super(PyQtGui, self).__init__()
+        super(PyQtGuiController, self).__init__()
         self.app = QtGui.QApplication(sys.argv)
         self.win = MainWindow(self)
         
@@ -66,4 +66,4 @@ class PyQtGui(GuiBase):
         sys.exit(self.app.exec_())
 
 if __name__ == "__main__":
-    PyQtGui().startApplication()
+    PyQtGuiController().startApplication()

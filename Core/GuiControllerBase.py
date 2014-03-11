@@ -7,7 +7,7 @@ Created on 2014-02-02
 
 from DataModel import DataModel
 
-class GuiBase(object):
+class GuiControllerBase(object):
     def __init__(self):
         self.dataModel = DataModel()
     def startApplication(self):
