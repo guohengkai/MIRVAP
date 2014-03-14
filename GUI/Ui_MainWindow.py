@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Wed Mar 05 23:24:57 2014
+# Created: Tue Mar 11 13:50:35 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -58,6 +58,8 @@ class Ui_MainWindow(object):
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
         self.menuWidget_View = QtGui.QMenu(self.menuStart)
         self.menuWidget_View.setObjectName(_fromUtf8("menuWidget_View"))
+        self.menuHelp = QtGui.QMenu(self.menubar)
+        self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setStyleSheet(_fromUtf8("QStatusBar::item{border: 0px}"))
@@ -67,6 +69,8 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionClear_all = QtGui.QAction(MainWindow)
         self.actionClear_all.setObjectName(_fromUtf8("actionClear_all"))
+        self.actionAbout = QtGui.QAction(MainWindow)
+        self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
         self.menuFile.addAction(self.menuLoad.menuAction())
         self.menuFile.addAction(self.menuSave.menuAction())
         self.menuFile.addAction(self.actionClear_all)
@@ -76,8 +80,10 @@ class Ui_MainWindow(object):
         self.menuStart.addSeparator()
         self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuAnalysis.menuAction())
+        self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuStart.menuAction())
+        self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.close)
@@ -93,8 +99,10 @@ class Ui_MainWindow(object):
         self.menuPlugin.setTitle(_translate("MainWindow", "Plugin", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuWidget_View.setTitle(_translate("MainWindow", "Widget View", None))
+        self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionClear_all.setText(_translate("MainWindow", "Clear all", None))
+        self.actionAbout.setText(_translate("MainWindow", "About...", None))
 
 
 if __name__ == "__main__":

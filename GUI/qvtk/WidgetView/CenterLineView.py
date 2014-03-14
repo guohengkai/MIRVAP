@@ -74,7 +74,6 @@ class CenterLineView(WidgetViewBase):
             self.renderer.AddViewProp(self.center_actor[cnt])
         
         bound = npy.array(self.parent.getData().getData().shape)[::-1] * self.spacing
-        print bound
         outline_source = vtk.vtkOutlineSource()
         outline_source.SetBounds(0, bound[0], 0, bound[1], 0, bound[2])
         

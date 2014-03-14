@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-11, 13:25:08 -->
+<!-- Saved: 2014-03-11, 14:47:03 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -64,6 +64,7 @@
     <Source>Core/GuiControllerBase.py</Source>
     <Source>GUI/PyQtGuiController.py</Source>
     <Source>Test/TestGuiController.py</Source>
+    <Source>Script/Load/LoadPhantom.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
