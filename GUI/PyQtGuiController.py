@@ -53,6 +53,10 @@ class PyQtGuiController(GuiControllerBase):
         name, ok = QtGui.QInputDialog.getText(self.win, "Enter the name", 
                 "Name:", QtGui.QLineEdit.Normal, window.getName())
         return name, ok
+    def getInputPara(self, window, title):
+        data, ok = QtGui.QInputDialog.getDouble(self.win, "Enter the " + title.lower(), 
+                title.capitalize() + ":", QtGui.QLineEdit.Normal, 0.0)
+        return data, ok
     def showErrorMessage(self, title, message):
         QtGui.QMessageBox.information(self.win, title, message)
     def showMessageOnStatusBar(self, text):

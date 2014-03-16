@@ -9,6 +9,7 @@ from MIRVAP.GUI.qvtk.WidgetViewBase import WidgetViewBase
 import vtk
 import numpy as npy
 
+# Only available when the vessel is along the z axis
 class SurfaceView(WidgetViewBase):
     def __init__(self, parent = None):
         super(SurfaceView, self).__init__(parent)
