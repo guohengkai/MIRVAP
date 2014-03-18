@@ -61,7 +61,7 @@ class ImageData(DataBase):
         if imageType == None:
             imageType = self.getITKImageType()
         image = itk.PyBuffer[imageType].GetImageFromArray(self.getData())
-        image.SetSpacing(self.getResolution())
+        image.SetSpacing(self.getResolution().tolist())
         return image
     def getSimpleITKImage(self):
         image = sitk.GetImageFromArray(self.getData())
@@ -119,7 +119,7 @@ class PointSetData(DataBase):
         return self.data[key]
     def getSlicePoint(self, key, axis, pos):
         data = self.getData(key)
-        data = data[npy.where(npy.abs(data[:, axis] - pos) < 0.0001)]
+        data = data[npy.where(npy.round(data[:, axis]) == npy.round(pos))]
         result = [npy.array([]), npy.array([]), npy.array([])]
         for cnt in range(3):
             result[cnt] = data[npy.where(npy.round(data[:, -1]) == cnt)]
@@ -273,10 +273,16 @@ def saveMatData(dir, datamodel, index):
         fixedData = datamodel[fixedIndex]
         movingIndex = data.getMovingIndex()
         movingData = datamodel[movingIndex]
+        clip1 = fixedData.info.getData('clip')
+        if clip1 is None:
+            clip1 = npy.array([-1, -1, -1, -1, -1, -1])
+        clip2 = movingData.info.getData('clip')
+        if clip2 is None:
+            clip2 = npy.array([-1, -1, -1, -1, -1, -1])
         header = npy.append(header, npy.array([(fixedData.info.getResolution(), fixedData.info.getData('orientation'), 
-                                                npy.array([fixedData.getModality()]), npy.array([fixedData.getName()])), 
+                                                npy.array([fixedData.getModality()]), npy.array([fixedData.getName()]), clip1), 
                                                (movingData.info.getResolution(), movingData.info.getData('orientation'), 
-                                                npy.array([movingData.getModality()]), npy.array([movingData.getName()]))], dtype = headerType))
+                                                npy.array([movingData.getModality()]), npy.array([movingData.getName()]), clip2)], dtype = headerType))
         dict['fixedImage'] = datamodel[data.getFixedIndex()].data
         dict['movingImage'] = datamodel[data.getMovingIndex()].data
         

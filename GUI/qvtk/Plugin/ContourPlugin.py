@@ -94,14 +94,22 @@ class ContourPlugin(PluginBase):
             if not point_array[self.currentContour].shape[0]:
                 point_array[self.currentContour] = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + arg[0])[self.currentContour]
         result = False
-        #print 'load'
-        #print slice - 1 + last
-        #print point_array
-        #print self.parent.parent.getData(self.datakey).pointSet.data
+        
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
             if point_array[i].shape[0]:
                 result = True
+                
+                if point_array[i].shape[0] >= 4:
+                    
+                    # Sort the pointSet for a convex contour
+                    point = npy.delete(point_array[i], self.parent.view, axis = 1)
+                    core = point.mean(axis = 0)
+                    point -= core
+                    angle = npy.arctan2(point[:, 1], point[:, 0])
+                    ind = angle.argsort()
+                    point_array[i][:, :] = point_array[i][ind, :]
+                
                 for row in point_array[i]:
                     space = self.parent.space
                     if len(space) == 2:

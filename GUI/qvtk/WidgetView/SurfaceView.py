@@ -79,6 +79,8 @@ class SurfaceView(WidgetViewBase):
                         t = k * 1.0 / numberOfOutputPoints
                         pt = [0, 0, 0]
                         para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                        if pt[0] != pt[0]:
+                            continue;
                         # Input point type must be integer for surface
                         self.points.InsertPoint(l, int(pt[0] + 0.5), int(pt[1] + 0.5), int(pt[2] + 0.5))
                         self.cells.InsertCellPoint(l)

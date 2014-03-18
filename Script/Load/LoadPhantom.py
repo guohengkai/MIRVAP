@@ -10,7 +10,7 @@ import MIRVAP.Core.DataBase as db
 
 import numpy as npy
 
-# Need to be more flexible
+# Need to be more flexible (50 vs 100)
 class LoadPhantom(LoadBase):
     def __init__(self, gui):
         super(LoadPhantom, self).__init__(gui)
@@ -18,10 +18,10 @@ class LoadPhantom(LoadBase):
         return 'Generate Phantom Data'
     def run(self, *args, **kwargs):
         num, ok = self.gui.getInputPara(self.gui.win, 'centerX')
-        if ok and num:
+        if ok and num is not None:
             centerx = float(num)
             num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
-            if ok and num:
+            if ok and num is not None:
                 centery = float(num)
                 
                 info = self.getInfo(res = [1.0, 1.0, 1.0], ori = 0)
