@@ -23,13 +23,15 @@ class LoadPhantom(LoadBase):
             num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
             if ok and num is not None:
                 centery = float(num)
-                
-                info = self.getInfo(res = [1.0, 1.0, 1.0], ori = 0)
-                image = self.getImage(size = [150, 200, 300], center = [centerx, centery, 0])
-                point = self.getPointSet(size = [150, 200, 300], ori = 0, center = [centerx, centery, 0])
+                num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
+                if ok and num is not None:
+                    radius = float(num)
+                    info = self.getInfo(res = [1.0, 1.0, 1.0], ori = 0)
+                    image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0])
+                    point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
         
-                phantomData = db.BasicData(data = image, info = info, pointSet = point)
-                return phantomData
+                    phantomData = db.BasicData(data = image, info = info, pointSet = point)
+                    return phantomData
         
         
     def getInfo(self, res = [1.0, 1.0, 1.0], ori = 0):

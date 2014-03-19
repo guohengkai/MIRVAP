@@ -55,6 +55,6 @@ class GmmregPointsetRegistration(RegistrationBase):
         trans_points = npy.append(trans_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
         
         # Clear the temp files
-        eg.clear_temp_file()
+        #eg.clear_temp_file()
         
         return fixedData.getData() + 50, {'Contour': trans_points}
