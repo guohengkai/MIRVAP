@@ -11,8 +11,8 @@ Data/
 Test/Data
 .installed.cfg
 
-# Installer logs
-pip-log.txt
+*.txt
+*.ini
 
 # Unit test / coverage reports
 .coverage

@@ -110,7 +110,7 @@ class ImageData(DataBase):
 
 class PointSetData(DataBase):
     def __init__(self, data = None):
-        if not data:
+        if data is None:
             data = {}
         self.data = cp.deepcopy(data)
     def getData(self, key):
@@ -136,7 +136,7 @@ class PointSetData(DataBase):
 class BasicData(ImageData):
     def __init__(self, data = None, info = None, pointSet = None):
         super(BasicData, self).__init__(data, info)
-        if not pointSet:
+        if pointSet is None:
             pointSet = {}
         self.pointSet = PointSetData(pointSet)
     def getPointSet(self, key = None):
