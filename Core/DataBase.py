@@ -155,6 +155,23 @@ class ResultData(BasicData):
     def addDetail(self, key, value):
         self.info.addData(key, value)
 
+def getBifurcation(points):
+    temp = points[:, 2:]
+    temp2 = temp[npy.where(npy.round(temp[:, 1]) == 0), 0]
+    if temp2.size == 0:
+        return -1
+    min1 = npy.round(npy.min(temp2))
+    max1 = npy.round(npy.max(temp2))
+    temp3 = temp[npy.where(npy.round(temp[:, 1]) == 1), 0]
+    if temp3.size == 0:
+        return -1
+    min2 = npy.round(npy.min(temp3))
+    max2 = npy.round(npy.max(temp3))
+    if min1 == max2:
+        return min1
+    if min2 == max1:
+        return min2
+    return -1
 
 def loadDicomArray(dir):
     # When the amount of files exceeds 80+, the GetArrayFromImage function may crash, because of the memory limit of array in numpy

@@ -18,6 +18,9 @@ class RegistrationBase(ScriptBase):
         if indexes:
             if len(indexes) == 2:
                 data, point = self.register(self.gui.dataModel[indexes[0]], self.gui.dataModel[indexes[1]]) 
+                if data is None:
+                    self.gui.showErrorMessage("Error", "Registration failed!")
+                    return
                 resultData = db.ResultData(data, db.ImageInfo(self.gui.dataModel[indexes[0]].info.data), point)
                 resultData.addDetail('fix', indexes[0])
                 resultData.addDetail('move', indexes[1])

@@ -71,6 +71,7 @@ class LoadPhantom(LoadBase):
         centerline[:, -1] = 0
         centerline[:, 0 : 3] = center
         centerline[:, pos] = range(size[pos])
+        centerline = npy.append(centerline, npy.array([[-1, -1, -1, -1]]), axis = 0)
         point['Centerline'] = centerline
         
         contour = npy.ones((size[pos] * count, 4), npy.float32)
@@ -80,6 +81,7 @@ class LoadPhantom(LoadBase):
         contour[:, c[0]] = circleX.tolist() * size[pos]
         contour[:, c[1]] = circleY.tolist() * size[pos]
         contour[:, pos] = npy.arange(size[pos]).repeat(count)
+        contour = npy.append(contour, npy.array([[-1, -1, -1, -1]]), axis = 0)
         point['Contour'] = contour
         
         return point
