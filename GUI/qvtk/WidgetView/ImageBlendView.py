@@ -28,9 +28,12 @@ class ImageBlendView(RegistrationDataView):
             self.space = [float(x) / self.space[-1] for x in self.space]
         
         self.image.SetSpacing(self.space)
-        
+        self.rescale_filter = itk.RescaleIntensityImageFilter[image_type, image_type].New()
+        self.rescale_filter.SetOutputMinimum(0)
+        self.rescale_filter.SetOutputMaximum(255)
+        self.rescale_filter.SetInput(self.image)
         self.itk_vtk_converter = itk.ImageToVTKImageFilter[image_type].New()
-        self.itk_vtk_converter.SetInput(self.image)
+        self.itk_vtk_converter.SetInput(self.rescale_filter.GetOutput())
         self.image_resample = vtk.vtkImageResample()
         self.image_resample.SetInput(self.itk_vtk_converter.GetOutput())
         
@@ -46,8 +49,12 @@ class ImageBlendView(RegistrationDataView):
         y, x = shapeList[-2], shapeList[-1]
         self.dimension = len(shapeList) == 2
         
+        self.rescale_filter2 = itk.RescaleIntensityImageFilter[image_type, image_type].New()
+        self.rescale_filter2.SetOutputMinimum(0)
+        self.rescale_filter2.SetOutputMaximum(255)
+        self.rescale_filter2.SetInput(self.image2)
         self.itk_vtk_converter2 = itk.ImageToVTKImageFilter[image_type].New()
-        self.itk_vtk_converter2.SetInput(self.image2)
+        self.itk_vtk_converter2.SetInput(self.rescale_filter2.GetOutput())
         self.image_resample2 = vtk.vtkImageResample()
         self.image_resample2.SetInput(self.itk_vtk_converter2.GetOutput())
         

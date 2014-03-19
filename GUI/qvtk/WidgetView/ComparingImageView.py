@@ -41,20 +41,18 @@ class ComparingImageView(RegistrationDataView):
         self.reslice_mapper2.BackgroundOn()
         
         array = data.getData()
-        self.minI = min(array.min(), self.minI)
-        self.maxI = max(array.max(), self.maxI)
-        image_property = vtk.vtkImageProperty()
-        image_property.SetColorWindow(self.maxI - self.minI)
-        image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
-        image_property.SetAmbient(0.0)
-        image_property.SetDiffuse(1.0)
-        image_property.SetOpacity(1.0)
-        image_property.SetInterpolationTypeToLinear()
-        self.image_slice.SetProperty(image_property)
-        
+        self.minI2 = array.min()
+        self.maxI2 = array.max()
         self.image_slice2 = vtk.vtkImageSlice()
         self.image_slice2.SetMapper(self.reslice_mapper2)
-        self.image_slice2.SetProperty(image_property)
+        image_property2 = vtk.vtkImageProperty()
+        image_property2.SetColorWindow(self.maxI2 - self.minI2)
+        image_property2.SetColorLevel((self.maxI2 + self.minI2) / 2.0)
+        image_property2.SetAmbient(0.0)
+        image_property2.SetDiffuse(1.0)
+        image_property2.SetOpacity(1.0)
+        image_property2.SetInterpolationTypeToLinear()
+        self.image_slice2.SetProperty(image_property2)
         
         self.renderer2.AddViewProp(self.image_slice2)
         
@@ -66,6 +64,17 @@ class ComparingImageView(RegistrationDataView):
         
     def getName(self):
         return "Comparing Image View"
+    def KeyPressCallback(self, obj, event):
+        ch = self.window_interactor.GetKeySym()
+        if ch == 'r':
+            image_property = self.image_slice.GetProperty()
+            image_property.SetColorWindow(self.maxI - self.minI)
+            image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
+            image_property2 = self.image_slice2.GetProperty()
+            image_property2.SetColorWindow(self.maxI2 - self.minI2)
+            image_property2.SetColorLevel((self.maxI2 + self.minI2) / 2.0)
+            self.render_window.Render()
+            return            
     def updateAfter(self, *arg):
         super(ComparingImageView, self).updateAfter(*arg)
         newMessage = "  (Left: Fixed image, Right: Result image)"

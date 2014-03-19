@@ -65,7 +65,7 @@ class ImageData(DataBase):
         return image
     def getSimpleITKImage(self):
         image = sitk.GetImageFromArray(self.getData())
-        image.SetSpacing(self.getResolution())
+        image.SetSpacing(self.getResolution().tolist())
         return image
     def getDimension(self):
         return self.data.ndim

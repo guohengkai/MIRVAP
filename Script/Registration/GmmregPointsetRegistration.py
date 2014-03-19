@@ -9,6 +9,9 @@ from MIRVAP.Script.RegistrationBase import RegistrationBase
 import MIRVAP.Core.DataBase as db
 import MIRVAP.ThirdParty.gmmreg.executeGmmreg as eg
 import numpy as npy
+import numpy.matlib as ml
+import itk
+import SimpleITK as sitk
 
 class GmmregPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -39,17 +42,18 @@ class GmmregPointsetRegistration(RegistrationBase):
         moving = moving_points[:, :3]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
-        fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2]);
+        if (fixed_bif >= 0) and (moving_bif >= 0):
+            fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2]);
         
         eg.initial_data(fixed, moving)
         code = eg.run_executable()
         if code != 0:
             return None, None
-        trans, para = eg.get_final_result()
-        print para
+        trans, para, para2 = eg.get_final_result()
         
         trans_points = trans;
-        trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2]);
+        if (fixed_bif >= 0) and (moving_bif >= 0):
+            trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2]);
         trans_points[:, :3] /= fixed_res[:3]
         trans_points = npy.insert(trans, [trans.shape[1]], moving_points[:, -1].reshape(-1, 1), axis = 1)
         trans_points = npy.append(trans_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
@@ -57,4 +61,43 @@ class GmmregPointsetRegistration(RegistrationBase):
         # Clear the temp files
         #eg.clear_temp_file()
         
-        return fixedData.getData() + 50, {'Contour': trans_points}
+        S1 = ml.ones([3, 3], dtype = npy.float32) * para2[3]
+        C = npy.asmatrix(para2[:3]).T
+        
+        C2 = npy.asmatrix(para2[4:7]).T
+        T0 = npy.asmatrix(para[4:]).T
+        T = S1 * T0 + C2 - C
+        T = -T
+        R = self.quaternion2rotation(para[:4])
+        if (fixed_bif >= 0) and (moving_bif >= 0):
+            T[2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+        T = R * T
+        
+        transform = sitk.Transform(3, sitk.sitkAffine)
+        transform.SetParameters(R.reshape(1, -1).tolist()[0] + T.T.tolist()[0])
+        transform.SetFixedParameters(C.T.tolist()[0])
+        
+        movingImage = movingData.getSimpleITKImage()
+        fixedImage = fixedData.getSimpleITKImage()
+        resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
+        
+        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points}
+    def quaternion2rotation(self, q):
+        R = ml.zeros([3, 3], dtype = npy.float32)
+        x, y, z, r = q
+        x2, y2, z2, r2 = q * q
+        
+        R[0, 0] = r2 + x2 - y2 - z2
+        R[1, 1] = r2 - x2 + y2 - z2
+        R[2, 2] = r2 - x2 - y2 + z2
+        
+        R[1, 0] = 2 * (x * y + r * z)
+        R[2, 0] = 2 * (z * x - r * y)
+        R[2, 1] = 2 * (y * z + r * x)
+        R[0, 1] = 2 * (x * y - r * z)
+        R[0, 2] = 2 * (z * x + r * y)
+        R[1, 2] = 2 * (y * z - r * x)
+        
+        ss = x2 + y2 + z2 + r2
+        R = R / ss
+        return R

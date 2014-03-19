@@ -27,6 +27,7 @@ def initial_data(fixedPoints, movingPoints, methodname = "rigid"):
     wfile.write("scene = %s/scene.txt\n" % path)
     wfile.write("final_%s = %s/final.txt\n" % (methodname, path))
     wfile.write("transformed_model = %s/trans_model.txt\n" % path)
+    wfile.write("para = %s/para.txt\n" % path)
     wfile.write("[GMMREG_OPT]\n")
     wfile.write("normalize = 1\n")
     wfile.write("level = 2\n")
@@ -40,10 +41,12 @@ def get_final_result(f_config = "temp.ini", methodname = "rigid"):
     section_common = 'FILES'
     pf = c.get(section_common,'final_' + methodname)
     tf = c.get(section_common,'transformed_model')
+    pf2 = c.get(section_common,'para')
 
     trans = npy.loadtxt(tf)
     para = npy.loadtxt(pf)
-    return trans, para
+    para2 = npy.loadtxt(pf2)
+    return trans, para, para2
     
 def get_exe_path():
     path = sys.argv[0]
