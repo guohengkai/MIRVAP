@@ -18,22 +18,26 @@ class LoadPhantom(LoadBase):
         return 'Generate Phantom Data'
     def run(self, *args, **kwargs):
         num, ok = self.gui.getInputPara(self.gui.win, 'centerX')
-        if ok and num is not None:
-            centerx = float(num)
-            num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
-            if ok and num is not None:
-                centery = float(num)
-                num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
-                if ok and num is not None:
-                    radius = float(num)
-                    num, ok = self.gui.getInputPara(self.gui.win, 'ResolutionX', 1.0)
-                    if ok and num is not None:
-                        info = self.getInfo(res = [1.0, 1.0, float(num)], ori = 0)
-                        image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0])
-                        point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
-    
-                        phantomData = db.BasicData(data = image, info = info, pointSet = point)
-                        return phantomData
+        if not ok or num is None:
+            return []
+        centerx = float(num)
+        num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
+        if not ok or num is None:
+            return []
+        centery = float(num)
+        num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
+        if not ok or num is None:
+            return []
+        radius = float(num)
+        num, ok = self.gui.getInputPara(self.gui.win, 'ResolutionX', 1.0)
+        if not ok or num is None:
+            return []
+        info = self.getInfo(res = [1.0, 1.0, float(num)], ori = 0)
+        image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0])
+        point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
+
+        phantomData = db.BasicData(data = image, info = info, pointSet = point)
+        return [phantomData]
         
         
     def getInfo(self, res = [1.0, 1.0, 1.0], ori = 0):

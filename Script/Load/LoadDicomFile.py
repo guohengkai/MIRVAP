@@ -26,7 +26,7 @@ class LoadDicomFile(LoadBase):
             data = db.loadDicomArray(dir)
         except Exception:
             self.gui.showErrorMessage("Memory error", "Data exceeded memory limit! If this problem occurs again, please restart the application.")
-            return None
+            return []
         
         # Format: z * x * y
         if type(data) == tuple:
@@ -37,7 +37,7 @@ class LoadDicomFile(LoadBase):
         info = self.loadDicomInfo(dir[0], len(data.shape))
         fileData = db.BasicData(data = data, info = info)
         
-        return fileData
+        return [fileData]
         
     def loadDicomInfo(self, dir, dimension):
         # Only available for special data (Need to modify for more universal usage)

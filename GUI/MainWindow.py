@@ -146,11 +146,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def runLoadScript(self, index):
         temp = self.getMessageOnStatusBar()
         self.showMessageOnStatusBar("Loading...")
-        data = self.script['Load'][index]()
-        if data:
-            self.addNewDataView(data)
-            if self.gui.dataModel.getCount() > 1:
-                self.menuRegister.setDisabled(False)
+        result = self.script['Load'][index]()
+        if len(result):
+            for data in result:
+                self.addNewDataView(data)
+                if self.gui.dataModel.getCount() > 1:
+                    self.menuRegister.setDisabled(False)
         else:
             self.showMessageOnStatusBar(temp)
     def runRegisterScript(self, index):

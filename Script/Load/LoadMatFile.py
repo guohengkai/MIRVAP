@@ -19,9 +19,12 @@ class LoadMatFile(LoadBase):
         filter = 'Mat Files(*.mat)'
         return title, dir, filter
     def load(self, dir):
-        data, info, point = db.loadMatData(dir[0], self.gui.dataModel)
-        if info.getData('fix') is not None:
-            fileData = db.ResultData(data, info, point)
-        else:
-            fileData = db.BasicData(data, info, point)
-        return fileData
+        result = []
+        for name in dir:
+            data, info, point = db.loadMatData(name, self.gui.dataModel)
+            if info.getData('fix') is not None:
+                fileData = db.ResultData(data, info, point)
+            else:
+                fileData = db.BasicData(data, info, point)
+            result.append(fileData)
+        return result

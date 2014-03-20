@@ -17,6 +17,8 @@ class LoadBase(ScriptBase):
         dir = self.gui.getFileNames(title, dir, filter)
         if dir:
             return self.load(dir)
+        else:
+            return []
         
     def load(self, dir):
         raise NotImplementedError('Method "load" Not Impletemented!')

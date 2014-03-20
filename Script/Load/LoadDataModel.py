@@ -16,5 +16,7 @@ class LoadDataModel(LoadBase):
         index = self.gui.getReloadDataIndex()
         if index is not None:
             return self.load(index)
+        else:
+            return []
     def load(self, index):
-        return self.gui.dataModel[index]
+        return [self.gui.dataModel[index]]
