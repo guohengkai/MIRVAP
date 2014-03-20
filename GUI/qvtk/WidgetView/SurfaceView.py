@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2014-03-06
+Created on 2014-03-20
 
 @author: Hengkai Guo
 """
@@ -8,6 +8,7 @@ Created on 2014-03-06
 from MIRVAP.GUI.qvtk.WidgetViewBase import WidgetViewBase
 import vtk
 import numpy as npy
+from MIRVAP.GUI.MdiChild import MdiChildRegistration
 
 # Only available when the vessel is along the z axis
 class SurfaceView(WidgetViewBase):
@@ -19,16 +20,24 @@ class SurfaceView(WidgetViewBase):
     def setWidgetView(self, widget):
         super(SurfaceView, self).setWidgetView(widget)
         # Because the vtkVoxelContoursToSurfaceFilter can only accept points with integer coordinate, substitute needs to be found
-        point_array = self.parent.getData().pointSet
-        point_data = npy.array(point_array.getData('Contour'))
-        if point_data is None or not point_data.shape[0]:
+        point_array_result = self.parent.getData().pointSet
+        if type(self.parent) is MdiChildRegistration:
+            point_array_move = self.parent.getData('move').pointSet
+            #point_array_move = point_array_result
+        else:
+            point_array_move = point_array_result
+        point_data_move = npy.array(point_array_move.getData('Contour'))
+        point_data_result = npy.array(point_array_result.getData('Contour'))
+        print point_data_move.shape
+        print point_data_result.shape
+        if point_data_result is None or not point_data_result.shape[0]:
             return
-        zmin = int(npy.min(point_data[:, 2]) + 0.5)
-        zmax = int(npy.max(point_data[:, 2]) + 0.5)
+        zmin = int(npy.min(point_data_move[:, 2]) + 0.5)
+        zmax = int(npy.max(point_data_move[:, 2]) + 0.5)
         #self.spacing = [1, 1, 1]
         self.spacing = self.parent.getData().getResolution().tolist()
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
-        point_data[:, :2] *= self.spacing[:2]
+        point_data_result[:, :2] *= self.spacing[:2]
         
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
@@ -37,38 +46,43 @@ class SurfaceView(WidgetViewBase):
         self.render_window.SetInteractor(self.window_interactor)
         
         self.contours = []
-        self.contour_mapper = []
-        self.contours_actor = []
-        self.contour_to_surface = []
-        self.surface_mapper = []
+        self.delaunay3D = []
+        #self.triangle_filter = []
+        #self.smooth_filter = []
+        self.delaunayMapper = []
         self.surface_actor = []
         
         for cnt in range(3):
             self.contours.append(vtk.vtkPolyData())
-            self.contour_mapper.append(vtk.vtkPolyDataMapper())
-            self.contours_actor.append(vtk.vtkActor())
-            self.contour_to_surface.append(vtk.vtkVoxelContoursToSurfaceFilter())
-            self.surface_mapper.append(vtk.vtkPolyDataMapper())
+            self.delaunay3D.append(vtk.vtkDelaunay3D())
+            #self.triangle_filter.append(vtk.vtkTriangleFilter())
+            #self.smooth_filter.append(vtk.vtkButterflySubdivisionFilter())
+            #self.smooth_filter.append(vtk.vtkLinearSubdivisionFilter())
+            self.delaunayMapper.append(vtk.vtkDataSetMapper())
             self.surface_actor.append(vtk.vtkActor())
-            point = point_data[npy.where(npy.round(point_data[:, -1]) == cnt)]
-            if not point.shape[0]:
+            
+            point_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
+            point_move = point_data_move[npy.where(npy.round(point_data_move[:, -1]) == cnt)]
+            if not point_result.shape[0]:
                 continue
                 
             self.cells = vtk.vtkCellArray()
             self.points = vtk.vtkPoints()
             l = 0
             for i in range(zmin, zmax + 1):
-                data = point[npy.where(npy.round(point[:, 2]) == i)]
+                data = point_result[npy.where(npy.round(point_move[:, 2]) == i)]
                 if data is not None:
                     if data.shape[0] == 0:
                         continue
-                    data = npy.round(data)
                     count = data.shape[0]
                     points = vtk.vtkPoints()
                     for j in range(count):
                         points.InsertPoint(j, data[j, 0], data[j, 1], data[j, 2])
                     
                     para_spline = vtk.vtkParametricSpline()
+                    para_spline.SetXSpline(vtk.vtkKochanekSpline())
+                    para_spline.SetYSpline(vtk.vtkKochanekSpline())
+                    para_spline.SetZSpline(vtk.vtkKochanekSpline())
                     para_spline.SetPoints(points)
                     para_spline.ClosedOn()
                     
@@ -77,43 +91,38 @@ class SurfaceView(WidgetViewBase):
                     self.cells.InsertNextCell(numberOfOutputPoints)
                     for k in range(0, numberOfOutputPoints):
                         t = k * 1.0 / numberOfOutputPoints
-                        pt = [0, 0, 0]
+                        pt = [0.0, 0.0, 0.0]
                         para_spline.Evaluate([t, t, t], pt, [0] * 9)
                         if pt[0] != pt[0]:
-                            continue;
-                        # Input point type must be integer for surface
-                        self.points.InsertPoint(l, int(pt[0] + 0.5), int(pt[1] + 0.5), int(pt[2] + 0.5))
+                            print pt
+                            continue
+                        self.points.InsertPoint(l, pt[0], pt[1], pt[2])
                         self.cells.InsertCellPoint(l)
                         l += 1
 
             self.contours[cnt].SetPoints(self.points)
             self.contours[cnt].SetPolys(self.cells)
             
-            self.contour_mapper[cnt].SetInput(self.contours[cnt])
-            self.contour_mapper[cnt].ScalarVisibilityOff()
+            self.delaunay3D[cnt].SetInput(self.contours[cnt])
+            self.delaunay3D[cnt].SetAlpha(2)
+            #self.triangle_filter[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
+            #self.triangle_filter[cnt].PassVertsOn()
+            #self.triangle_filter[cnt].PassLinesOn()
+            #self.smooth_filter[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
+            #self.smooth_filter[cnt].SetInput(self.triangle_filter[cnt].GetOutput())
+            #self.smooth_filter[cnt].SetNumberOfSubdivisions(3)
             
-            self.contours_actor[cnt].SetMapper(self.contour_mapper[cnt])
-            self.contours_actor[cnt].GetProperty().SetRepresentationToWireframe()
-            self.renderer.AddViewProp(self.contours_actor[cnt])
+            self.delaunayMapper[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
             
-            self.contour_to_surface[cnt].SetInput(self.contours[cnt])
-            self.contour_to_surface[cnt].SetMemoryLimitInBytes(100000)
-            self.contour_to_surface[cnt].Update()
-            
-            self.surface_mapper[cnt].SetInputConnection(self.contour_to_surface[cnt].GetOutputPort())
-            self.surface_mapper[cnt].ScalarVisibilityOff()
-            self.surface_mapper[cnt].ImmediateModeRenderingOn()
-            
-            self.surface_actor[cnt].SetMapper(self.surface_mapper[cnt])
             color = [0, 0, 0]
             color[cnt] = 1
+            self.surface_actor[cnt].SetMapper(self.delaunayMapper[cnt])
             self.surface_actor[cnt].GetProperty().SetDiffuseColor(color[0], color[1], color[2])
             self.surface_actor[cnt].GetProperty().SetSpecularColor(1, 1, 1)
             self.surface_actor[cnt].GetProperty().SetSpecular(0.4)
             self.surface_actor[cnt].GetProperty().SetSpecularPower(50)
             
             self.renderer.AddViewProp(self.surface_actor[cnt])
-            self.contours_actor[cnt].VisibilityOff()
         
         self.renderer.ResetCamera()
         point = self.renderer.GetActiveCamera().GetFocalPoint()
