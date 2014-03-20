@@ -11,7 +11,7 @@ MIRVAP need to be used in Python 2.7 with:
 * Numpy, Scipy
 * itk(with PyBuffer), vtk, SimpleITK, PyDicom
 
-MIRVAP includes Elastix and GMMREG as third party library. 
+MIRVAP includes [Elastix](http://elastix.isi.uu.nl/) and [GMMREG](http://code.google.com/p/gmmreg/) as third party libraries. 
 
 
 
