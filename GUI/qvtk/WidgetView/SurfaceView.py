@@ -17,13 +17,12 @@ class SurfaceView(WidgetViewBase):
         self.datatype = (3, )
     def getName(self):
         return "Surface View"
-    def setWidgetView(self, widget):
+    def setWidgetView(self, widget, color = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]):
         super(SurfaceView, self).setWidgetView(widget)
-        # Because the vtkVoxelContoursToSurfaceFilter can only accept points with integer coordinate, substitute needs to be found
+        
         point_array_result = self.parent.getData().pointSet
         if type(self.parent) is MdiChildRegistration:
             point_array_move = self.parent.getData('move').pointSet
-            #point_array_move = point_array_result
         else:
             point_array_move = point_array_result
         point_data_move = npy.array(point_array_move.getData('Contour'))
@@ -114,10 +113,8 @@ class SurfaceView(WidgetViewBase):
             
             self.delaunayMapper[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
             
-            color = [0, 0, 0]
-            color[cnt] = 1
             self.surface_actor[cnt].SetMapper(self.delaunayMapper[cnt])
-            self.surface_actor[cnt].GetProperty().SetDiffuseColor(color[0], color[1], color[2])
+            self.surface_actor[cnt].GetProperty().SetDiffuseColor(color[cnt][0], color[cnt][1], color[cnt][2])
             self.surface_actor[cnt].GetProperty().SetSpecularColor(1, 1, 1)
             self.surface_actor[cnt].GetProperty().SetSpecular(0.4)
             self.surface_actor[cnt].GetProperty().SetSpecularPower(50)
