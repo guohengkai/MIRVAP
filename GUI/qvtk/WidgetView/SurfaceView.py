@@ -27,8 +27,7 @@ class SurfaceView(WidgetViewBase):
             point_array_move = point_array_result
         point_data_move = npy.array(point_array_move.getData('Contour'))
         point_data_result = npy.array(point_array_result.getData('Contour'))
-        print point_data_move.shape
-        print point_data_result.shape
+        
         if point_data_result is None or not point_data_result.shape[0]:
             return
         zmin = int(npy.min(point_data_move[:, 2]) + 0.5)
@@ -79,9 +78,6 @@ class SurfaceView(WidgetViewBase):
                         points.InsertPoint(j, data[j, 0], data[j, 1], data[j, 2])
                     
                     para_spline = vtk.vtkParametricSpline()
-                    para_spline.SetXSpline(vtk.vtkKochanekSpline())
-                    para_spline.SetYSpline(vtk.vtkKochanekSpline())
-                    para_spline.SetZSpline(vtk.vtkKochanekSpline())
                     para_spline.SetPoints(points)
                     para_spline.ClosedOn()
                     

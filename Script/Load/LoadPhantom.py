@@ -10,7 +10,6 @@ import MIRVAP.Core.DataBase as db
 
 import numpy as npy
 
-# Need to be more flexible (50 vs 100)
 class LoadPhantom(LoadBase):
     def __init__(self, gui):
         super(LoadPhantom, self).__init__(gui)
@@ -69,7 +68,7 @@ class LoadPhantom(LoadBase):
                     image[:, j, i] = gray
         
         return image
-    def getPointSet(self, size = [100, 100, 100], radius = 30, center = [49.5, 49.5, 49.5], ori = 0, count = 20):
+    def getPointSet(self, size = [100, 100, 100], radius = 30, center = [49.5, 49.5, 49.5], ori = 0, count = 10):
         point = dict()
         pos = 2 - ori
         c = [0, 1, 2]
