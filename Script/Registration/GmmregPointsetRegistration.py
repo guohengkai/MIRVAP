@@ -48,7 +48,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         eg.initial_data(fixed, moving)
         code = eg.run_executable()
         if code != 0:
-            return None, None
+            return None, None, None
         trans, para, para2 = eg.get_final_result()
         
         trans_points = trans;
@@ -85,14 +85,15 @@ class GmmregPointsetRegistration(RegistrationBase):
         T = R * T
         
         transform = sitk.Transform(3, sitk.sitkAffine)
-        transform.SetParameters(R.reshape(1, -1).tolist()[0] + T.T.tolist()[0])
+        para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
+        transform.SetParameters(para)
         transform.SetFixedParameters(C.T.tolist()[0])
         
         movingImage = movingData.getSimpleITKImage()
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}
+        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
     def quaternion2rotation(self, q):
         R = ml.zeros([3, 3], dtype = npy.float32)
         x, y, z, r = q

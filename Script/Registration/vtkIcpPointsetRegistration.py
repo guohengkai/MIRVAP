@@ -111,10 +111,11 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         T = R * T
         
         transform = sitk.Transform(3, sitk.sitkAffine)
-        transform.SetParameters(R.reshape(1, -1).tolist()[0] + T.T.tolist()[0])
+        para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
+        transform.SetParameters(para)
         
         movingImage = movingData.getSimpleITKImage()
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}
+        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para

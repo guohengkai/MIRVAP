@@ -228,6 +228,8 @@ def loadMatData(dir, datamodel):
     
     fixedImage = data.get('fixedImage')
     if fixedImage is not None:
+        transform = data.get('transform', [])
+        info.addData('transform', transform)
         movingImage = data.get('movingImage')
         
         resolution = header['resolution'][0][1][0]
@@ -302,6 +304,7 @@ def saveMatData(dir, datamodel, index):
                                                 npy.array([movingData.getModality()]), npy.array([movingData.getName()]), clip2)], dtype = headerType))
         dict['fixedImage'] = datamodel[data.getFixedIndex()].data
         dict['movingImage'] = datamodel[data.getMovingIndex()].data
+        dict['transform'] = data.info.getData('transform')
         
         temp = fixedData.getPointSet()
         if temp:

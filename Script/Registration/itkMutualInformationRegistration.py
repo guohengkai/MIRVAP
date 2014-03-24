@@ -115,7 +115,8 @@ class itkMutualInformationRegistration(RegistrationBase):
         T = -T
         T = R * T
         transform = sitk.Transform(3, sitk.sitkAffine)
-        transform.SetParameters(R.reshape(1, -1).tolist()[0] + T.T.tolist()[0])
+        para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
+        transform.SetParameters(para)
         transform.SetFixedParameters([0.0, 0.0, 0.0])
         
         movingImage = movingData.getSimpleITKImage()
@@ -124,4 +125,4 @@ class itkMutualInformationRegistration(RegistrationBase):
         array = sitk.GetArrayFromImage(resultImage)
         print npy.sum(array)
         
-        return array, {}
+        return array, {}, para
