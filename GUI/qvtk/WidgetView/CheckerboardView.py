@@ -144,7 +144,9 @@ class CheckerboardView(RegistrationDataView):
             if self.dimension:
                 self.checkers.SetNumberOfDivisions(self.division, self.division, 0)
             else:
-                self.checkers.SetNumberOfDivisions(self.division, self.division, self.division)
+                temp = [self.division, self.division, self.division]
+                temp[self.view] = 0
+                self.checkers.SetNumberOfDivisions(temp[0], temp[1], temp[2])
             self.render_window.Render()
             self.updateAfter()
             return

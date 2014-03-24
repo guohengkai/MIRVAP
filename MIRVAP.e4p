@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-20, 16:30:56 -->
+<!-- Saved: 2014-03-23, 23:52:19 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -29,7 +29,6 @@
     <Source>GUI/Ui_MainWindow.py</Source>
     <Source>GUI/MdiChild.py</Source>
     <Source>Script/Analysis/__init__.py</Source>
-    <Source>Script/Registration/MI_Rigid_itk.py</Source>
     <Source>Script/Registration/TestRegistration.py</Source>
     <Source>GUI/Ui_MdiChild.py</Source>
     <Source>Script/Load/LoadDataModel.py</Source>
@@ -71,6 +70,7 @@
     <Source>ThirdParty/elastix/__init__.py</Source>
     <Source>ThirdParty/gmmreg/executeGmmreg.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingSurfaceView.py</Source>
+    <Source>Script/Registration/itkMutualInformationRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

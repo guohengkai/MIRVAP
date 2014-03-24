@@ -8,7 +8,11 @@ Created on 2014-02-07
 from MIRVAP.Script.RegistrationBase import RegistrationBase
 import MIRVAP.Core.DataBase as db
 import itk
+import SimpleITK as sitk
+import numpy as npy
+import numpy.matlib as ml
 
+# Fail to register with MI
 class itkMutualInformationRegistration(RegistrationBase):
     def __init__(self, gui):
         super(itkMutualInformationRegistration, self).__init__(gui)
@@ -45,35 +49,9 @@ class itkMutualInformationRegistration(RegistrationBase):
         registration.SetMovingImage(movingImage)
         registration.SetFixedImageRegion(fixedImage.GetBufferedRegion())
         
-        # center of the fixed image
-        fixedSpacing = fixedImage.GetSpacing()
-        fixedOrigin = fixedImage.GetOrigin()
-        fixedSize = fixedImage.GetLargestPossibleRegion().GetSize()
-        
-        centerFixed = (fixedOrigin.GetElement(0) + fixedSpacing.GetElement(0) * fixedSize.GetElement(0) / 2.0,
-                       fixedOrigin.GetElement(1) + fixedSpacing.GetElement(1) * fixedSize.GetElement(1) / 2.0,
-                       fixedOrigin.GetElement(2) + fixedSpacing.GetElement(2) * fixedSize.GetElement(2) / 2.0)
-        
-        # center of the moving image 
-        movingSpacing = movingImage.GetSpacing()
-        movingOrigin = movingImage.GetOrigin()
-        movingSize = movingImage.GetLargestPossibleRegion().GetSize()
-        
-        centerMoving = (movingOrigin.GetElement(0) + movingSpacing.GetElement(0) * movingSize.GetElement(0) / 2.0,
-                        movingOrigin.GetElement(1) + movingSpacing.GetElement(1) * movingSize.GetElement(1) / 2.0,
-                        movingOrigin.GetElement(2) + movingSpacing.GetElement(2) * movingSize.GetElement(2) / 2.0)
-        
-        # transform center
-        center = transform.GetCenter()
-        center.SetElement(0, centerFixed[0])
-        center.SetElement(1, centerFixed[1])
-        center.SetElement(2, centerFixed[2])
-        
-        # transform translation
-        translation = transform.GetTranslation()
-        translation.SetElement(0, centerMoving[0] - centerFixed[0])
-        translation.SetElement(1, centerMoving[1] - centerFixed[1])
-        translation.SetElement(2, centerMoving[2] - centerFixed[2])
+        fixed_res = fixedData.getResolution().tolist()
+        moving_res = movingData.getResolution().tolist()
+        #transform.SetParameters([0.0, 0.0, 0.0, 0.0, 0.0, -329 * fixed_res[-1] + 95 * moving_res[-1]])
         
         initialParameters = transform.GetParameters()
         print "Initial Registration Parameters "
@@ -105,8 +83,12 @@ class itkMutualInformationRegistration(RegistrationBase):
         optimizer.AddObserver(itk.IterationEvent(), iterationCommand)
         
         # Start the registration process
-        registration.Update()
-        
+        try:
+            registration.Update()
+        except Exception:
+            print "error"
+            transform.SetParameters([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+            
         # Get the final parameters of the transformation
         finalParameters = registration.GetLastTransformParameters()
         
@@ -118,38 +100,28 @@ class itkMutualInformationRegistration(RegistrationBase):
         print finalParameters.GetElement(4)
         print finalParameters.GetElement(5)
         
-#        transform = sitk.Transform(3, sitk.sitkAffine)
-#        transform.SetParameters(finalParameters.GetElement(0), finalParameters.GetElement(1),
-#                                finalParameters.GetElement(2), finalParameters.GetElement(3),
-#                                finalParameters.GetElement(4), finalParameters.GetElement(5))
-#        transform.SetFixedParameters(C.T.tolist()[0])
-#        
-#        movingImage = movingData.getSimpleITKImage()
-#        fixedImage = fixedData.getSimpleITKImage()
-#        resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
-        
         # Use the final transform for resampling the moving image.
-        resampler = itk.ResampleImageFilter[image_type, image_type].New()
+        parameters = transform.GetParameters()
         
-        resampler.SetTransform(transform)
-        resampler.SetInput(movingImage)
+        # Fail to use ResampleImageFilter
+        x = parameters.GetElement(0)
+        y = parameters.GetElement(1)
+        z = parameters.GetElement(2)
+        Xr = ml.mat([[1, 0, 0], [0, npy.cos(x), npy.sin(x)], [0, -npy.sin(x), npy.cos(x)]])
+        Yr = ml.mat([[npy.cos(y), 0, -npy.sin(y)], [0, 1, 0], [npy.sin(y), 0, npy.cos(y)]])
+        Zr = ml.mat([[npy.cos(z), npy.sin(z), 0], [-npy.sin(z), npy.cos(z), 0], [0, 0, 1]])
+        R = Xr * Yr * Zr
+        T = ml.mat([parameters.GetElement(3), parameters.GetElement(4), parameters.GetElement(5)]).T
+        T = -T
+        T = R * T
+        transform = sitk.Transform(3, sitk.sitkAffine)
+        transform.SetParameters(R.reshape(1, -1).tolist()[0] + T.T.tolist()[0])
+        transform.SetFixedParameters([0.0, 0.0, 0.0])
         
-        region = fixedImage.GetLargestPossibleRegion()
+        movingImage = movingData.getSimpleITKImage()
+        fixedImage = fixedData.getSimpleITKImage()
+        resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
+        array = sitk.GetArrayFromImage(resultImage)
+        print npy.sum(array)
         
-        resampler.SetSize(region.GetSize())
-        resampler.SetOutputSpacing(fixedImage.GetSpacing())
-        resampler.SetOutputDirection(fixedImage.GetDirection())
-        resampler.SetOutputOrigin(fixedImage.GetOrigin())
-        resampler.SetDefaultPixelValue(0)
-        
-#        # Cast for output
-#        outputCast = itk.RescaleIntensityImageFilter[image_type, image_type].New()
-#        outputCast.SetInput(resampler.GetOutput())
-#        outputCast.SetOutputMinimum(0)
-#        outputCast.SetOutputMaximum(255)
-#        outputCast.Update()
-        
-        outputImage = resampler.GetOutput()
-        image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
-        print image
-        return image, {}
+        return array, {}
