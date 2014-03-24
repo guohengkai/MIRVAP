@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-23, 23:52:19 -->
+<!-- Saved: 2014-03-24, 16:28:52 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -71,6 +71,7 @@
     <Source>ThirdParty/gmmreg/executeGmmreg.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingSurfaceView.py</Source>
     <Source>Script/Registration/itkMutualInformationRegistration.py</Source>
+    <Source>Script/Registration/vtkIcpPointsetRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
