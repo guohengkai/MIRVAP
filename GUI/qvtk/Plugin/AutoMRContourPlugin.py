@@ -9,52 +9,25 @@ import numpy as npy
 
 from ContourPlugin import ContourPlugin
 
-# Only in z direction
-class AutoUSContourPlugin(ContourPlugin):
+class AutoMRContourPlugin(ContourPlugin):
     def KeyPressCallback(self, obj, event):
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'Return':
-            # Get the resolution of image
-            space = self.parent.space
-            if len(space) == 2:
-                space += [1]
-                
-            # Get the input information (begin, end, bifurcation)
-            temp = self.parent.parent.getData().getPointSet('Contour')
-            point_vital = [0] * 3
-            for i in range(3):
-                point_vital[i] = temp[npy.round(temp[:, -1]) == i].copy()
-                if point_vital[i].shape[0] == 0:
-                    return
-            
-            bottom = int(npy.round(npy.min(point_vital[0][:, 2])))
-            bif = int(npy.round(npy.max(point_vital[0][:, 2])))
-            up1 = int(npy.round(npy.max(point_vital[1][:, 2])))
-            up2 = int(npy.round(npy.max(point_vital[2][:, 2])))
-            print bottom, bif
-            print up1, up2
-            
-            self.autoDetectContour(point_vital, 0, bottom, bif, space)
-            self.autoDetectContour(point_vital, 1, up1, bif, space)
-            self.autoDetectContour(point_vital, 2, up2, bif, space)
-            
-            self.parent.render_window.Render()
-            return
-        if ch in ['t', 'T']:
+            # Get all the points
             space = self.parent.space
             if len(space) == 2:
                 space += [1]
             point_array = self.getAllPoint() / space
             if point_array.shape[0] == 0:
                 return
-                
-            temp_array = npy.delete(point_array, 2, axis = 1)
+            temp_array = npy.delete(point_array, self.parent.view, axis = 1)
             # Get the 2D image
             image = self.parent.parent.getData().getData()[npy.round(point_array[0, self.parent.view]), :, :].transpose()
             
             # Ellipse fitting
             center, diameter, angle = ellipseFitting(temp_array)
             
+            #center = temp_array[0, :]
             sigmaMin = 4
             n = 1000
             d = 1.0 / self.parent.parent.getData().getResolution()[-1]
@@ -62,10 +35,9 @@ class AutoUSContourPlugin(ContourPlugin):
             resultPoints, distance = getRayPoints(image, center, n, th)
             h, w = image.shape
             prunedPoints = finePrune(resultPoints, distance, center, diameter, angle, h, w)
-#            center, diameter, angle = ransac(prunedPoints, EllipseLeastSquaresModel(),
-#                50, 200, 50, 800)
-#            temp_array = getPointsFromEllipse(center, diameter, angle, 20)
-            temp_array = prunedPoints
+            center, diameter, angle = ransac(prunedPoints, EllipseLeastSquaresModel(),
+                50, 200, 20, 100)
+            temp_array = getPointsFromEllipse(center, diameter, angle, 20)
             
             # Save all the new points
             point_array = npy.insert(temp_array, self.parent.view, point_array[0, self.parent.view], axis = 1) * space
@@ -73,61 +45,11 @@ class AutoUSContourPlugin(ContourPlugin):
             for i in range(point_array.shape[0]):
                 self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
             self.parent.render_window.Render()
-            
             return
-        if ch in ['e', 'E']:
-            space = self.parent.space
-            if len(space) == 2:
-                space += [1]
-            point_array = self.getAllPoint() / space
-            if point_array.shape[0] == 0:
-                return
-                
-            temp_array = npy.delete(point_array, 2, axis = 1)
-            center, diameter, angle = ellipseFitting(temp_array)
-            temp_array = getPointsFromEllipse(center, diameter, angle, 20)
-            
-            point_array = npy.insert(temp_array, self.parent.view, point_array[0, self.parent.view], axis = 1) * space
-            self.contourRep[self.currentContour].ClearAllNodes()
-            for i in range(point_array.shape[0]):
-                self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
-            self.parent.render_window.Render()
-            return
-            
-        super(AutoUSContourPlugin, self).KeyPressCallback(obj, event)
-    def autoDetectContour(self, point_vital, cnt, be, en, space):
-        if be > en:
-            step = -1
-        else:
-            step = 1
-        sigmaMin = 4
-        n = 1000
-        d = 1.0 / self.parent.parent.getData().getResolution()[-1]
-        
-        points = point_vital[cnt][npy.round(point_vital[cnt][:, 2]) == be]
-        if points is None:
-            return
-        points = points[:, :-2]
-        center, diameter, angle = ellipseFitting(points)
-        
-        for i in range(be, en + step, step):
-            print cnt, ': ', i
-            image = self.parent.parent.getData().getData()[i, :, :].transpose()
-            th = getThreshold(image, center, d, space[0:2], sigmaMin)
-            resultPoints, distance = getRayPoints(image, center, n, th)
-            h, w = image.shape
-            prunedPoints = finePrune(resultPoints, distance, center, diameter, angle, h, w)
-            new_center, new_diameter, new_angle = ransac(prunedPoints, EllipseLeastSquaresModel(),
-                50, 200, 50, 800)
-            if new_angle != -1:
-                print diameter[0] - new_diameter[0], diameter[1] - new_diameter[1]
-                center, diameter, angle = new_center, new_diameter, new_angle
-            temp_array = getPointsFromEllipse(center, diameter, angle, 20)
-            temp_array = npy.insert(temp_array, [temp_array.shape[1]], npy.ones((temp_array.shape[0], 1), int) * i, axis = 1)
-            self.parent.parent.getData().pointSet.setSlicePoint('Contour', temp_array, 2, i, cnt)
+        super(AutoMRContourPlugin, self).KeyPressCallback(obj, event)
         
     def getName(self):
-        return "Auto US Contour Detector"
+        return "Auto MR Contour Detector"
         
 def getThreshold(image, center, d, res, sigmaMin):
     temp = image[npy.ceil(center[0] - d / res[0]) : npy.floor(center[0] + d / res[0]), npy.ceil(center[1] - d / res[1]) : npy.floor(center[1] + d / res[1])]
@@ -173,8 +95,8 @@ def finePrune(points, distance, center, diameter, angle, h, w):
     mu2 = npy.mean(delta)
     sigma2 = npy.std(delta)
     
-    index = npy.where((distance > ellipse_radius + mu + 0.05 * sigma) | 
-                      (distance < ellipse_radius - mu2 - 0.05 * sigma2) | 
+    index = npy.where((distance > ellipse_radius + mu + sigma) | 
+                      (distance < ellipse_radius - mu2 - sigma2) | 
                       (points[:, 0] >= h - 1) | (points[:, 0] <= 0) | 
                       (points[:, 1] >= w - 1) | (points[:, 1] <= 0))
     xx = diameter[0] / 2 * npy.cos(angle_list[index] - angle)
@@ -238,7 +160,7 @@ def ransac(data, model, n, k, t, d):
                 best_inlier_idxs = npy.concatenate((maybe_idxs, also_idxs))
         iterations += 1
     if bestfit is None:
-        return -1, -1, -1
+        return model.fit(data)
     
     return bestfit
 
