@@ -129,8 +129,7 @@ class PointSetData(DataBase):
     def setSlicePoint(self, key, data, axis, pos, cnt):
         data = npy.insert(data, [data.shape[1]], npy.ones((data.shape[0], 1), int) * cnt, axis = 1)
         self.getData(key)
-        self.data[key] = npy.delete(self.data[key], npy.where(npy.logical_and(npy.abs(self.data[key][:, axis] - pos) < 0.0001, 
-            npy.round(self.data[key][:, -1]) == cnt)), axis = 0)
+        self.data[key] = npy.delete(self.data[key], npy.where((npy.abs(self.data[key][:, axis] - pos) < 0.0001) & (npy.round(self.data[key][:, -1]) == cnt)), axis = 0)
         self.data[key] = npy.append(self.data[key], data, axis = 0)
 
 class BasicData(ImageData):
