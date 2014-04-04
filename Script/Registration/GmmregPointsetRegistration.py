@@ -20,8 +20,10 @@ class GmmregPointsetRegistration(RegistrationBase):
         return 'GMMREG Pointset Registration For Vessel'
                                  
     def register(self, fixedData, movingData):
-        fixed_points = fixedData.getPointSet('Contour')
-        moving_points = movingData.getPointSet('Contour')
+        #fixed_points = fixedData.getPointSet('Contour')
+        #moving_points = movingData.getPointSet('Contour')
+        fixed_points = fixedData.getPointSet('Centerline')
+        moving_points = movingData.getPointSet('Centerline')
         
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -71,7 +73,8 @@ class GmmregPointsetRegistration(RegistrationBase):
         if (fixed_bif >= 0) and (moving_bif >= 0):
             T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
             
-        moving_center = movingData.getPointSet('Centerline').copy();
+        #moving_center = movingData.getPointSet('Centerline').copy();
+        moving_center = movingData.getPointSet('Contour').copy();
         result_center = moving_center[npy.where(moving_center[:, 0] >= 0)]
         result_center[:, :3] *= moving_res[:3]
         result_center[:, :3] -= C.T
@@ -93,7 +96,8 @@ class GmmregPointsetRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
+        #return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
+        return sitk.GetArrayFromImage(resultImage), {'Contour': result_center, 'Centerline': trans_points}, para
     def quaternion2rotation(self, q):
         R = ml.zeros([3, 3], dtype = npy.float32)
         x, y, z, r = q

@@ -93,7 +93,29 @@ class AutoUSContourPlugin(ContourPlugin):
                 self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
             self.parent.render_window.Render()
             return
+        if ch in ['r', 'R']:
+            space = self.parent.space
+            if len(space) == 2:
+                space += [1]
+            point_array = self.getAllPoint() / space
+            if point_array.shape[0] == 0:
+                return
             
+            sigmaMin = 4
+            n = 1000
+            d = 1.0 / self.parent.parent.getData().getResolution()[-1]
+            center = point_array[0, 0:2]
+            image = self.parent.parent.getData().getData()[point_array[0, 2], :, :].transpose()
+            
+            th = getThreshold(image, center, d, space[0:2], sigmaMin)
+            resultPoints, distance = getRayPoints(image, center, n, th)
+            
+            point_array = npy.insert(resultPoints, 2, point_array[0, 2], axis = 1) * space
+            self.contourRep[self.currentContour].ClearAllNodes()
+            for i in range(point_array.shape[0]):
+                self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
+            self.parent.render_window.Render()
+            return
         super(AutoUSContourPlugin, self).KeyPressCallback(obj, event)
     def autoDetectContour(self, point_vital, cnt, be, en, space):
         if be > en:

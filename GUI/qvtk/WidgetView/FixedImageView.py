@@ -12,8 +12,7 @@ from MIRVAP.GUI.qvtk.Plugin.CenterViewPlugin import CenterViewPlugin
 class FixedImageView(RegistrationDataView):
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
-        self.plugin = [ContourViewPlugin(), CenterViewPlugin()]
+        self.plugin = [ContourViewPlugin()]
         self.plugin[0].enable(parent = self, key = 'fix', show = False)
-        self.plugin[1].enable(parent = self, key = 'fix', show = False)
     def getName(self):
         return "Fixed Image View"

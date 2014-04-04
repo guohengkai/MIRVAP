@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-03-27, 21:14:35 -->
+<!-- Saved: 2014-04-04, 21:14:20 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -42,8 +42,6 @@
     <Source>GUI/qvtk/PluginBase.py</Source>
     <Source>GUI/qvtk/WidgetViewBase.py</Source>
     <Source>GUI/qvtk/__init__.py</Source>
-    <Source>GUI/qvtk/Plugin/CenterPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/CenterViewPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/ClipPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/ContourPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/ContourViewPlugin.py</Source>
@@ -79,6 +77,7 @@
     <Source>Test/Snake.py</Source>
     <Source>Test/Snaxel.py</Source>
     <Source>GUI/qvtk/Plugin/AutoMRContourPlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/AutoCenterlineFromContourPlugin.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

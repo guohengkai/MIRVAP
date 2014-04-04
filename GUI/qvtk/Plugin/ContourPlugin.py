@@ -26,7 +26,7 @@ class ContourPlugin(PluginBase):
         self.editable = True
         self.key = 'Contour'
     
-    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, opacity = 1, show = True):
+    def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, show = True):
         self.parent = parent
         self.datakey = key
         self.contourRep = []
@@ -53,9 +53,9 @@ class ContourPlugin(PluginBase):
         self.contourRep[1].GetProperty().SetColor(color[1])
         self.contourRep[2].GetProperty().SetColor(color[2])
         if self.editable or self.key == 'Centerline':
-            self.contourRep[0].GetProperty().SetOpacity(opacity)
-            self.contourRep[1].GetProperty().SetOpacity(opacity)
-            self.contourRep[2].GetProperty().SetOpacity(opacity)
+            self.contourRep[0].GetProperty().SetOpacity(1)
+            self.contourRep[1].GetProperty().SetOpacity(1)
+            self.contourRep[2].GetProperty().SetOpacity(1)
         else:
             self.contourRep[0].GetProperty().SetOpacity(0)
             self.contourRep[1].GetProperty().SetOpacity(0)
@@ -180,8 +180,6 @@ class ContourPlugin(PluginBase):
             self.leftMove = False
             self.leftClicked = False
     def KeyPressCallback(self, obj, event):
-        if not self.editable:
-            return
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'Return':
             '''
@@ -216,6 +214,24 @@ class ContourPlugin(PluginBase):
                 self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[i, :].tolist())
             self.parent.render_window.Render()
             '''
+            return
+        if ch in ['v', 'V']:
+            if self.key == 'Contour':
+                self.key = 'Centerline'
+            else:
+                self.key = 'Contour'
+            if self.editable or self.key == 'Centerline':
+                self.contourRep[0].GetProperty().SetOpacity(1)
+                self.contourRep[1].GetProperty().SetOpacity(1)
+                self.contourRep[2].GetProperty().SetOpacity(1)
+            else:
+                self.contourRep[0].GetProperty().SetOpacity(0)
+                self.contourRep[1].GetProperty().SetOpacity(0)
+                self.contourRep[2].GetProperty().SetOpacity(0)
+            self.parent.updateAfter()
+            self.parent.render_window.Render()
+            return
+        if not self.editable:
             return
         if ch == 'Escape':
             self.contourRep[self.currentContour].ClearAllNodes()
