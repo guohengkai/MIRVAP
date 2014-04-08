@@ -15,7 +15,9 @@ class PyQtGuiController(GuiControllerBase):
         super(PyQtGuiController, self).__init__()
         self.app = QtGui.QApplication(sys.argv)
         self.win = MainWindow(self)
-        
+    def getDirName(self, title, dir, filter):
+        temp = QtGui.QFileDialog.getExistingDirectory(self.win, title, dir)
+        return str(temp)
     def getFileNames(self, title, dir, filter):
         temp = QtGui.QFileDialog.getOpenFileNames(self.win, title, dir, filter)
         fileNames = map(str, temp)

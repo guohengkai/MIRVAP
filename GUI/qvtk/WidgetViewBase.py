@@ -40,6 +40,8 @@ class WidgetViewBase(object):
         self.render_window.AddRenderer(self.renderer)
     def save(self):
         pass
+    def updateAfter(self, *arg):
+        pass
         
 class SingleDataView(WidgetViewBase):
     '''

@@ -171,7 +171,30 @@ def getBifurcation(points):
     if min2 == max1:
         return min2
     return -1
-
+def loadDicomArrayFromDir(dir):
+    imageReader = sitk.ImageSeriesReader()
+    names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(dir, True)
+    print names
+    imageReader.SetFileNames(names)
+    image = imageReader.Execute()
+    del imageReader
+    if len(names) < 80:
+        array = sitk.GetArrayFromImage(image)
+    else:
+        imSize = image.GetSize()[-1]
+        cropSize = imSize / 2
+        cropFilter = sitk.CropImageFilter()
+        cropFilter.SetLowerBoundaryCropSize([0, 0, 0])
+        cropFilter.SetUpperBoundaryCropSize([0, 0, cropSize])
+        array1 = sitk.GetArrayFromImage(cropFilter.Execute(image))
+        cropFilter.SetLowerBoundaryCropSize([0, 0, imSize - cropSize])
+        cropFilter.SetUpperBoundaryCropSize([0, 0, 0])
+        array = sitk.GetArrayFromImage(cropFilter.Execute(image))
+        
+        array = (array1, array)
+        del array1, image
+        array = npy.concatenate((array[0], array[1]), axis = 0)
+    return array, names
 def loadDicomArray(dir):
     # When the amount of files exceeds 80+, the GetArrayFromImage function may crash, because of the memory limit of array in numpy
     if len(dir) == 1:
@@ -197,6 +220,8 @@ def loadDicomArray(dir):
         array = sitk.GetArrayFromImage(cropFilter.Execute(image))
         
         array = (array1, array)
+        #For crop 68
+        #array = (array, array1)
         del array1, image
         array = npy.concatenate((array[0], array[1]), axis = 0)
     return array
