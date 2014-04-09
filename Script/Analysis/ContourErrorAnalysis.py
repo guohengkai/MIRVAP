@@ -23,6 +23,7 @@ class ContourErrorAnalysis(AnalysisBase):
         
         cnt_num = npy.array([0, 0, 0])
         mean_dis = npy.array([0.0, 0.0, 0.0])
+        max_dis = npy.array([0.0, 0.0, 0.0])
         
         for cnt in range(3):
             temp_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
@@ -59,14 +60,21 @@ class ContourErrorAnalysis(AnalysisBase):
                             ind_result = j - 1
                         else:
                             ind_result = j
-                        mean_dis[cnt] += npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1])
+                        temp_dis = npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1])
+                        max_dis[cnt] = npy.max([max_dis[cnt], temp_dis])
+                        mean_dis[cnt] += temp_dis
                     
         mean_dis /= 90
+        mean_whole = npy.sum(mean_dis)
         mean_dis /= cnt_num
         mean_dis[mean_dis != mean_dis] = 0 # Replace the NAN in the mean distance
+        cnt_total = npy.sum(cnt_num)
         
-        message = "Error on Vessel 0: %fmm (Total %d slices)\nError on Vessel 1: %fmm (Total %d slices)\nError on Vessel 2: %fmm (Total %d slices)" \
-            % (mean_dis[0], cnt_num[0], mean_dis[1], cnt_num[1], mean_dis[2], cnt_num[2])
+        message = "Error on Vessel 0: %0.2fmm (Total %d slices)\nError on Vessel 1: %0.2fmm (Total %d slices)\nError on Vessel 2: %0.2fmm (Total %d slices)\nWhole Error: %0.2fmm (Total %d slices)\n" \
+            % (mean_dis[0] + 0.005, cnt_num[0], mean_dis[1] + 0.005, cnt_num[1], mean_dis[2] + 0.005, cnt_num[2], mean_whole / cnt_total + 0.005, cnt_total) + \
+            "-------------------------------------------------------\n" + \
+            "Max Error on Vessel 0: %0.2fmm\nMax Error on Vessel 1: %0.2fmm\nMax Error on Vessel 2: %0.2fmm\nTotal Max Error: %0.2fmm" \
+            % (max_dis[0], max_dis[1], max_dis[2], npy.max(max_dis));
         self.gui.showErrorMessage("Mean Registration Error", message)
 
 def getPointsOntheSpline(data, center):
