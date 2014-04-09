@@ -182,38 +182,6 @@ class ContourPlugin(PluginBase):
     def KeyPressCallback(self, obj, event):
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'Return':
-            '''
-            space = self.parent.space
-            if len(space) == 2:
-                space += [1]
-            point_array = self.getAllPoint() / space
-            if point_array.shape[0] == 0:
-                return
-                
-            temp_array = npy.delete(point_array, self.parent.view, axis = 1)
-            image = self.parent.parent.getData().getData()[npy.round(point_array[0, self.parent.view]), :, :]
-            from MIRVAP.Test.Snake import Snake
-            from MIRVAP.Test.Snaxel import Snaxel
-            from MIRVAP.Test.get_snaxels import get_snaxels
-            cc = []
-            for i in temp_array:
-                cc.append((i[0], i[1]))
-            snaxels, num_snaxels = get_snaxels(cc)
-            alpha = 1.0
-            beta = 0.0
-            gamma = -10.0
-            delta_y = 3
-            delta_x = 3
-            snake = Snake(snaxels, alpha, beta, delta_x, delta_y, image, gamma)
-            snake.MinimizeEnergy()
-            for i in range(0, num_snaxels):
-                temp_array[i, :] = [snake.snaxels[i].x, snake.snaxels[i].y]
-                
-            point_array = npy.insert(temp_array, self.parent.view, point_array[0, self.parent.view], axis = 1) * space
-            for i in range(point_array.shape[0]):
-                self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[i, :].tolist())
-            self.parent.render_window.Render()
-            '''
             return
         if ch in ['v', 'V']:
             if self.key == 'Contour':

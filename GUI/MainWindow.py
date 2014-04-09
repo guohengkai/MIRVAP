@@ -167,13 +167,16 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         else:
             self.showMessageOnStatusBar(temp)
     def runAnalysisScript(self, index):
-        # TO BE DONE
-        data = self.script['Analysis'][index]()
-        if data:
+        window = self.mdiArea.currentSubWindow()
+        if not window:
+            self.gui.showErrorMessage('Error', 'There\'re no data!')
+        else:
+            temp = self.getMessageOnStatusBar()
             self.showMessageOnStatusBar("Analysising...")
-            index = self.gui.dataModel.append(data)
-            child = self.createMdiChild(index)
-            child.show()
+            window = window.widget()
+            self.script['Analysis'][index](window)
+            self.showMessageOnStatusBar(temp)
+        
     def addNewDataView(self, data):
         index = self.gui.dataModel.append(data)
         if type(data) is db.ResultData:
