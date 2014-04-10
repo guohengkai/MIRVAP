@@ -42,8 +42,8 @@ class ContourErrorAnalysis(AnalysisBase):
                     cnt_num[cnt] += 1
                     center_fix = npy.mean(data_fix[:, :2], axis = 0)
                     center_result = npy.mean(data_result[:, :2], axis = 0)
-                    points_fix = getPointsOntheSpline(data_fix, center_fix)
-                    points_result = getPointsOntheSpline(data_result, center_result)
+                    points_fix = getPointsOntheSpline(data_fix, center_fix, 900)
+                    points_result = getPointsOntheSpline(data_result, center_result, 900)
                     
                     i = j = 0
                     for k in range(-44, 46):
@@ -77,7 +77,7 @@ class ContourErrorAnalysis(AnalysisBase):
             % (max_dis[0], max_dis[1], max_dis[2], npy.max(max_dis));
         self.gui.showErrorMessage("Mean Registration Error", message)
 
-def getPointsOntheSpline(data, center):
+def getPointsOntheSpline(data, center, numberOfOutputPoints):
     count = data.shape[0]
     points = vtk.vtkPoints()
     for j in range(count):
@@ -87,7 +87,6 @@ def getPointsOntheSpline(data, center):
     para_spline.SetPoints(points)
     para_spline.ClosedOn()
     
-    numberOfOutputPoints = 90 * 10
     result = npy.empty([numberOfOutputPoints, 3], dtype = npy.float32)
     
     for k in range(0, numberOfOutputPoints):
