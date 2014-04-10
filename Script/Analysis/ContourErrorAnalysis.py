@@ -49,13 +49,13 @@ class ContourErrorAnalysis(AnalysisBase):
                     i = j = 0
                     for k in range(-44, 46):
                         angle = k * 4 / 180.0 * npy.pi
-                        while points_fix[i, 2] < angle and i < 900:
+                        while i < 900 and points_fix[i, 2] < angle:
                             i += 1
                         if i == 900 or (i > 0 and angle - points_fix[i - 1, 2] < points_fix[i, 2] - angle):
                             ind_fix = i - 1
                         else:
                             ind_fix = i
-                        while points_result[j, 2] < angle and j < 900:
+                        while j < 900 and points_result[j, 2] < angle:
                             j += 1
                         if j == 900 or (j > 0 and angle - points_result[j - 1, 2] < points_result[j, 2] - angle):
                             ind_result = j - 1
@@ -85,6 +85,15 @@ class ContourErrorAnalysis(AnalysisBase):
         self.gui.showErrorMessage("Mean Registration Error", message)
 
 def getPointsOntheSpline(data, center, numberOfOutputPoints):
+    if data.shape[0] >= 4:
+        # Sort the pointSet for a convex contour
+        point = npy.delete(data, 2, axis = 1)
+        core = point.mean(axis = 0)
+        point -= core
+        angle = npy.arctan2(point[:, 1], point[:, 0])
+        ind = angle.argsort()
+        data[:, :] = data[ind, :]
+        
     count = data.shape[0]
     points = vtk.vtkPoints()
     for j in range(count):

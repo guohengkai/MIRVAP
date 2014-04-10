@@ -32,7 +32,18 @@ class AutoCenterlineFromContourPlugin(ContourPlugin):
                     if data is not None:
                         if data.shape[0] == 0:
                             continue
-                        center_data = npy.append(center_data, npy.mean(data, axis = 0).reshape(1, -1), axis = 0)
+                        temp_area = npy.zeros([data.shape[0]])
+                        data = npy.append(data, [[data[0, 0], data[0, 1], data[0, 2], data[0, 3]]], axis = 0)
+                        for j in range(temp_area.shape[0]):
+                            temp_area[j] = data[j, 0] * data[j + 1, 1] - data[j + 1, 0] * data[j, 1]
+                        
+                        current_center = npy.array([[0.0, 0.0, i, cnt]])
+                        for j in range(temp_area.shape[0]):
+                            for k in range(2):
+                                current_center[0, k] += (data[j, k] + data[j + 1, k]) * temp_area[j]
+                        current_center[0, :2] /= 3 * npy.sum(temp_area)
+                        
+                        center_data = npy.append(center_data, current_center, axis = 0)
                         
             point_array_result.data['Centerline'] = center_data
             self.parent.updateAfter()

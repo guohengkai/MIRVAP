@@ -19,8 +19,15 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         return 'ICP Pointset Registration For Vessel'
                                  
     def register(self, fixedData, movingData):
-        fixed_points = fixedData.getPointSet('Contour')
-        moving_points = movingData.getPointSet('Contour')
+        index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
+        if index is None:
+            return None, None, None
+        if index == 0:
+            fixed_points = fixedData.getPointSet('Contour')
+            moving_points = movingData.getPointSet('Contour')
+        else:
+            fixed_points = fixedData.getPointSet('Centerline')
+            moving_points = movingData.getPointSet('Centerline')
         
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -98,7 +105,10 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         if (fixed_bif >= 0) and (moving_bif >= 0):
             T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
             
-        moving_center = movingData.getPointSet('Centerline').copy();
+        if index == 0:
+            moving_center = movingData.getPointSet('Centerline').copy();
+        else:
+            moving_center = movingData.getPointSet('Contour').copy();
         result_center = moving_center[npy.where(moving_center[:, 0] >= 0)]
         result_center[:, :3] *= moving_res[:3]
         temp = ml.mat(result_center[:, :3]) * R + ml.ones((result_center.shape[0], 1)) * T.T
@@ -118,4 +128,7 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
+        if index == 0:
+            return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
+        else:
+            return sitk.GetArrayFromImage(resultImage), {'Contour': result_center, 'Centerline': trans_points}, para

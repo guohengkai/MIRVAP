@@ -114,7 +114,7 @@ def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
     center_x = int(center[0])
     center_y = int(center[1])
     d = npy.array([[1, 0], [0, -1], [0, 1], [-1, 0]])
-    queue = npy.zeros([h * w, 2])
+    queue = npy.zeros([h * w, 2], dtype = npy.int32)
     head = -1
     tail = 0
     queue[tail, :] = [center_x, center_y]
@@ -136,6 +136,15 @@ def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
     return mask
 
 def getPointsOntheSpline(data, center, numberOfOutputPoints):
+    if data.shape[0] >= 4:
+        # Sort the pointSet for a convex contour
+        point = npy.delete(data, 2, axis = 1)
+        core = point.mean(axis = 0)
+        point -= core
+        angle = npy.arctan2(point[:, 1], point[:, 0])
+        ind = angle.argsort()
+        data[:, :] = data[ind, :]
+    
     count = data.shape[0]
     points = vtk.vtkPoints()
     for j in range(count):
