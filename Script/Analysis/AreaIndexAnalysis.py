@@ -57,10 +57,10 @@ class AreaIndexAnalysis(AnalysisBase):
                     union_area[cnt] += npy.sum(fix_mask | result_mask)
                     
         intersect_area = total_area - union_area
-        jaccard_index = intersect_area / union_area + 0.0005
-        dice_index = 2 * intersect_area / total_area + 0.0005
-        jaccard_index_all = npy.sum(intersect_area) / npy.sum(union_area) + 0.0005
-        dice_index_all = 2 * npy.sum(intersect_area) / npy.sum(total_area) + 0.0005
+        jaccard_index = intersect_area / union_area
+        dice_index = 2 * intersect_area / total_area
+        jaccard_index_all = npy.sum(intersect_area) / npy.sum(union_area)
+        dice_index_all = 2 * npy.sum(intersect_area) / npy.sum(total_area)
         # Replace the NAN
         jaccard_index[jaccard_index != jaccard_index] = 0
         dice_index[dice_index != dice_index] = 0
