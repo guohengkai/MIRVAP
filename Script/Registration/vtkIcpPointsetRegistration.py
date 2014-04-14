@@ -140,6 +140,9 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         # Reslice the result points
         trans_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
         for cnt in range(3):
+            zmin = int(npy.ceil(npy.max(resampled_points[cnt][:10, 2])))
+            zmax = int(npy.min(resampled_points[cnt][-10:, 2]))
+            
             for k in range(0, 10):
                 data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
                 count = data.shape[0]
@@ -151,8 +154,8 @@ class vtkIcpPointsetRegistration(RegistrationBase):
                 para_spline.SetPoints(points)
                 para_spline.ClosedOff()
                 
-                zmin = int(npy.ceil(resampled_points[cnt][0, 2]))
-                zmax = int(resampled_points[cnt][-1, 2])
+                #zmin = int(npy.ceil(resampled_points[cnt][0, 2]))
+                #zmax = int(resampled_points[cnt][-1, 2])
                 znow = zmin
                 old_pt = [0.0, 0.0, 0.0]
                 numberOfOutputPoints = int((zmax - zmin + 1) * 10)
@@ -168,6 +171,8 @@ class vtkIcpPointsetRegistration(RegistrationBase):
                             new_point = old_pt
                         trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
                         znow += 1
+                        if znow > zmax:
+                            break
                     old_pt = pt
         
         if index == 0:

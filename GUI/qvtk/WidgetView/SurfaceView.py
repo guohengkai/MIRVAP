@@ -21,17 +21,12 @@ class SurfaceView(WidgetViewBase):
         super(SurfaceView, self).setWidgetView(widget)
         
         point_array_result = self.parent.getData().pointSet
-        if type(self.parent) is MdiChildRegistration:
-            point_array_move = self.parent.getData('move').pointSet
-        else:
-            point_array_move = point_array_result
-        point_data_move = npy.array(point_array_move.getData('Contour'))
         point_data_result = npy.array(point_array_result.getData('Contour'))
         
         if point_data_result is None or not point_data_result.shape[0]:
             return
-        zmin = int(npy.min(point_data_move[:, 2]) + 0.5)
-        zmax = int(npy.max(point_data_move[:, 2]) + 0.5)
+        zmin = int(npy.min(point_data_result[:, 2]) + 0.5)
+        zmax = int(npy.max(point_data_result[:, 2]) + 0.5)
         #self.spacing = [1, 1, 1]
         self.spacing = self.parent.getData().getResolution().tolist()
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
@@ -60,7 +55,6 @@ class SurfaceView(WidgetViewBase):
             self.surface_actor.append(vtk.vtkActor())
             
             point_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
-            point_move = point_data_move[npy.where(npy.round(point_data_move[:, -1]) == cnt)]
             if not point_result.shape[0]:
                 continue
                 
@@ -68,7 +62,7 @@ class SurfaceView(WidgetViewBase):
             self.points = vtk.vtkPoints()
             l = 0
             for i in range(zmin, zmax + 1):
-                data = point_result[npy.where(npy.round(point_move[:, 2]) == i)]
+                data = point_result[npy.where(npy.round(point_result[:, 2]) == i)]
                 if data is not None:
                     if data.shape[0] == 0:
                         continue

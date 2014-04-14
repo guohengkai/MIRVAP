@@ -18,6 +18,7 @@ class ContourErrorAnalysis(AnalysisBase):
         point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour')
         point_data_result = data.getPointSet('Contour')
         self.spacing = data.getResolution().tolist()
+        self.spacing[2] = 1.0 # The resolution of z axis is nothing to do with the analysis
         point_data_fix[:, :3] *= self.spacing[:3]
         point_data_result[:, :3] *= self.spacing[:3]
         
