@@ -74,6 +74,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         # Resample the moving contour
         resampled_points = [None, None, None]
+        moving_points = movingData.getPointSet('Contour')
         for cnt in range(3):
             temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)]
             if not temp_result.shape[0]:
@@ -134,8 +135,6 @@ class GmmregPointsetRegistration(RegistrationBase):
                 para_spline.SetPoints(points)
                 para_spline.ClosedOff()
                 
-                #zmin = int(npy.ceil(resampled_points[cnt][0, 2]))
-                #zmax = int(resampled_points[cnt][-1, 2])
                 znow = zmin
                 old_pt = [0.0, 0.0, 0.0]
                 numberOfOutputPoints = int((zmax - zmin + 1) * 10)
@@ -155,18 +154,50 @@ class GmmregPointsetRegistration(RegistrationBase):
                             break
                     old_pt = pt
         
-        if index == 0:
-            moving_center = movingData.getPointSet('Centerline').copy();
-        else:
-            moving_center = movingData.getPointSet('Contour').copy();
+        moving_center = movingData.getPointSet('Centerline').copy()
         result_center = moving_center[npy.where(moving_center[:, 0] >= 0)]
         result_center[:, :3] *= moving_res[:3]
         result_center[:, :3] -= C.T
         temp = ml.mat(result_center[:, :3]) * R + ml.ones((result_center.shape[0], 1)) * (T + C).T
-        
         result_center[:, :3] = temp
         result_center[:, :3] /= fixed_res[:3]
-        result_center = npy.append(result_center, npy.array([[-1, -1, -1, -1]]), axis = 0)
+        
+        ind = result_center[:, 2].argsort()
+        result_center = result_center[ind]
+        
+        result_center_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+        for cnt in range(3):
+            resampled_points = result_center[npy.where(npy.round(result_center[:, -1]) == cnt)]
+            zmin = int(npy.ceil(resampled_points[0, 2]))
+            zmax = int(resampled_points[-1, 2])
+            
+            count = resampled_points.shape[0]
+            points = vtk.vtkPoints()
+            for i in range(count):
+                points.InsertPoint(i, resampled_points[i, 0], resampled_points[i, 1], resampled_points[i, 2])
+    
+            para_spline = vtk.vtkParametricSpline()
+            para_spline.SetPoints(points)
+            para_spline.ClosedOff()
+            
+            znow = zmin
+            old_pt = [0.0, 0.0, 0.0]
+            numberOfOutputPoints = int((zmax - zmin + 1) * 10)
+            
+            for i in range(0, numberOfOutputPoints):
+                t = i * 1.0 / numberOfOutputPoints
+                pt = [0.0, 0.0, 0.0]
+                para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                if pt[2] >= znow:
+                    if pt[2] - znow < znow - old_pt[2]:
+                        new_point = pt
+                    else:
+                        new_point = old_pt
+                    result_center_points = npy.append(result_center_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
+                    znow += 1
+                    if znow > zmax:
+                        break
+                old_pt = pt
         
         T = -T
         T = R * T
@@ -180,10 +211,8 @@ class GmmregPointsetRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        if index == 0:
-            return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center}, para
-        else:
-            return sitk.GetArrayFromImage(resultImage), {'Contour': result_center, 'Centerline': trans_points}, para
+        return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
+        
     def quaternion2rotation(self, q):
         R = ml.zeros([3, 3], dtype = npy.float32)
         x, y, z, r = q
