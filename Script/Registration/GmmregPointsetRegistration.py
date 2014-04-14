@@ -10,7 +10,7 @@ import MIRVAP.Core.DataBase as db
 import MIRVAP.ThirdParty.gmmreg.executeGmmreg as eg
 import numpy as npy
 import numpy.matlib as ml
-import itk
+import itk, vtk
 import SimpleITK as sitk
 
 class GmmregPointsetRegistration(RegistrationBase):
@@ -46,7 +46,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
         fixed = fixed[:, :3]
-        moving = moving_points[:, :3]
+        moving = moving_points[:, :3].copy()
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
@@ -58,16 +58,10 @@ class GmmregPointsetRegistration(RegistrationBase):
             return None, None, None
         trans, para, para2 = eg.get_final_result()
         
-        trans_points = trans;
-        if (fixed_bif >= 0) and (moving_bif >= 0):
-            trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-        trans_points[:, :3] /= fixed_res[:3]
-        trans_points = npy.insert(trans, [trans.shape[1]], moving_points[:, -1].reshape(-1, 1), axis = 1)
-        trans_points = npy.append(trans_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
-        
         # Clear the temp files
         #eg.clear_temp_file()
         
+        # Get the result transformation parameters
         S1 = ml.ones([3, 3], dtype = npy.float32) * para2[3]
         C = npy.asmatrix(para2[:3]).T
         
@@ -77,6 +71,89 @@ class GmmregPointsetRegistration(RegistrationBase):
         T = S1 * T0 + C2 - C
         if (fixed_bif >= 0) and (moving_bif >= 0):
             T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+        
+        # Resample the moving contour
+        resampled_points = [None, None, None]
+        for cnt in range(3):
+            temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)]
+            if not temp_result.shape[0]:
+                continue
+            zmin = int(npy.min(temp_result[:, 2]) + 0.5)
+            zmax = int(npy.max(temp_result[:, 2]) + 0.5)
+            resampled_points[cnt] = npy.zeros([(zmax - zmin + 1) * 10, 4], dtype = npy.float32)
+            resampled_index = 0
+            
+            for z in range(zmin, zmax + 1):
+                data_result = temp_result[npy.where(npy.round(temp_result[:, 2]) == z)]
+                if data_result is not None:
+                    if data_result.shape[0] == 0:
+                        continue
+                    
+                    center_result = npy.mean(data_result[:, :2], axis = 0)
+                    points_result = getPointsOntheSpline(data_result, center_result, 900)
+                    
+                    i = 0
+                    for k in range(-4, 6):
+                        angle = k * 36 / 180.0 * npy.pi
+                        
+                        while i < 900 and points_result[i, 2] < angle:
+                            i += 1
+                        if i == 900 or (i > 0 and angle - points_result[i - 1, 2] < points_result[i, 2] - angle):
+                            ind_result = i - 1
+                        else:
+                            ind_result = i
+                        
+                        resampled_points[cnt][resampled_index, :2] = points_result[ind_result, :2]
+                        resampled_points[cnt][resampled_index, 2] = z
+                        resampled_points[cnt][resampled_index, 3] = k + 4
+                        resampled_index += 1
+                        
+        # Apply the transformation on the resampled points
+        for cnt in range(3):
+            resampled_points[cnt][:, :3] *= moving_res[:3]
+            resampled_points[cnt][:, :3] -= C.T
+            temp = ml.mat(resampled_points[cnt][:, :3]) * R + ml.ones((resampled_points[cnt].shape[0], 1)) * (T + C).T
+            
+            resampled_points[cnt][:, :3] = temp
+            resampled_points[cnt][:, :3] /= fixed_res[:3]
+        
+        # Reslice the result points
+        trans_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+        for cnt in range(3):
+            zmin = int(npy.ceil(npy.max(resampled_points[cnt][:10, 2])))
+            zmax = int(npy.min(resampled_points[cnt][-10:, 2]))
+            
+            for k in range(0, 10):
+                data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
+                count = data.shape[0]
+                points = vtk.vtkPoints()
+                for i in range(count):
+                    points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
+        
+                para_spline = vtk.vtkParametricSpline()
+                para_spline.SetPoints(points)
+                para_spline.ClosedOff()
+                
+                #zmin = int(npy.ceil(resampled_points[cnt][0, 2]))
+                #zmax = int(resampled_points[cnt][-1, 2])
+                znow = zmin
+                old_pt = [0.0, 0.0, 0.0]
+                numberOfOutputPoints = int((zmax - zmin + 1) * 10)
+                
+                for i in range(0, numberOfOutputPoints):
+                    t = i * 1.0 / numberOfOutputPoints
+                    pt = [0.0, 0.0, 0.0]
+                    para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                    if pt[2] >= znow:
+                        if pt[2] - znow < znow - old_pt[2]:
+                            new_point = pt
+                        else:
+                            new_point = old_pt
+                        trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
+                        znow += 1
+                        if znow > zmax:
+                            break
+                    old_pt = pt
         
         if index == 0:
             moving_center = movingData.getPointSet('Centerline').copy();
@@ -126,3 +203,34 @@ class GmmregPointsetRegistration(RegistrationBase):
         ss = x2 + y2 + z2 + r2
         R = R / ss
         return R
+
+def getPointsOntheSpline(data, center, numberOfOutputPoints):
+    if data.shape[0] >= 4:
+        # Sort the pointSet for a convex contour
+        point = npy.delete(data, 2, axis = 1)
+        core = point.mean(axis = 0)
+        point -= core
+        angle = npy.arctan2(point[:, 1], point[:, 0])
+        ind = angle.argsort()
+        data[:, :] = data[ind, :]
+        
+    count = data.shape[0]
+    points = vtk.vtkPoints()
+    for j in range(count):
+        points.InsertPoint(j, data[j, 0], data[j, 1], 0)
+    
+    para_spline = vtk.vtkParametricSpline()
+    para_spline.SetPoints(points)
+    para_spline.ClosedOn()
+    
+    result = npy.empty([numberOfOutputPoints, 3], dtype = npy.float32)
+    
+    for k in range(0, numberOfOutputPoints):
+        t = k * 1.0 / numberOfOutputPoints
+        pt = [0.0, 0.0, 0.0]
+        para_spline.Evaluate([t, t, t], pt, [0] * 9)
+        result[k, :2] = pt[:2]
+        
+    result[:, 2] = npy.arctan2(result[:, 1] - center[1], result[:, 0] - center[0])
+    ind = result[:, 2].argsort()
+    return result[ind, :]
