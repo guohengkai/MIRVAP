@@ -74,7 +74,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         # Resample the moving contour
         resampled_points = [None, None, None]
-        moving_points = movingData.getPointSet('Contour')
+        moving_points = movingData.getPointSet('Contour').copy()
         for cnt in range(3):
             temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)]
             if not temp_result.shape[0]:

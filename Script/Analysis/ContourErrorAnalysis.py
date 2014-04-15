@@ -15,8 +15,8 @@ class ContourErrorAnalysis(AnalysisBase):
     def getName(self):
         return 'Mean Contour Registration Error'
     def analysis(self, data):
-        point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour')
-        point_data_result = data.getPointSet('Contour')
+        point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
+        point_data_result = data.getPointSet('Contour').copy()
         self.spacing = data.getResolution().tolist()
         self.spacing[2] = 1.0 # The resolution of z axis is nothing to do with the analysis
         point_data_fix[:, :3] *= self.spacing[:3]
