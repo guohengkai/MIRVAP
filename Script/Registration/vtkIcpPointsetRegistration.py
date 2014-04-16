@@ -41,16 +41,25 @@ class vtkIcpPointsetRegistration(RegistrationBase):
             fixed_min = 0
         else:
             temp = moving_points[:, 2:]
-            moving_delta = moving_bif - npy.min(moving_points[npy.where(npy.round(temp[:, 1]) == 0), 0])
+            moving_delta = moving_bif - npy.min(temp[npy.where(npy.round(temp[:, 1]) == 0), 0])
             fixed_min = fixed_bif - moving_delta * moving_res[-1] / fixed_res[-1]
+        #print moving_res
+        #print fixed_res
         
+        # Augmentation of pointset
         fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
+        moving = moving_points.copy()
+        fixed = augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
+        moving = augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
+        
         fixed = fixed[:, :3]
-        moving = moving_points[:, :3].copy()
+        moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+        print fixed.shape[0], moving.shape[0]
+        #return None, None, None
         
         sourcePoints = vtk.vtkPoints()
         sourceVertices = vtk.vtkCellArray()
@@ -262,3 +271,87 @@ def getPointsOntheSpline(data, center, numberOfOutputPoints):
     result[:, 2] = npy.arctan2(result[:, 1] - center[1], result[:, 0] - center[0])
     ind = result[:, 2].argsort()
     return result[ind, :]
+
+def augmentPointset(ori_points, multiple, opt_size, bif, nn = -1):
+    if multiple <= 1:
+        return ori_points
+    if nn < 0:
+        zmin = int(npy.min(ori_points[:, 2]) + 0.5)
+        zmax = int(npy.max(ori_points[:, 2]) + 0.5)
+        nn = int((opt_size - ori_points.shape[0]) / ((2 * zmax - zmin - bif)) / (multiple - 1) + 0.5) + 1
+        print nn
+    new_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+    zmin = [0, 0, 0]
+    zmax = [0, 0, 0]
+    resampled_points = [None, None, None]
+    for cnt in range(3):
+        temp_result = ori_points[npy.where(npy.round(ori_points[:, -1]) == cnt)]
+        if not temp_result.shape[0]:
+            continue
+        zmin[cnt] = int(npy.min(temp_result[:, 2]) + 0.5)
+        zmax[cnt] = int(npy.max(temp_result[:, 2]) + 0.5)
+        resampled_points[cnt] = npy.zeros([(zmax[cnt] - zmin[cnt] + 1) * nn, 4], dtype = npy.float32)
+        resampled_index = 0
+        
+        for z in range(zmin[cnt], zmax[cnt] + 1):
+            data_result = temp_result[npy.where(npy.round(temp_result[:, 2]) == z)]
+            if data_result is not None:
+                if data_result.shape[0] == 0:
+                    continue
+                
+                center_result = npy.mean(data_result[:, :2], axis = 0)
+                points_result = getPointsOntheSpline(data_result, center_result, 900)
+                
+                i = 0
+                for k in range(-nn / 2 + 1, nn / 2 + 1):
+                    angle = k * 2 * npy.pi / nn 
+                    
+                    while i < 900 and points_result[i, 2] < angle:
+                        i += 1
+                    if i == 900 or (i > 0 and angle - points_result[i - 1, 2] < points_result[i, 2] - angle):
+                        ind_result = i - 1
+                    else:
+                        ind_result = i
+                    
+                    resampled_points[cnt][resampled_index, :2] = points_result[ind_result, :2]
+                    resampled_points[cnt][resampled_index, 2] = z
+                    resampled_points[cnt][resampled_index, 3] = k + 4
+                    resampled_index += 1
+                    
+    trans_points = npy.array(ori_points)
+    for cnt in range(3):
+        for k in range(0, nn):
+            data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
+            count = data.shape[0]
+            points = vtk.vtkPoints()
+            for i in range(count):
+                points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
+    
+            para_spline = vtk.vtkParametricSpline()
+            para_spline.SetPoints(points)
+            para_spline.ClosedOff()
+            
+            deltaz = 1.0 / multiple
+            old_pt = [0.0, 0.0, 0.0]
+            numberOfOutputPoints = int((zmax[cnt] - zmin[cnt] + 1) * 10)
+            i = 0
+            
+            for z in range(zmin[cnt], zmax[cnt] + 1):
+                znow = float(z)
+                for dd in range(1, multiple):
+                    znow += deltaz 
+                    while i < numberOfOutputPoints:
+                        t = i * 1.0 / numberOfOutputPoints
+                        pt = [0.0, 0.0, 0.0]
+                        para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                        if pt[2] >= znow:
+                            if pt[2] - znow < znow - old_pt[2]:
+                                new_point = pt
+                            else:
+                                new_point = old_pt
+                            trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
+                            
+                            old_pt = pt
+                            break
+                        i += 1
+    return trans_points

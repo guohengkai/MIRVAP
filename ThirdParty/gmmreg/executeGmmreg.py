@@ -32,7 +32,7 @@ def initial_data(fixedPoints, movingPoints, methodname = "rigid"):
     wfile.write("normalize = 1\n")
     wfile.write("level = 2\n")
     wfile.write("sigma = .5 .1 .02\n")
-    wfile.write("max_function_evals = 10 100 100 200\n")
+    wfile.write("max_function_evals = 10 100 200 400\n")
     wfile.close()
     
 def get_final_result(f_config = "temp.ini", methodname = "rigid"):
