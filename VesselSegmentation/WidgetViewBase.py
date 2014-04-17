@@ -43,10 +43,17 @@ class WidgetViewBase(object):
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
         self.render_window.AddRenderer(self.renderer)
+    def KeyPressCallback(self, obj, event):
+        ch = self.window_interactor.GetKeySym()
+        if ch == 'F1':
+            self.parent.showErrorMessage('Help', self.getHelpInfo())
+            return
     def save(self):
         pass
     def updateAfter(self, *arg):
         pass
+    def getHelpInfo():
+        raise NotImplementedError('Method "getHelpInfo" Not Impletemented!')
         
 class SingleDataView(WidgetViewBase):
     '''
@@ -70,8 +77,10 @@ class SingleDataView(WidgetViewBase):
         return "Data View"
         
     def initView(self, data, widget):
+        if data is None:
+            return
         super(SingleDataView, self).initView(data, widget)
-        
+        self.plugin = []
         shapeList = data.getData().shape
         y, x = shapeList[-2], shapeList[-1]
         self.dimension = len(shapeList) == 2
@@ -159,6 +168,7 @@ class SingleDataView(WidgetViewBase):
         self.interactor_style.OnLeftButtonUp()
         
     def KeyPressCallback(self, obj, event):
+        super(SingleDataView, self).KeyPressCallback(obj, event)
         flag = False
         for plugin in self.plugin:
             flag = flag or plugin.KeyPressCallback(obj, event)
@@ -259,8 +269,8 @@ class SingleDataView(WidgetViewBase):
         self.updateAfter()
     def updateAfter(self, *arg):
         status = self.getDirectionAndSlice()
-        self.parent.gui.showMessageOnStatusBar("Widget: %s     View: %s    Slice: %d" 
-            % (self.getName(), status[0], status[1]))
+        self.parent.gui.showMessageOnStatusBar("Data Index: %d      View: %s    Slice: %d" 
+            % (self.parent.ini.parameter.current, status[0], status[1]))
         for plugin in self.plugin:
             plugin.updateAfter(self.view, int(status[1]), *arg)
     def updateBefore(self, *arg):
@@ -280,8 +290,6 @@ class SingleDataView(WidgetViewBase):
         self.updateAfter()
         
     def getDirectionAndSlice(self):
-        if self.dimension:
-            return ('2D   ', 1)
         origin = self.reslice_mapper.GetSlicePlane().GetOrigin()
         if self.view == 0:
             return ('Sagittal', origin[0] / self.space[0] + 1)
@@ -292,3 +300,7 @@ class SingleDataView(WidgetViewBase):
     def save(self):
         for plugin in self.plugin:
             plugin.save()
+    def getHelpInfo(self):
+        message = ""
+        message += self.plugin[0].getHelpInfo()
+        return message

@@ -7,15 +7,14 @@ Created on 2014-04-17
 from distutils.core import setup
 import py2exe
 
-py2exe_options = dict(excludes = ['_ssl',  # Exclude _ssl
+py2exe_options = dict(
+                      ascii = True,  # Exclude encodings
+                      excludes = ['_ssl',  # Exclude _ssl
                                 'pyreadline', 'doctest', 'locale', 
-                                'optparse', 'calendar', 'pdb', 
+                                'optparse', 'pickle', 'calendar', 'pdb', 
                                 'inspect', "pywin", "pywin.debugger", 
                                 "pywin.debugger.dbgcon", "pywin.dialogs", "pywin.dialogs.list", 
                                 "Tkconstants", "Tkinter", "tcl"],  # Exclude standard library
-                      includes = ["sip", "PyQt4.QtOpenGL", "vtk.vtkRenderingPythonSIP", 
-                                "vtk.vtkCommonPythonSIP", "vtk.vtkFilteringPythonSIP", 
-                                "scipy.sparse.csgraph._validation"], 
                       compressed = True,  # Compress library.zip
                       )
-setup(windows = [{"script": "main2.py"}], options = {'py2exe': py2exe_options})
+setup(windows = [{"script": "initParameter.py"}], options = {'py2exe': py2exe_options})

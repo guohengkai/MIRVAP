@@ -25,7 +25,24 @@ class ContourPlugin(PluginBase):
         super(ContourPlugin, self).__init__()
         self.editable = True
         self.key = 'Contour'
-    
+    def getHelpInfo(self):
+        message =  "Move left button:        Modify window level/Move the point on the active contour\n"\
+                 + "Click left button:          Add the point in the active contour\n"\
+                 + "Move middle button:   Pan the camera\n"\
+                 + "Wheel middle button:  Zoom the camera\n"\
+                 + "Move right button:      Slice through the image\n"\
+                 + "--------------------------------------------------------------------------------------\n"\
+                 + "Press R Key:               Reset the Window/Level\n"\
+                 + "Press X Key:               Reset to a sagittal view\n"\
+                 + "Press Y Key:               Reset to a coronal view\n"\
+                 + "Press Z Key:               Reset to an axial view\n"\
+                 + "Press Left/Right Key:   Slice through the image(Automatic copy points from last slice if Ctrl key pressed)\n"\
+                 + "Press C Key:               Show or not show the active contour\n"\
+                 + "Press S Key:               Sort the points on the active contour\n"\
+                 + "Press Escape Key:       Delete all the points on the active contour\n"\
+                 + "Press Delete Key:       Delete the active point\n"\
+                 + "Press 1/2/3 Key:         Change 1/2/3 contour into active state\n"
+        return message
     def enable(self, parent, key = 'result', color = ((1, 0, 0), (0, 1, 0), (0, 0, 1)), dash = False, show = True):
         self.parent = parent
         self.datakey = key
@@ -38,7 +55,7 @@ class ContourPlugin(PluginBase):
         self.leftClicked = False
         
         self.currentContour = 0
-        self.contourInfo = ['1 (Red)', '2 (Green)', '3 (Blue)']
+        self.contourInfo = ['1 (CCA)', '2 (ECA)', '3 (ICA)']
         
         for i in range(3):
             self.contourRep.append(vtk.vtkOrientedGlyphContourRepresentation())

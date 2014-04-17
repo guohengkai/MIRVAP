@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-04-17, 15:46:43 -->
+<!-- Saved: 2014-04-17, 22:38:38 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -95,6 +95,8 @@
     <Source>VesselSegmentation/dict4ini.py</Source>
     <Source>VesselSegmentation/initParameter.py</Source>
     <Source>VesselSegmentation/Ui_SegmentationMainWindow.py</Source>
+    <Source>VesselSegmentation/convert2exe.py</Source>
+    <Source>VesselSegmentation/init_convert2exe.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

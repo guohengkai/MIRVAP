@@ -9,6 +9,8 @@ Created on 2014-04-16
 class PluginBase(object):
     def getName(self):
         raise NotImplementedError('Method "getName" Not Impletemented!')
+    def getHelpInfo():
+        raise NotImplementedError('Method "getHelpInfo" Not Impletemented!')
     def MouseMoveCallback(self, obj, event):
         pass
     def LeftButtonReleaseCallback(self, obj, event):
@@ -24,7 +26,7 @@ class PluginBase(object):
     def RightButtonReleaseCallback(self, obj, event):
         pass
     def updateAfter(self, view, slice, *arg):
-        self.parent.parent.gui.showMessageOnStatusBar(self.parent.parent.gui.getMessageOnStatusBar() + "     Plugin: " + self.getName())
+        pass
     def updateBefore(self, view, slice, *arg):
         pass
     def save(self):

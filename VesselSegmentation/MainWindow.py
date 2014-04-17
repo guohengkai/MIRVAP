@@ -28,7 +28,10 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
         self.actionNext.triggered.connect(self.saveAndNext)
         self.actionView.triggered.connect(self.viewData)
         
-        self.initParameter()
+        self.error = self.initParameter()
+        if self.error: # There's no valid ini file
+            self.actionNext.setDisabled(True)
+            self.actionView.setDisabled(True)
         
         self.loadData(self.ini.parameter.current)
         self.widgetView = ResultImageView(self)
@@ -37,11 +40,18 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
     def initParameter(self):
         # ini: (1) file: names(list), savedir, datadir;
         #      (2) parameter: current, repeat, sequence(list)
-        self.ini = DictIni('segment.ini')
-        if not os.path.exists(self.ini.file.savedir):
-            os.mkdir(self.ini.file.savedir)
-        self.index = self.ini.parameter.current
+        try:
+            self.ini = DictIni('segment.ini')
+            if not os.path.exists(self.ini.file.savedir):
+                os.mkdir(self.ini.file.savedir)
+            return False
+        except Exception:
+            return True
     def loadData(self, index):
+        if self.error:
+            self.data = None
+            return
+            
         dataname = self.ini.file.names[self.ini.parameter.sequence[index]]
         dir = self.ini.file.datadir + dataname
         data, info = db.loadMatData(dir)
@@ -58,30 +68,40 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
         db.saveMatPoint(dir, self.data)
         
     def saveAndNext(self):
-        self.saveData(self.index)
-        self.gui.showErrorMessage('Success', 'Save sucessfully!')
-        self.index += 1
-        if self.index < len(self.ini.parameter.sequence):
-            self.loadData(self.index)
+        self.saveData(self.ini.parameter.current)
+        self.showErrorMessage('Success', 'Save sucessfully!')
+        self.ini.parameter.current += 1
+        if self.ini.parameter.current < len(self.ini.parameter.sequence):
+            self.loadData(self.ini.parameter.current)
             self.setQVTKWidget()
         else:
-            self.gui.showErrorMessage('Congratulation', 'Your task has finished!')
-            self.index -= 1
+            self.showErrorMessage('Congratulation', 'Your task has finished!')
+            self.ini.parameter.current -= 1
     def viewData(self):
-        pass
+        self.saveData(self.ini.parameter.current)
+        items = map(str, range(len(self.ini.parameter.sequence)))
+        item, ok = QtGui.QInputDialog.getItem(self, "Select the data", "Index:", items, self.ini.parameter.current, False)
+        if ok and item:
+            item = int(item)
+            if self.ini.parameter.current != item:
+                self.ini.parameter.current = item
+                self.loadData(self.ini.parameter.current)
+                self.setQVTKWidget()
     def setQVTKWidget(self):
         self.widgetView.setWidgetView(self.qvtkWidget)
     def showMessageOnStatusBar(self, text):
         self.msgLabel.setText(text)
     def getMessageOnStatusBar(self):
         return str(self.msgLabel.text())
+    def showErrorMessage(self, title, message):
+        QtGui.QMessageBox.information(self, title, message)
     def show(self):
         super(MainWindow, self).show()
         self.setQVTKWidget()
+        if self.error:
+            self.showErrorMessage("File error", "Can't find a valid ini file!")
     def closeEvent(self, event):
-        reply = QtGui.QMessageBox.question(self, "Quit", "Are you sure to quit?", 
-            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        if reply == QtGui.QMessageBox.Ok:
-            event.accept()
-        else:
-            event.ignore()
+        self.ini.save()
+        if not self.error:
+            self.saveData(self.ini.parameter.current)
+        event.accept()

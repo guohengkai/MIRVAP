@@ -26,31 +26,6 @@ class PyQtGuiController(GuiControllerBase):
         temp = QtGui.QFileDialog.getSaveFileName(self.win, title, dir, filter)
         fileName = str(temp)
         return fileName
-        
-    def getReloadDataIndex(self):
-        if self.dataModel.getCount() == 0:
-            self.showErrorMessage('Error', 'There\'re no enough data!')
-            return
-        names = self.dataModel.getNameDict()
-        return self.getDataIndex(names, "Select the data to be reloaded")
-    def getDataIndex(self, names, word):
-        items = names.keys()
-        item, ok = QtGui.QInputDialog.getItem(self.win, word, "Data:", items, 0, False)
-        if ok and item:
-            item = str(item)
-            index = int(names[item])
-            del names[item]
-            return index
-    def getRegisterDataIndex(self):
-        if self.dataModel.getCount() < 2:
-            self.showErrorMessage('Error', 'There\'re no enough data!')
-            return
-        names = self.dataModel.getNameDict()
-        fixedIndex = self.getDataIndex(names, "Select the fixed image")
-        if fixedIndex is not None:
-            movingIndex = self.getDataIndex(names, "Select the moving image")
-            if movingIndex is not None:
-                return (fixedIndex, movingIndex)
     def getInputName(self, window):
         name, ok = QtGui.QInputDialog.getText(self.win, "Enter the name", 
                 "Name:", QtGui.QLineEdit.Normal, window.getName())
@@ -59,8 +34,6 @@ class PyQtGuiController(GuiControllerBase):
         data, ok = QtGui.QInputDialog.getDouble(self.win, "Enter the " + title.lower(), 
                 title.capitalize() + ":", initial)
         return data, ok
-    def showErrorMessage(self, title, message):
-        QtGui.QMessageBox.information(self.win, title, message)
     def showMessageOnStatusBar(self, text):
         return self.win.showMessageOnStatusBar(text)
     def getMessageOnStatusBar(self):
