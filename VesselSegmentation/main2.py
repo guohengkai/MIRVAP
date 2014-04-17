@@ -6,5 +6,6 @@ Created on 2014-04-16
 """
 
 from PyQtGuiController import PyQtGuiController
+
 gui = PyQtGuiController()
 gui.startApplication()

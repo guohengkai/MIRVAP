@@ -10,7 +10,7 @@ class DataBase(object):
         raise NotImplementedError('Method "getArrayData" Not Impletemented!')
 
 import numpy as npy
-import itk
+#import itk
 import scipy.io as sio
 import copy as cp
 import os
@@ -57,21 +57,26 @@ class ImageData(DataBase):
             return self.data[::temp[0], ::temp[1], ::temp[2]].transpose(self.getView())
         else:
             return self.data[::temp[0], ::temp[1]].transpose(self.getView())
+    '''
     def getITKImage(self, imageType = None):
         if imageType == None:
             imageType = self.getITKImageType()
         image = itk.PyBuffer[imageType].GetImageFromArray(self.getData())
         image.SetSpacing(self.getResolution().tolist())
         return image
+    '''
     def getDimension(self):
         return self.data.ndim
+    '''
     def getITKImageType(self):
         return itk.Image[itk.F, len(self.data.shape)]
-        
+    '''
     def setDataFromArray(self, data):
         self.data = data
+    '''
     def setDataFromITKImage(self, data, imageType):
         self.data = itk.PyBuffer[imageType].GetArrayFromImage(data)
+    '''
     def setData(self, data, imageType = None):
         if isinstance(data, npy.ndarray):
             self.setDataFromArray(data)

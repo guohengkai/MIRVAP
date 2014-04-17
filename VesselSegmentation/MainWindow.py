@@ -42,7 +42,7 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
             os.mkdir(self.ini.file.savedir)
         self.index = self.ini.parameter.current
     def loadData(self, index):
-        dataname = self.ini.file.names[index]
+        dataname = self.ini.file.names[self.ini.parameter.sequence[index]]
         dir = self.ini.file.datadir + dataname
         data, info = db.loadMatData(dir)
         
@@ -52,6 +52,7 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
         
         self.data = db.BasicData(data, info, point)
     def saveData(self, index):
+        self.widgetView.save()
         dataname = str(index) + '.mat'
         dir = self.ini.file.savedir + dataname
         db.saveMatPoint(dir, self.data)
@@ -60,10 +61,12 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
         self.saveData(self.index)
         self.gui.showErrorMessage('Success', 'Save sucessfully!')
         self.index += 1
-        if self.index < len(self.ini.file.names):
+        if self.index < len(self.ini.parameter.sequence):
             self.loadData(self.index)
+            self.setQVTKWidget()
         else:
             self.gui.showErrorMessage('Congratulation', 'Your task has finished!')
+            self.index -= 1
     def viewData(self):
         pass
     def setQVTKWidget(self):

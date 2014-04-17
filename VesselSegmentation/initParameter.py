@@ -8,7 +8,16 @@ Created on 2014-04-16
 from dict4ini import DictIni
 from numpy.random import permutation
 import os
-    
+
+'''
+This script is to generate a full ini file.
+The format of ini file: ('segment.ini')
+    [file]
+    datadir = ...
+    savedir = ...
+    [parameter]
+    repeat = ...
+'''
 ini = DictIni('segment.ini')
 if not os.path.exists(ini.file.savedir):
     os.mkdir(ini.file.savedir)

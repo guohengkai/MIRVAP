@@ -35,6 +35,21 @@ class WidgetViewBase(object):
         self.image_resample = vtk.vtkImageResample()
         self.image_resample.SetInput(self.itk_vtk_converter.GetOutput())
         
+#        image_matrix = data.getData()
+#        image_matrix = npy.round((image_matrix - npy.min(image_matrix)) / (npy.max(image_matrix) - npy.min(image_matrix)) * 255)
+#        image_matrix = image_matrix.astype(npy.uint8)
+#        self.dataImporter = vtk.vtkImageImport()
+#        data_string = image_matrix.tostring()
+#        self.dataImporter.CopyImportVoidPointer(data_string, len(data_string))
+#        self.dataImporter.SetDataScalarTypeToUnsignedChar()
+#        self.dataImporter.SetNumberOfScalarComponents(1)
+#        extent = image_matrix.shape
+#        self.dataImporter.SetDataExtent(0, extent[2] - 1, 0, extent[1] - 1, 0, extent[0] - 1)
+#        self.dataImporter.SetWholeExtent(0, extent[2] - 1, 0, extent[1] - 1, 0, extent[0] - 1)
+#        self.dataImporter.SetDataSpacing(self.space)
+#        self.image_resample = vtk.vtkImageResample()
+#        self.image_resample.SetInput(self.dataImporter.GetOutput())
+        
         self.renderer = vtk.vtkRenderer()
         self.render_window = widget.GetRenderWindow()
         self.render_window.AddRenderer(self.renderer)
@@ -82,6 +97,8 @@ class SingleDataView(WidgetViewBase):
         array = data.getData()
         self.minI = array.min()
         self.maxI = array.max()
+#        self.minI = 0
+#        self.maxI = 255
         image_property = vtk.vtkImageProperty()
         image_property.SetColorWindow(self.maxI - self.minI)
         image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
