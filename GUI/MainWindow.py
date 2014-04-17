@@ -11,7 +11,7 @@ from Ui_MainWindow import Ui_MainWindow
 from MdiChild import MdiChildLoad, MdiChildRegistration
 import MIRVAP.Core.DataBase as db
 import MIRVAP.Core.ScriptBase as sb
-import MIRVAP.Core.GuiBase as gb
+import MIRVAP.Core.GuiControllerBase as gb
 from functools import partial
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):

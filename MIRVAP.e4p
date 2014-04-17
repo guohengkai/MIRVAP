@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-04-10, 14:34:31 -->
+<!-- Saved: 2014-04-17, 15:46:43 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -82,10 +82,24 @@
     <Source>Script/Load/LoadDicomDir.py</Source>
     <Source>Script/Analysis/ContourErrorAnalysis.py</Source>
     <Source>Script/Analysis/AreaIndexAnalysis.py</Source>
+    <Source>VesselSegmentation/ContourPlugin.py</Source>
+    <Source>VesselSegmentation/DataBase.py</Source>
+    <Source>VesselSegmentation/GuiControllerBase.py</Source>
+    <Source>VesselSegmentation/main2.py</Source>
+    <Source>VesselSegmentation/MainWindow.py</Source>
+    <Source>VesselSegmentation/MdiChild.py</Source>
+    <Source>VesselSegmentation/PluginBase.py</Source>
+    <Source>VesselSegmentation/PyQtGuiController.py</Source>
+    <Source>VesselSegmentation/ResultImageView.py</Source>
+    <Source>VesselSegmentation/WidgetViewBase.py</Source>
+    <Source>VesselSegmentation/dict4ini.py</Source>
+    <Source>VesselSegmentation/initParameter.py</Source>
+    <Source>VesselSegmentation/Ui_SegmentationMainWindow.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
     <Form>GUI/MdiChild.ui</Form>
+    <Form>VesselSegmentation/SegmentationMainWindow.ui</Form>
   </Forms>
   <Translations>
   </Translations>
