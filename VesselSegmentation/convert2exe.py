@@ -18,4 +18,4 @@ py2exe_options = dict(excludes = ['_ssl',  # Exclude _ssl
                                 "scipy.sparse.csgraph._validation"], 
                       compressed = True,  # Compress library.zip
                       )
-setup(windows = [{"script": "main2.py"}], options = {'py2exe': py2exe_options})
+setup(windows = ["main2.py", "initParameter.py"], options = {'py2exe': py2exe_options})

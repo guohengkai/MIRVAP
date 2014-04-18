@@ -9,28 +9,33 @@ from dict4ini import DictIni
 from numpy.random import permutation
 import os
 
-'''
-This script is to generate a full ini file.
-The format of ini file: ('segment.ini')
-    [file]
-    datadir = ...
-    savedir = ...
-    [parameter]
-    repeat = ...
-'''
-ini = DictIni('segment.ini')
-if not os.path.exists(ini.file.savedir):
-    os.mkdir(ini.file.savedir)
-namelist = os.listdir(ini.file.datadir)
-print namelist
-ini.file.names = namelist
+def initParameter(ini):
+    '''
+    This function is to generate a full ini file.
+    The format of ini file: ('segment.ini')
+        [file]
+        datadir = ...
+        savedir = ...
+        [parameter]
+        repeat = ...
+    '''
+    if not os.path.exists(ini.file.savedir):
+        os.mkdir(ini.file.savedir)
+    namelist = os.listdir(ini.file.datadir)
+    #print namelist
+    ini.file.names = namelist
 
-repeat_time = ini.parameter.repeat
-cnt = len(namelist)
-ini.parameter.sequence = []
-for i in range(repeat_time):
-    ini.parameter.sequence += permutation(cnt).tolist()
-print ini.parameter.sequence
+    repeat_time = ini.parameter.repeat
+    cnt = len(namelist)
+    ini.parameter.sequence = []
+    for i in range(repeat_time):
+        ini.parameter.sequence += permutation(cnt).tolist()
+    #print ini.parameter.sequence
 
-ini.parameter.current = 0
-ini.save()
+    ini.parameter.current = 0
+    ini.save()
+    
+    return namelist, repeat_time
+if __name__ == "__main__":
+    ini = DictIni('segment.ini')
+    initParameter(ini)

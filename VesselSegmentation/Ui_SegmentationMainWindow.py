@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\VesselSegmentation\SegmentationMainWindow.ui'
 #
-# Created: Thu Apr 17 15:29:41 2014
+# Created: Fri Apr 18 14:43:26 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,10 +47,6 @@ class Ui_SegmentationMainWindow(object):
         SegmentationMainWindow.setStatusBar(self.statusbar)
         self.actionExit = QtGui.QAction(SegmentationMainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
-        self.actionClear_all = QtGui.QAction(SegmentationMainWindow)
-        self.actionClear_all.setObjectName(_fromUtf8("actionClear_all"))
-        self.actionAbout = QtGui.QAction(SegmentationMainWindow)
-        self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
         self.actionView = QtGui.QAction(SegmentationMainWindow)
         self.actionView.setObjectName(_fromUtf8("actionView"))
         self.actionNext = QtGui.QAction(SegmentationMainWindow)
@@ -68,8 +64,6 @@ class Ui_SegmentationMainWindow(object):
         SegmentationMainWindow.setWindowTitle(_translate("SegmentationMainWindow", "Vessel Segmentation Platform", None))
         self.menuFile.setTitle(_translate("SegmentationMainWindow", "File", None))
         self.actionExit.setText(_translate("SegmentationMainWindow", "Exit", None))
-        self.actionClear_all.setText(_translate("SegmentationMainWindow", "Clear all", None))
-        self.actionAbout.setText(_translate("SegmentationMainWindow", "About...", None))
         self.actionView.setText(_translate("SegmentationMainWindow", "View", None))
         self.actionNext.setText(_translate("SegmentationMainWindow", "Save and Next", None))
 

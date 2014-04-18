@@ -65,7 +65,7 @@ class MainWindow(QtGui.QMainWindow, Ui_SegmentationMainWindow):
         self.widgetView.save()
         dataname = str(index) + '.mat'
         dir = self.ini.file.savedir + dataname
-        db.saveMatPoint(dir, self.data)
+        db.saveMatPoint(dir, self.data, self.ini.file.names[self.ini.parameter.sequence[index]])
         
     def saveAndNext(self):
         self.saveData(self.ini.parameter.current)
