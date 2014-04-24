@@ -11,6 +11,7 @@ import numpy as npy
 import numpy.matlib as ml
 import itk, vtk
 import SimpleITK as sitk
+import util.RegistrationUtil as util
 
 class TestRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -62,7 +63,7 @@ class TestRegistration(RegistrationBase):
                         continue
                     
                     center_result = npy.mean(data_result[:, :2], axis = 0)
-                    points_result = getPointsOntheSpline(data_result, center_result, 900)
+                    points_result = util.getPointsOntheSpline(data_result, center_result, 900)
                     
                     i = 0
                     for k in range(-4, 6):
@@ -182,33 +183,3 @@ class TestRegistration(RegistrationBase):
         
         return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]
         
-def getPointsOntheSpline(data, center, numberOfOutputPoints):
-    if data.shape[0] >= 4:
-        # Sort the pointSet for a convex contour
-        point = npy.delete(data, 2, axis = 1)
-        core = point.mean(axis = 0)
-        point -= core
-        angle = npy.arctan2(point[:, 1], point[:, 0])
-        ind = angle.argsort()
-        data[:, :] = data[ind, :]
-        
-    count = data.shape[0]
-    points = vtk.vtkPoints()
-    for j in range(count):
-        points.InsertPoint(j, data[j, 0], data[j, 1], 0)
-    
-    para_spline = vtk.vtkParametricSpline()
-    para_spline.SetPoints(points)
-    para_spline.ClosedOn()
-    
-    result = npy.empty([numberOfOutputPoints, 3], dtype = npy.float32)
-    
-    for k in range(0, numberOfOutputPoints):
-        t = k * 1.0 / numberOfOutputPoints
-        pt = [0.0, 0.0, 0.0]
-        para_spline.Evaluate([t, t, t], pt, [0] * 9)
-        result[k, :2] = pt[:2]
-        
-    result[:, 2] = npy.arctan2(result[:, 1] - center[1], result[:, 0] - center[0])
-    ind = result[:, 2].argsort()
-    return result[ind, :]

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2014-03-24
+Created on 2014-04-24
 
 @author: Hengkai Guo
 """
@@ -14,11 +14,11 @@ import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
 
-class vtkIcpPointsetRegistration(RegistrationBase):
+class IcpPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
-        super(vtkIcpPointsetRegistration, self).__init__(gui)
+        super(IcpPointsetRegistration, self).__init__(gui)
     def getName(self):
-        return 'ICP Pointset Registration For Vessel(vtk)'
+        return 'ICP Pointset Registration For Vessel'
                                  
     def register(self, fixedData, movingData):
         index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
@@ -62,15 +62,11 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         print fixed.shape[0], moving.shape[0]
         #return None, None, None
         
-        sourcePoints = vtk.vtkPoints()
-        sourceVertices = vtk.vtkCellArray()
-        for x in moving:
-            id = sourcePoints.InsertNextPoint(x[0], x[1], x[2])
-            sourceVertices.InsertNextCell(1)
-            sourceVertices.InsertCellPoint(id)
-        source = vtk.vtkPolyData()
-        source.SetPoints(sourcePoints)
-        source.SetVerts(sourceVertices)
+        # Prepare for ICP
+        LandmarkTransform = vtk.vtkLandmarkTransform()
+        LandmarkTransform.SetModeToRigidBody()
+        MaxIterNum = 50
+        MaxNum = 200
         
         targetPoints = vtk.vtkPoints()
         targetVertices = vtk.vtkCellArray()
@@ -82,20 +78,65 @@ class vtkIcpPointsetRegistration(RegistrationBase):
         target.SetPoints(targetPoints)
         target.SetVerts(targetVertices)
         
-        icp = vtk.vtkIterativeClosestPointTransform()
-        icp.SetSource(source)
-        icp.SetTarget(target)
-        icp.GetLandmarkTransform().SetModeToRigidBody()
-        icp.Modified()
-        icp.Update()
+        Locator = vtk.vtkCellLocator()
+        Locator.SetDataSet(target)
+        Locator.SetNumberOfCellsPerBucket(1)
+        Locator.BuildLocator()
         
-        icp_filter = vtk.vtkTransformPolyDataFilter()
-        icp_filter.SetInput(source)
-        icp_filter.SetTransform(icp)
-        icp_filter.Update()
+        step = 1
+        if moving.shape[0] > MaxNum:
+            step = moving.shape[0] / MaxNum
+        nb_points = moving.shape[0] / step
+        
+        accumulate = vtk.vtkTransform()
+        accumulate.PostMultiply()
+        
+        points1 = vtk.vtkPoints()
+        points1.SetNumberOfPoints(nb_points)
+        closestp = vtk.vtkPoints()
+        closestp.SetNumberOfPoints(nb_points)
+        points2 = vtk.vtkPoints()
+        points2.SetNumberOfPoints(nb_points)
+        
+        j = 0
+        for i in range(nb_points):
+            points1.SetPoint(i, moving[j][0], moving[j][1], moving[j][2])
+            j += step
+        
+        id1 = id2 = vtk.mutable(0)
+        dist = vtk.mutable(0.0)
+        cell = vtk.vtkGenericCell()
+        outPoint = [0.0, 0.0, 0.0]
+        p1 = [0.0, 0.0, 0.0]
+        p2 = [0.0, 0.0, 0.0]
+        iternum = 0
+        a = points1
+        b = points2
+        
+        while True:
+            for i in range(nb_points):
+                Locator.FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
+                closestp.SetPoint(i, outPoint)
+                
+            LandmarkTransform.SetSourceLandmarks(a)
+            LandmarkTransform.SetTargetLandmarks(closestp)
+            LandmarkTransform.Update()
+            
+            accumulate.Concatenate(LandmarkTransform.GetMatrix())
+            
+            iternum += 1
+            if iternum >= MaxIterNum:
+                break
+            
+            for i in range(nb_points):
+                a.GetPoint(i, p1)
+                LandmarkTransform.InternalTransformPoint(p1, p2)
+                b.SetPoint(i, p2)
+            
+            b, a = a, b
         
         # Get the result transformation parameters
-        matrix = icp.GetMatrix()
+        matrix = accumulate.GetMatrix()
         T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
         R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
                     [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
