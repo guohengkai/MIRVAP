@@ -74,7 +74,8 @@ class ComparingImageView(RegistrationDataView):
             image_property2.SetColorWindow(self.maxI2 - self.minI2)
             image_property2.SetColorLevel((self.maxI2 + self.minI2) / 2.0)
             self.render_window.Render()
-            return            
+            return
+        super(ComparingImageView, self).KeyPressCallback(obj, event)    
     def updateAfter(self, *arg):
         super(ComparingImageView, self).updateAfter(*arg)
         newMessage = "  (Left: Fixed image, Right: Result image)"

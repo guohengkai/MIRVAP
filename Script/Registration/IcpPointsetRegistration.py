@@ -53,8 +53,8 @@ class IcpPointsetRegistration(RegistrationBase):
         fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
         moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
         
-        fixed = fixed[:, :3]
-        moving = moving[:, :3]
+        #fixed = fixed[:, :3]
+        #moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
@@ -68,20 +68,22 @@ class IcpPointsetRegistration(RegistrationBase):
         MaxIterNum = 50
         MaxNum = 200
         
-        targetPoints = vtk.vtkPoints()
-        targetVertices = vtk.vtkCellArray()
-        for x in fixed:
-            id = targetPoints.InsertNextPoint(x[0], x[1], x[2])
-            targetVertices.InsertNextCell(1)
-            targetVertices.InsertCellPoint(id)
-        target = vtk.vtkPolyData()
-        target.SetPoints(targetPoints)
-        target.SetVerts(targetVertices)
+        targetPoints = [vtk.vtkPoints(), vtk.vtkPoints(), vtk.vtkPoints()]
+        targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
+        target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
+        Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
         
-        Locator = vtk.vtkCellLocator()
-        Locator.SetDataSet(target)
-        Locator.SetNumberOfCellsPerBucket(1)
-        Locator.BuildLocator()
+        for i in range(3):
+            for x in fixed[npy.round(fixed[:, 3]) != 3]: # 3 - i
+                id = targetPoints[i].InsertNextPoint(x[0], x[1], x[2])
+                targetVertices[i].InsertNextCell(1)
+                targetVertices[i].InsertCellPoint(id)
+            target[i].SetPoints(targetPoints[i])
+            target[i].SetVerts(targetVertices[i])
+            
+            Locator[i].SetDataSet(target[i])
+            Locator[i].SetNumberOfCellsPerBucket(1)
+            Locator[i].BuildLocator()
         
         step = 1
         if moving.shape[0] > MaxNum:
@@ -98,9 +100,11 @@ class IcpPointsetRegistration(RegistrationBase):
         points2 = vtk.vtkPoints()
         points2.SetNumberOfPoints(nb_points)
         
+        label = npy.zeros([nb_points], dtype = npy.int8)
         j = 0
         for i in range(nb_points):
             points1.SetPoint(i, moving[j][0], moving[j][1], moving[j][2])
+            label[i] = moving[j][3]
             j += step
         
         id1 = id2 = vtk.mutable(0)
@@ -115,7 +119,7 @@ class IcpPointsetRegistration(RegistrationBase):
         
         while True:
             for i in range(nb_points):
-                Locator.FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
+                Locator[label[i]].FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
                 closestp.SetPoint(i, outPoint)
                 
             LandmarkTransform.SetSourceLandmarks(a)
