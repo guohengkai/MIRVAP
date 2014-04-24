@@ -49,8 +49,9 @@ class GmmregPointsetRegistration(RegistrationBase):
         # Augmentation of pointset
         fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
         moving = moving_points.copy()
-        fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
-        moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
+        if index == 0:
+            fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
+            moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
         
         fixed = fixed[:, :3]
         moving = moving[:, :3]
@@ -59,6 +60,14 @@ class GmmregPointsetRegistration(RegistrationBase):
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
         print fixed.shape[0], moving.shape[0]
+        
+        '''
+        MaxNum = 200
+        step = 1
+        if moving.shape[0] > MaxNum:
+            step = moving.shape[0] / MaxNum
+        moving = moving[::step, :]
+        '''
         
         eg.initial_data(fixed, moving)
         code = eg.run_executable()
@@ -70,7 +79,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         #eg.clear_temp_file()
         
         # Get the result transformation parameters
-        S1 = ml.ones([3, 3], dtype = npy.float32) * para2[3]
+        S1 = ml.eye(3, dtype = npy.float32) * para2[3]
         C = npy.asmatrix(para2[:3]).T
         
         C2 = npy.asmatrix(para2[4:7]).T

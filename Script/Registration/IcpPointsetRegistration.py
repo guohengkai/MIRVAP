@@ -50,9 +50,10 @@ class IcpPointsetRegistration(RegistrationBase):
         # Augmentation of pointset
         fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
         moving = moving_points.copy()
-        fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
-        moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
-        
+        if index == 0:
+            fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
+            moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
+            
         #fixed = fixed[:, :3]
         #moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
@@ -72,9 +73,13 @@ class IcpPointsetRegistration(RegistrationBase):
         targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
         target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
         Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
+        if index == 0:
+            label_dis = [3, 3, 3]
+        else:
+            label_dis = [3, 2, 1]
         
         for i in range(3):
-            for x in fixed[npy.round(fixed[:, 3]) != 3]: # 3 - i
+            for x in fixed[npy.round(fixed[:, 3]) != label_dis[i]]:
                 id = targetPoints[i].InsertNextPoint(x[0], x[1], x[2])
                 targetVertices[i].InsertNextCell(1)
                 targetVertices[i].InsertCellPoint(id)
