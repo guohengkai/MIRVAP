@@ -85,6 +85,7 @@ class AutoUSContourPlugin(ContourPlugin):
                 
             temp_array = npy.delete(point_array, 2, axis = 1)
             center, diameter, angle = ellipseFitting(temp_array)
+            #center, diameter, angle = ransac(temp_array, EllipseLeastSquaresModel(), 50, 200, 50, 800)
             temp_array = getPointsFromEllipse(center, diameter, angle, 20)
             
             point_array = npy.insert(temp_array, self.parent.view, point_array[0, self.parent.view], axis = 1) * space
