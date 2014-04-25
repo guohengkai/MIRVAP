@@ -13,6 +13,7 @@ from scipy import interpolate
 import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
+import sys, os
 
 class IcpPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -122,6 +123,23 @@ class IcpPointsetRegistration(RegistrationBase):
         a = points1
         b = points2
         
+        '''
+        path = sys.argv[0]
+        if os.path.isfile(path):
+            path = os.path.dirname(path)
+        path += '/Data/Transform'
+        wfile = open("%s/transform.txt" % path, 'w')
+        '''
+        
+        matrix = accumulate.GetMatrix()
+        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
+        R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
+                    [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
+                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
+        if (fixed_bif >= 0) and (moving_bif >= 0):
+            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+        #saveTransform(wfile, T, R)
+        
         while True:
             for i in range(nb_points):
                 Locator[label[i]].FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
@@ -142,8 +160,17 @@ class IcpPointsetRegistration(RegistrationBase):
                 LandmarkTransform.InternalTransformPoint(p1, p2)
                 b.SetPoint(i, p2)
             
+            matrix = accumulate.GetMatrix()
+            T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
+            R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
+                        [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
+                        [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
+            if (fixed_bif >= 0) and (moving_bif >= 0):
+                T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+            #saveTransform(wfile, T, R)
             b, a = a, b
-        
+            
+        #wfile.close()
         # Get the result transformation parameters
         matrix = accumulate.GetMatrix()
         T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
@@ -292,3 +319,10 @@ class IcpPointsetRegistration(RegistrationBase):
         
         return sitk.GetArrayFromImage(resultImage), {'Contour': trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]
             
+def saveTransform(wfile, T, R):
+    for i in range(3):
+        wfile.write("%f " % T[i, 0])
+    for i in range(3):
+        for j in range(3):
+            wfile.write("%f " % R[i, j])
+    wfile.write("\n")
