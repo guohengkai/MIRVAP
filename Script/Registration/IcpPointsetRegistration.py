@@ -21,8 +21,9 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData):
-        index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
+    def register(self, fixedData, movingData, index = -1):
+        if index == -1:
+            index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
             return None, None, None
         if index == 0:
@@ -36,6 +37,7 @@ class IcpPointsetRegistration(RegistrationBase):
         moving_res = movingData.getResolution().tolist()
         fixed_points = fixed_points.copy()[npy.where(fixed_points[:, 0] >= 0)]
         moving_points = moving_points.copy()[npy.where(moving_points[:, 0] >= 0)]
+        
         # Use the bifurcation as the initial position
         fixed_bif = db.getBifurcation(fixed_points)
         moving_bif = db.getBifurcation(moving_points)
@@ -54,14 +56,14 @@ class IcpPointsetRegistration(RegistrationBase):
         if index == 0:
             fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
             moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
-            
+        
         #fixed = fixed[:, :3]
         #moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-        print fixed.shape[0], moving.shape[0]
+        #print fixed.shape[0], moving.shape[0]
         #return None, None, None
         
         # Prepare for ICP
@@ -234,6 +236,8 @@ class IcpPointsetRegistration(RegistrationBase):
             for k in range(0, 10):
                 data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
                 count = data.shape[0]
+                if count == 0:
+                    continue
                 points = vtk.vtkPoints()
                 for i in range(count):
                     points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])

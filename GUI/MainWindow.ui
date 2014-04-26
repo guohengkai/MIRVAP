@@ -85,11 +85,17 @@
       <string>Widget View</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuMacro">
+     <property name="title">
+      <string>Macro</string>
+     </property>
+    </widget>
     <addaction name="menuPlugin"/>
     <addaction name="menuWidget_View"/>
     <addaction name="separator"/>
     <addaction name="menuRegister"/>
     <addaction name="menuAnalysis"/>
+    <addaction name="menuMacro"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">

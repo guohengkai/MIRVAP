@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-04-25, 12:24:31 -->
+<!-- Saved: 2014-04-26, 20:42:03 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -102,6 +102,12 @@
     <Source>Script/Registration/util/RegistrationUtil.py</Source>
     <Source>Script/Registration/IcpPointsetRegistration.py</Source>
     <Source>GUI/qvtk/WidgetView/SurfaceGifView.py</Source>
+    <Source>Script/MacroBase.py</Source>
+    <Source>Script/Macro/TestAllRegistration.py</Source>
+    <Source>Script/Macro/__init__.py</Source>
+    <Source>Script/Macro/util/dict4ini.py</Source>
+    <Source>Script/Macro/util/__init__.py</Source>
+    <Source>Script/Registration/util/__init__.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

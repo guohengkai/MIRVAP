@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'E:\GitHub\MIRVAP\GUI\MainWindow.ui'
 #
-# Created: Tue Mar 11 13:50:35 2014
+# Created: Sat Apr 26 20:51:24 2014
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -58,6 +58,8 @@ class Ui_MainWindow(object):
         self.menuAnalysis.setObjectName(_fromUtf8("menuAnalysis"))
         self.menuWidget_View = QtGui.QMenu(self.menuStart)
         self.menuWidget_View.setObjectName(_fromUtf8("menuWidget_View"))
+        self.menuMacro = QtGui.QMenu(self.menuStart)
+        self.menuMacro.setObjectName(_fromUtf8("menuMacro"))
         self.menuHelp = QtGui.QMenu(self.menubar)
         self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         MainWindow.setMenuBar(self.menubar)
@@ -80,6 +82,7 @@ class Ui_MainWindow(object):
         self.menuStart.addSeparator()
         self.menuStart.addAction(self.menuRegister.menuAction())
         self.menuStart.addAction(self.menuAnalysis.menuAction())
+        self.menuStart.addAction(self.menuMacro.menuAction())
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuStart.menuAction())
@@ -99,6 +102,7 @@ class Ui_MainWindow(object):
         self.menuPlugin.setTitle(_translate("MainWindow", "Plugin", None))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis", None))
         self.menuWidget_View.setTitle(_translate("MainWindow", "Widget View", None))
+        self.menuMacro.setTitle(_translate("MainWindow", "Macro", None))
         self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionClear_all.setText(_translate("MainWindow", "Clear all", None))

@@ -27,11 +27,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.statusbar.addWidget(self.msgLabel)
         
         self.menuScript = {'Load': self.menuLoad, 'Registration': self.menuRegister, 
-            'Analysis': self.menuAnalysis, 'Save': self.menuSave}
+            'Analysis': self.menuAnalysis, 'Save': self.menuSave, 'Macro': self.menuMacro}
         self.script = {}
         self.actionScript = {}
         self.runScript = {'Load': self.runLoadScript, 'Registration': self.runRegisterScript, 
-            'Analysis': self.runAnalysisScript, 'Save': self.runSaveScript}
+            'Analysis': self.runAnalysisScript, 'Save': self.runSaveScript, 'Macro': self.runMacroScript}
         
         self.getAllScript()
         self.getAllPlugin()
@@ -177,7 +177,11 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             window = window.widget()
             self.script['Analysis'][index](window)
             self.showMessageOnStatusBar(temp)
-        
+    def runMacroScript(self, index):
+        temp = self.getMessageOnStatusBar()
+        self.showMessageOnStatusBar("Processing...")
+        self.script['Macro'][index](None)
+        self.showMessageOnStatusBar(temp)
     def addNewDataView(self, data):
         index = self.gui.dataModel.append(data)
         if type(data) is db.ResultData:

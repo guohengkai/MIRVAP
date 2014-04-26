@@ -66,7 +66,7 @@ def augmentPointset(ori_points, multiple, opt_size, bif, nn = -1):
         zmin = int(npy.min(ori_points[:, 2]) + 0.5)
         zmax = int(npy.max(ori_points[:, 2]) + 0.5)
         nn = int((opt_size - ori_points.shape[0]) / ((2 * zmax - zmin - bif)) / (multiple - 1) + 0.5) + 1
-        print nn
+        #print nn
     
     new_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
     zmin = [0, 0, 0]
@@ -105,12 +105,13 @@ def augmentPointset(ori_points, multiple, opt_size, bif, nn = -1):
                     resampled_points[cnt][resampled_index, 2] = z
                     resampled_points[cnt][resampled_index, 3] = k + 4
                     resampled_index += 1
-                    
     trans_points = npy.array(ori_points)
     for cnt in range(3):
         for k in range(0, nn):
             data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
             count = data.shape[0]
+            if count == 0:
+                continue
             points = vtk.vtkPoints()
             for i in range(count):
                 points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
