@@ -13,6 +13,7 @@ Test/Data
 
 *.txt
 *.ini
+*.xls
 
 # Unit test / coverage reports
 .coverage

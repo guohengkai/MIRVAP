@@ -20,8 +20,9 @@ class GmmregPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'GMMREG Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData):
-        index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
+    def register(self, fixedData, movingData, index = -1):
+        if index == -1:
+            index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
             return None, None, None
         if index == 0:
@@ -59,7 +60,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-        print fixed.shape[0], moving.shape[0]
+        #print fixed.shape[0], moving.shape[0]
         
         '''
         MaxNum = 200
@@ -144,6 +145,8 @@ class GmmregPointsetRegistration(RegistrationBase):
             for k in range(0, 10):
                 data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
                 count = data.shape[0]
+                if count == 0:
+                    continue
                 points = vtk.vtkPoints()
                 for i in range(count):
                     points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])

@@ -14,8 +14,9 @@ class AreaIndexAnalysis(AnalysisBase):
         super(AreaIndexAnalysis, self).__init__(gui)
     def getName(self):
         return 'Registration Area Index'
-    def analysis(self, data):
-        point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
+    def analysis(self, data, point_data_fix = None):
+        if point_data_fix is None:
+            point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
         point_data_result = data.getPointSet('Contour').copy()
         self.spacing = data.getResolution().tolist()
         self.spacing[2] = 1.0 # The resolution of z axis is nothing to do with the analysis
@@ -66,12 +67,15 @@ class AreaIndexAnalysis(AnalysisBase):
         jaccard_index[jaccard_index != jaccard_index] = 0
         dice_index[dice_index != dice_index] = 0
         
-        message = "Jaccard Index on Vessel 0: %0.3f\nJaccard Index on Vessel 1: %0.3f\nJaccard Index on Vessel 2: %0.3f\nTotal Jaccard Index: %0.3f\n" \
-            % (jaccard_index[0], jaccard_index[1], jaccard_index[2], jaccard_index_all) + \
-            "-------------------------------------------------------\n" + \
-            "Dice Index on Vessel 0: %0.3f\nDice Index on Vessel 1: %0.3f\nDice Index on Vessel 2: %0.3f\nTotal Dice Index: %0.3f" \
-            % (dice_index[0], dice_index[1], dice_index[2], dice_index_all);
-        self.gui.showErrorMessage("Registration Area Index", message)
+        if self.gui is not None:
+            message = "Jaccard Index on Vessel 0: %0.3f\nJaccard Index on Vessel 1: %0.3f\nJaccard Index on Vessel 2: %0.3f\nTotal Jaccard Index: %0.3f\n" \
+                % (jaccard_index[0], jaccard_index[1], jaccard_index[2], jaccard_index_all) + \
+                "-------------------------------------------------------\n" + \
+                "Dice Index on Vessel 0: %0.3f\nDice Index on Vessel 1: %0.3f\nDice Index on Vessel 2: %0.3f\nTotal Dice Index: %0.3f" \
+                % (dice_index[0], dice_index[1], dice_index[2], dice_index_all);
+            self.gui.showErrorMessage("Registration Area Index", message)
+        
+        return dice_index, dice_index_all
 
 # Use BFS to fill the contour, a little slow
 def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
