@@ -8,6 +8,7 @@ Created on 2014-03-20
 from MIRVAP.GUI.qvtk.WidgetViewBase import WidgetViewBase
 import vtk
 import numpy as npy
+import numpy.matlib as ml
 from MIRVAP.GUI.MdiChild import MdiChildRegistration
 
 # Only available when the vessel is along the z axis
@@ -20,14 +21,35 @@ class SurfaceView(WidgetViewBase):
     def setWidgetView(self, widget, color = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]):
         super(SurfaceView, self).setWidgetView(widget)
         
-        point_array_result = self.parent.getData().pointSet
-        point_data_result = npy.array(point_array_result.getData('Contour'))
+        if type(self.parent) is MdiChildRegistration:
+            point_array_move = self.parent.getData('move').pointSet
+            point_data_move = npy.array(point_array_move.getData('Contour'))
+            point_data_result = npy.array(point_data_move)
+            
+            if point_data_result is None or not point_data_result.shape[0]:
+                return
+                
+            self.spacing_mov = self.parent.getData('move').getResolution().tolist()
+            self.spacing = self.parent.getData().getResolution().tolist()
+            
+            para = self.parent.getData().getInfo().getData('transform')
+            R = ml.mat(para[0, :9].reshape(3, 3))
+            T = ml.mat(para[0, 9:12]).T
+            
+            T = R.I * T
+            T = -T
+            point_data_result[:, :3] *= self.spacing_mov[:3]
+            point_data_result[:, :3] = ml.mat(point_data_result[:, :3]) * R + ml.ones((point_data_result.shape[0], 1)) * T.T
+            point_data_result[:, :3] /= self.spacing[:3]
+        else:
+            point_array_result = self.parent.getData().pointSet
+            point_data_result = npy.array(point_array_result.getData('Contour'))
+            point_array_move = point_array_result
+            point_data_move = npy.array(point_array_move.getData('Contour'))
+
         
-        if point_data_result is None or not point_data_result.shape[0]:
-            return
-        zmin = int(npy.min(point_data_result[:, 2]) + 0.5)
-        zmax = int(npy.max(point_data_result[:, 2]) + 0.5)
-        #self.spacing = [1, 1, 1]
+        zmin = int(npy.min(point_data_move[:, 2]) + 0.5)
+        zmax = int(npy.max(point_data_move[:, 2]) + 0.5)
         self.spacing = self.parent.getData().getResolution().tolist()
         self.spacing = [float(x) / self.spacing[-1] for x in self.spacing]
         point_data_result[:, :2] *= self.spacing[:2]
@@ -40,21 +62,17 @@ class SurfaceView(WidgetViewBase):
         
         self.contours = []
         self.delaunay3D = []
-        #self.triangle_filter = []
-        #self.smooth_filter = []
         self.delaunayMapper = []
         self.surface_actor = []
         
         for cnt in range(3):
             self.contours.append(vtk.vtkPolyData())
             self.delaunay3D.append(vtk.vtkDelaunay3D())
-            #self.triangle_filter.append(vtk.vtkTriangleFilter())
-            #self.smooth_filter.append(vtk.vtkButterflySubdivisionFilter())
-            #self.smooth_filter.append(vtk.vtkLinearSubdivisionFilter())
             self.delaunayMapper.append(vtk.vtkDataSetMapper())
             self.surface_actor.append(vtk.vtkActor())
             
             point_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
+            point_move = point_data_move[npy.where(npy.round(point_data_move[:, -1]) == cnt)]
             if not point_result.shape[0]:
                 continue
                 
@@ -62,7 +80,7 @@ class SurfaceView(WidgetViewBase):
             self.points = vtk.vtkPoints()
             l = 0
             for i in range(zmin, zmax + 1):
-                data = point_result[npy.where(npy.round(point_result[:, 2]) == i)]
+                data = point_result[npy.where(npy.round(point_move[:, 2]) == i)]
                 if data is not None:
                     if data.shape[0] == 0:
                         continue
@@ -94,12 +112,6 @@ class SurfaceView(WidgetViewBase):
             
             self.delaunay3D[cnt].SetInput(self.contours[cnt])
             self.delaunay3D[cnt].SetAlpha(2)
-            #self.triangle_filter[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
-            #self.triangle_filter[cnt].PassVertsOn()
-            #self.triangle_filter[cnt].PassLinesOn()
-            #self.smooth_filter[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
-            #self.smooth_filter[cnt].SetInput(self.triangle_filter[cnt].GetOutput())
-            #self.smooth_filter[cnt].SetNumberOfSubdivisions(3)
             
             self.delaunayMapper[cnt].SetInput(self.delaunay3D[cnt].GetOutput())
             
