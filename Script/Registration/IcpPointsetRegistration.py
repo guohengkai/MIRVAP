@@ -117,7 +117,6 @@ class IcpPointsetRegistration(RegistrationBase):
         
         id1 = id2 = vtk.mutable(0)
         dist = vtk.mutable(0.0)
-        cell = vtk.vtkGenericCell()
         outPoint = [0.0, 0.0, 0.0]
         p1 = [0.0, 0.0, 0.0]
         p2 = [0.0, 0.0, 0.0]
