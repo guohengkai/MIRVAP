@@ -6,6 +6,7 @@ Created on 2014-03-24
 """
 
 from MIRVAP.Script.RegistrationBase import RegistrationBase
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
 import MIRVAP.Core.DataBase as db
 import numpy as npy
 import numpy.matlib as ml
@@ -121,7 +122,8 @@ class vtkIcpPointsetRegistration(RegistrationBase):
                     if data_result.shape[0] == 0:
                         continue
                     
-                    center_result = npy.mean(data_result[:, :2], axis = 0)
+                    #center_result = npy.mean(data_result[:, :2], axis = 0)
+                    center_result = calCentroidFromContour(data_result[:, :2])[0]
                     points_result = util.getPointsOntheSpline(data_result, center_result, 900)
                     
                     i = 0

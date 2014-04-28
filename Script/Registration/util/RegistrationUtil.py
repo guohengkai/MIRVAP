@@ -8,6 +8,7 @@ Created on 2014-04-24
 import numpy as npy
 import numpy.matlib as ml
 import vtk
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
 
 def quaternion2rotation(q):
     R = ml.zeros([3, 3], dtype = npy.float32)
@@ -32,8 +33,9 @@ def getPointsOntheSpline(data, center, numberOfOutputPoints):
     if data.shape[0] >= 4:
         # Sort the pointSet for a convex contour
         point = npy.delete(data, 2, axis = 1)
-        core = point.mean(axis = 0)
-        point -= core
+        #core = point.mean(axis = 0)
+        core = center[:2]
+        point[:, :2] -= core
         angle = npy.arctan2(point[:, 1], point[:, 0])
         ind = angle.argsort()
         data[:, :] = data[ind, :]
@@ -87,7 +89,8 @@ def augmentPointset(ori_points, multiple, opt_size, bif, nn = -1):
                 if data_result.shape[0] == 0:
                     continue
                 
-                center_result = npy.mean(data_result[:, :2], axis = 0)
+                #center_result = npy.mean(data_result[:, :2], axis = 0)
+                center_result = calCentroidFromContour(data_result[:, :2])[0]
                 points_result = getPointsOntheSpline(data_result, center_result, 900)
                 
                 i = 0

@@ -6,6 +6,8 @@ Created on 2014-04-10
 """
 
 from MIRVAP.Script.AnalysisBase import AnalysisBase
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
+from MIRVAP.Script.Registration.util.RegistrationUtil import getPointsOntheSpline
 import numpy as npy
 import vtk
 
@@ -42,8 +44,10 @@ class AreaIndexAnalysis(AnalysisBase):
                     if data_fix.shape[0] == 0 or data_result.shape[0] == 0:
                         continue
                     cnt_num[cnt] += 1
-                    center_fix = npy.mean(data_fix[:, :2], axis = 0)
-                    center_result = npy.mean(data_result[:, :2], axis = 0)
+                    #center_fix = npy.mean(data_fix[:, :2], axis = 0)
+                    center_fix = calCentroidFromContour(data_fix[:, :2])[0]
+                    #center_result = npy.mean(data_result[:, :2], axis = 0)
+                    center_result = calCentroidFromContour(data_result[:, :2])[0]
                     points_fix = getPointsOntheSpline(data_fix, center_fix, data_fix.shape[0] * 10)[:, :2]
                     points_result = getPointsOntheSpline(data_result, center_result, data_result.shape[0] * 10)[:, :2]
                     
@@ -139,34 +143,3 @@ def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
             break
     
     return mask
-
-def getPointsOntheSpline(data, center, numberOfOutputPoints):
-    if data.shape[0] >= 4:
-        # Sort the pointSet for a convex contour
-        point = npy.delete(data, 2, axis = 1)
-        core = point.mean(axis = 0)
-        point -= core
-        angle = npy.arctan2(point[:, 1], point[:, 0])
-        ind = angle.argsort()
-        data[:, :] = data[ind, :]
-    
-    count = data.shape[0]
-    points = vtk.vtkPoints()
-    for j in range(count):
-        points.InsertPoint(j, data[j, 0], data[j, 1], 0)
-    
-    para_spline = vtk.vtkParametricSpline()
-    para_spline.SetPoints(points)
-    para_spline.ClosedOn()
-    
-    result = npy.empty([numberOfOutputPoints, 3], dtype = npy.float32)
-    
-    for k in range(0, numberOfOutputPoints):
-        t = k * 1.0 / numberOfOutputPoints
-        pt = [0.0, 0.0, 0.0]
-        para_spline.Evaluate([t, t, t], pt, [0] * 9)
-        result[k, :2] = pt[:2]
-        
-    result[:, 2] = npy.arctan2(result[:, 1] - center[1], result[:, 0] - center[0])
-    ind = result[:, 2].argsort()
-    return result[ind, :]
