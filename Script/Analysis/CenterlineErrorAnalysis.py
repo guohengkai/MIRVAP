@@ -23,7 +23,6 @@ class CenterlineErrorAnalysis(AnalysisBase):
         point_data_fix[:, :3] *= self.spacing[:3]
         point_data_result[:, :3] *= self.spacing[:3]
         
-        fix_center_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
         ind = point_data_fix[:, 2].argsort()
         point_data_fix = point_data_fix[ind]
         

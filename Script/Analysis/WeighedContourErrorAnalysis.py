@@ -6,8 +6,9 @@ Created on 2014-04-28
 """
 
 from MIRVAP.Script.AnalysisBase import AnalysisBase
-from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour, calCenterlineFromContour
 from MIRVAP.Script.Registration.util.RegistrationUtil import getPointsOntheSpline
+import MIRVAP.Core.DataBase as db
 import numpy as npy
 import scipy.interpolate as itp
 import vtk
@@ -22,17 +23,35 @@ class WeighedContourErrorAnalysis(AnalysisBase):
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
         point_data_result = data.getPointSet('Contour').copy()
         self.spacing = data.getResolution().tolist()
-        self.spacing[2] = 1.0 # The resolution of z axis is nothing to do with the analysis
-        point_data_fix[:, :3] *= self.spacing[:3]
-        point_data_result[:, :3] *= self.spacing[:3]
+        point_data_fix[:, :2] *= self.spacing[:2]
+        point_data_result[:, :2] *= self.spacing[:2]
+        
+        center_data = calCenterlineFromContour({'Contour': point_data_fix})
+        ind = center_data[:, 2].argsort()
+        center_data = center_data[ind]
+        center_data_z = center_data[:, 2].copy()
+        fixed_bif = db.getBifurcation(center_data)
+        bif_point = center_data[npy.round(center_data[:, 2]) == fixed_bif - 1]
+        center_data[:, :3] *= self.spacing[:3]
+        bif_point[:, :3] *= self.spacing[:3]
+        
+        spline = [None, None, None]
+        for cnt in range(3):
+            spline[cnt] = [None, None, None]
+            xx = center_data_z[npy.round(center_data[:, -1]) == cnt]
+            yy = center_data[npy.round(center_data[:, -1]) == cnt]
+            if cnt > 0:
+                xx = npy.append(fixed_bif - 1, xx)
+                yy = npy.append(bif_point, yy, axis = 0)
+            
+            for i in range(3):
+                spline[cnt][i] = itp.InterpolatedUnivariateSpline(xx, yy[:, i])
         
         cnt_num = npy.array([0, 0, 0])
         mean_dis = npy.array([0.0, 0.0, 0.0])
         max_dis = npy.array([0.0, 0.0, 0.0])
         square_sum_dis = npy.array([0.0, 0.0, 0.0])
         
-        #s = itp.InterpolatedUnivariateSpline(x, y)
-        #s.derivatives(1)[1]
         for cnt in range(3):
             temp_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
             temp_fix = point_data_fix[npy.where(npy.round(point_data_fix[:, -1]) == cnt)]
@@ -55,6 +74,12 @@ class WeighedContourErrorAnalysis(AnalysisBase):
                     points_fix = getPointsOntheSpline(data_fix, center_fix, 900)
                     points_result = getPointsOntheSpline(data_result, center_result, 900)
                     
+                    normal = npy.array([None, None, None])
+                    for i in range(3):
+                        normal[i] = spline[cnt][i].derivatives(z)[1]
+                    w1 = (normal[2] / npy.sqrt(npy.sum(normal ** 2))) ** 2 # cos(alpha) ^ 2
+                    theta0 = npy.arctan2(normal[1], normal[0])
+                    
                     i = j = 0
                     for k in range(-44, 46):
                         angle = k * 4 / 180.0 * npy.pi
@@ -70,7 +95,9 @@ class WeighedContourErrorAnalysis(AnalysisBase):
                             ind_result = j - 1
                         else:
                             ind_result = j
-                        temp_dis = npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1])
+                            
+                        weigh = npy.sqrt(npy.sin(angle - theta0) ** 2 + npy.cos(angle - theta0) ** 2 / w1)
+                        temp_dis = npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1]) / weigh
                         max_dis[cnt] = npy.max([max_dis[cnt], temp_dis])
                         mean_dis[cnt] += temp_dis
         
