@@ -13,11 +13,11 @@ import numpy as npy
 import scipy.interpolate as itp
 import vtk
 
-class WeighedContourErrorAnalysis(AnalysisBase):
+class WeightedContourErrorAnalysis(AnalysisBase):
     def __init__(self, gui):
-        super(WeighedContourErrorAnalysis, self).__init__(gui)
+        super(WeightedContourErrorAnalysis, self).__init__(gui)
     def getName(self):
-        return 'Weighed Contour Registration Error'
+        return 'Weighted Contour Registration Error'
     def analysis(self, data, point_data_fix = None):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
@@ -77,7 +77,7 @@ class WeighedContourErrorAnalysis(AnalysisBase):
                     normal = npy.array([None, None, None])
                     for i in range(3):
                         normal[i] = spline[cnt][i].derivatives(z)[1]
-                    w1 = (normal[2] / npy.sqrt(npy.sum(normal ** 2))) ** 2 # cos(alpha) ^ 2
+                    w1 = normal[2] ** 2 / npy.sum(normal ** 2) # cos(alpha) ^ 2
                     theta0 = npy.arctan2(normal[1], normal[0])
                     
                     i = j = 0
@@ -114,6 +114,6 @@ class WeighedContourErrorAnalysis(AnalysisBase):
                 "-----------------------------------------------------------------------------\n" + \
                 "Max Error on Vessel 0: %0.2fmm\nMax Error on Vessel 1: %0.2fmm\nMax Error on Vessel 2: %0.2fmm\nTotal Max Error: %0.2fmm" \
                 % (max_dis[0], max_dis[1], max_dis[2], npy.max(max_dis));
-            self.gui.showErrorMessage("Weighed Contour Registration Error", message)
+            self.gui.showErrorMessage("Weighted Contour Registration Error", message)
         return mean_dis, mean_whole / cnt_total, max_dis, npy.max(max_dis)
         

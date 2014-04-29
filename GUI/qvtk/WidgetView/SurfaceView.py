@@ -32,9 +32,9 @@ class SurfaceView(WidgetViewBase):
             self.spacing_mov = self.parent.getData('move').getResolution().tolist()
             self.spacing = self.parent.getData().getResolution().tolist()
             
-            para = self.parent.getData().getInfo().getData('transform')
-            R = ml.mat(para[0, :9].reshape(3, 3))
-            T = ml.mat(para[0, 9:12]).T
+            para = npy.array(self.parent.getData().getInfo().getData('transform'))
+            R = ml.mat(para[:9].reshape(3, 3))
+            T = ml.mat(para[9:12].reshape(3, 1))
             
             T = R.I * T
             T = -T

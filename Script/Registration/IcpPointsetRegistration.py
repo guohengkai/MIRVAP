@@ -79,6 +79,7 @@ class IcpPointsetRegistration(RegistrationBase):
         Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
         if index == 0:
             label_dis = [3, 3, 3]
+            #label_dis = [3, 2, 1]
         else:
             label_dis = [3, 2, 1]
         
