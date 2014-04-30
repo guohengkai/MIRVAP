@@ -187,6 +187,10 @@ class IcpPointsetRegistration(RegistrationBase):
         resampled_points = [None, None, None]
         moving_points = movingData.getPointSet('Contour').copy()
         nn = 20
+        nearbif_points = [None, None, None]
+        nearbif_center = [None, None]
+        bif_slice = 0
+        
         for cnt in range(3):
             temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)]
             if not temp_result.shape[0]:
@@ -206,7 +210,13 @@ class IcpPointsetRegistration(RegistrationBase):
                     #center_result = npy.mean(data_result[:, :2], axis = 0)
                     center_result = calCentroidFromContour(data_result[:, :2])[0]
                     points_result = util.getPointsOntheSpline(data_result, center_result, 900)
-                    
+                    if cnt > 0 and z == zmin:
+                        nearbif_points[cnt] = points_result
+                        nearbif_center[cnt - 1] = center_result
+                        bif_slice = z
+                    elif cnt == 0 and z == zmax - 1:
+                        nearbif_points[cnt] = points_result
+                        
                     i = 0
                     for k in range(- nn / 2 + 1, nn / 2 + 1):
                         angle = k * 360 / nn / 180.0 * npy.pi
@@ -222,117 +232,153 @@ class IcpPointsetRegistration(RegistrationBase):
                         resampled_points[cnt][resampled_index, 2] = z
                         resampled_points[cnt][resampled_index, 3] = k + nn / 2 - 1
                         resampled_index += 1
-                        
+        
+        nearbif_angle = [npy.arctan2(nearbif_center[1][1] - nearbif_center[0][1], nearbif_center[1][0] - nearbif_center[0][0]), 
+                         npy.arctan2(nearbif_center[0][1] - nearbif_center[1][1], nearbif_center[0][0] - nearbif_center[1][0])]
+        point_near_bif = npy.zeros([2, 2], dtype = npy.float32)
+        for cnt in range(2):
+            ind = npy.argmin(npy.abs(nearbif_points[cnt + 1][:, 2] - nearbif_angle[cnt]))
+            point_near_bif[cnt, :] = nearbif_points[cnt + 1][ind, :2]
+        bif_points = npy.zeros([3, 3], dtype = npy.float32)
+        bif_points[0, :2] = npy.mean(point_near_bif, axis = 0)
+        bif_points[0, 2] = bif_slice
+        nearbif_angle = [npy.arctan2(nearbif_center[1][0] - nearbif_center[0][0], nearbif_center[0][1] - nearbif_center[1][1]), 
+                         npy.arctan2(nearbif_center[0][0] - nearbif_center[1][0], nearbif_center[1][1] - nearbif_center[0][1])]
+        nearbif_points[0][:, 2] = npy.arctan2(nearbif_points[0][:, 1] - bif_points[0, 1], nearbif_points[0][:, 0] - bif_points[0, 0])
+        for cnt in range(1, 3):
+            ind = npy.argmin(npy.abs(nearbif_points[0][:, 2] - nearbif_angle[cnt - 1]))
+            bif_points[cnt, :2] = nearbif_points[0][ind, :2]
+        bif_points[1:, 2] = bif_slice - 1
+        
         # Apply the transformation on the resampled points
         for cnt in range(3):
-            resampled_points[cnt][:, :3] *= moving_res[:3]
-            temp = ml.mat(resampled_points[cnt][:, :3]) * R + ml.ones((resampled_points[cnt].shape[0], 1)) * T.T
-            
-            resampled_points[cnt][:, :3] = temp
-            resampled_points[cnt][:, :3] /= fixed_res[:3]
+            resampled_points[cnt][:, :3] = applyTransformForPoints(resampled_points[cnt][:, :3], moving_res, fixed_res, R, T)
+        bif_points = applyTransformForPoints(bif_points, moving_res, fixed_res, R, T)
+
+        # Resample the points near the bifurcation
+        points = vtk.vtkPoints()
+        points.InsertPoint(0, bif_points[1, 0], bif_points[1, 1], bif_points[1, 2])
+        points.InsertPoint(1, bif_points[0, 0], bif_points[0, 1], bif_points[0, 2])
+        points.InsertPoint(2, bif_points[2, 0], bif_points[2, 1], bif_points[2, 2])
+
+        para_spline = vtk.vtkParametricSpline()
+        para_spline.SetPoints(points)
+        para_spline.ClosedOff()
+        
+        numberOfOutputPoints = 6
+        new_bif_points = npy.zeros([numberOfOutputPoints + 1, 4], dtype = npy.float32)
+        
+        for i in range(0, numberOfOutputPoints + 1):
+            t = i * 1.0 / numberOfOutputPoints
+            pt = [0.0, 0.0, 0.0]
+            para_spline.Evaluate([t, t, t], pt, [0] * 9)
+            new_bif_points[i, :3] = pt
+        new_bif_points[:, 3] = 0
         
         # Reslice the result points
         trans_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
-        vessel_high = [0, 0]
-        vessel_high[0] = int(npy.ceil(npy.max(resampled_points[1][:nn, 2])))
-        vessel_high[1] = int(npy.ceil(npy.max(resampled_points[2][:nn, 2])))
-        if vessel_high[0] == vessel_high[1]:
-            for cnt in range(3):
-                zmin = int(npy.ceil(npy.max(resampled_points[cnt][:nn, 2])))
-                zmax = int(npy.min(resampled_points[cnt][-nn:, 2]))
-                
-                for k in range(0, nn):
-                    data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
-                    count = data.shape[0]
-                    if count == 0:
-                        continue
-                    points = vtk.vtkPoints()
-                    for i in range(count):
-                        points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
-            
-                    para_spline = vtk.vtkParametricSpline()
-                    para_spline.SetPoints(points)
-                    para_spline.ClosedOff()
-                    
-                    znow = zmin
-                    old_pt = [0.0, 0.0, 0.0]
-                    numberOfOutputPoints = int((zmax - zmin + 1) * nn)
-                    
-                    for i in range(0, numberOfOutputPoints):
-                        t = i * 1.0 / numberOfOutputPoints
-                        pt = [0.0, 0.0, 0.0]
-                        para_spline.Evaluate([t, t, t], pt, [0] * 9)
-                        if pt[2] >= znow:
-                            if pt[2] - znow < znow - old_pt[2]:
-                                new_point = pt
-                            else:
-                                new_point = old_pt
-                            trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
-                            znow += 1
-                            if znow > zmax:
-                                break
-                        old_pt = pt
-        else:
-            if vessel_high[0] > vessel_high[1]:
-                cnt_bif = 2
-                bif_slice = vessel_high[1]
+        bif_slice = int(npy.ceil(bif_points[0, 2]))
+        
+        for cnt in range(3):
+            zmin = int(npy.ceil(npy.max(resampled_points[cnt][:nn, 2])))
+            zmax = int(npy.min(resampled_points[cnt][-nn:, 2]))
+            if cnt == 0:
+                zmax = bif_slice
             else:
-                cnt_bif = 1
-                bif_slice = vessel_high[0]
-            #print cnt_bif, bif_slice
-            for cnt in range(3):
-                zmin = int(npy.ceil(npy.max(resampled_points[cnt][:nn, 2])))
-                zmax = int(npy.min(resampled_points[cnt][-nn:, 2]))
-                if cnt == 0:
-                    zmax = bif_slice
-                elif cnt != cnt_bif:
-                    zmin = bif_slice
-                
-                for k in range(0, nn):
-                    data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
-                    if cnt == 0:
-                        dis1 = npy.hypot(data[-1, 0] - resampled_points[1][nn:nn * 2, 0], data[-1, 1] - resampled_points[1][nn:nn * 2, 1])
-                        ind1 = npy.argmin(dis1)
-                        dis2 = npy.hypot(data[-1, 0] - resampled_points[2][nn:nn * 2, 0], data[-1, 1] - resampled_points[2][nn:nn * 2, 1])
-                        ind2 = npy.argmin(dis2)
-                        if dis1[ind1] < dis2[ind2]:
-                            data_add = resampled_points[1][npy.where((npy.round(resampled_points[1][:, -1]) == ind1) & (resampled_points[1][:, 2] <= zmax + 1))]
-                        else:
-                            data_add = resampled_points[2][npy.where((npy.round(resampled_points[2][:, -1]) == ind2) & (resampled_points[2][:, 2] <= zmax + 1))]
-                        data = npy.append(data, data_add[1:, :], axis = 0)
-                    elif cnt != cnt_bif:
-                        ind = npy.argmin(npy.hypot(data[0, 0] - resampled_points[0][-nn * 2:-nn, 0], data[0, 1] - resampled_points[0][-nn * 2:-nn, 1]))
-                        data_add = resampled_points[0][npy.where((npy.round(resampled_points[0][:, -1]) == ind) & (resampled_points[0][:, 2] >= zmin - 1))]
-                        data = npy.append(data_add[:-1, :], data, axis = 0)
-                    count = data.shape[0]
-                    if count == 0:
-                        continue
-                    points = vtk.vtkPoints()
-                    for i in range(count):
-                        points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
+                zmin = bif_slice
             
-                    para_spline = vtk.vtkParametricSpline()
-                    para_spline.SetPoints(points)
-                    para_spline.ClosedOff()
+            for k in range(0, nn):
+                data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
+                if cnt == 0:
+                    dis1 = npy.hypot(data[-1, 0] - resampled_points[1][nn:nn * 2, 0], data[-1, 1] - resampled_points[1][nn:nn * 2, 1])
+                    ind1 = npy.argmin(dis1)
+                    dis2 = npy.hypot(data[-1, 0] - resampled_points[2][nn:nn * 2, 0], data[-1, 1] - resampled_points[2][nn:nn * 2, 1])
+                    ind2 = npy.argmin(dis2)
+                    if dis1[ind1] < dis2[ind2]:
+                        data_add = resampled_points[1][npy.where((npy.round(resampled_points[1][:, -1]) == ind1) & (resampled_points[1][:, 2] <= zmax + 1))]
+                    else:
+                        data_add = resampled_points[2][npy.where((npy.round(resampled_points[2][:, -1]) == ind2) & (resampled_points[2][:, 2] <= zmax + 1))]
+                    data = npy.append(data, data_add[1:, :], axis = 0)
+                else:
+                    # TO BE DONE
+                    dis1 = npy.hypot(data[0, 0] - resampled_points[0][-nn * 2:-nn, 0], data[0, 1] - resampled_points[0][-nn * 2:-nn, 1])
+                    ind1 = npy.argmin(dis1)
+                    dis2 = npy.sqrt(npy.sum((new_bif_points[:, :3] - data[0, :3]) ** 2, axis = 1))
+                    ind2 = npy.argmin(dis2)
+                    if dis1[ind1] < dis2[ind2]:
+                        data_add = resampled_points[0][npy.where((npy.round(resampled_points[0][:, -1]) == ind1) & (resampled_points[0][:, 2] >= zmin - 1))]
+                    else:
+                        data_add = new_bif_points[ind2, :].reshape(1, -1)
+                    data = npy.append(data_add[:-1, :], data, axis = 0)
                     
-                    znow = zmin
-                    old_pt = [0.0, 0.0, 0.0]
-                    numberOfOutputPoints = int((zmax - zmin + 3) * nn)
-                    
-                    for i in range(0, numberOfOutputPoints):
-                        t = i * 1.0 / numberOfOutputPoints
-                        pt = [0.0, 0.0, 0.0]
-                        para_spline.Evaluate([t, t, t], pt, [0] * 9)
-                        if pt[2] >= znow:
-                            if pt[2] - znow < znow - old_pt[2]:
-                                new_point = pt
-                            else:
-                                new_point = old_pt
-                            trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
-                            znow += 1
-                            if znow > zmax:
-                                break
-                        old_pt = pt
+                count = data.shape[0]
+                if count == 0:
+                    continue
+                points = vtk.vtkPoints()
+                for i in range(count):
+                    points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
+        
+                para_spline = vtk.vtkParametricSpline()
+                para_spline.SetPoints(points)
+                para_spline.ClosedOff()
+                
+                znow = zmin
+                old_pt = [0.0, 0.0, 0.0]
+                numberOfOutputPoints = int((zmax - zmin + 3) * nn)
+                
+                for i in range(0, numberOfOutputPoints):
+                    t = i * 1.0 / numberOfOutputPoints
+                    pt = [0.0, 0.0, 0.0]
+                    para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                    if pt[2] >= znow:
+                        if pt[2] - znow < znow - old_pt[2]:
+                            new_point = pt
+                        else:
+                            new_point = old_pt
+                        trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
+                        znow += 1
+                        if znow > zmax:
+                            break
+                    old_pt = pt
+        
+        '''
+        # Reslice the result points(Discard the points near the bifurcation)
+        for cnt in range(3):
+            zmin = int(npy.ceil(npy.max(resampled_points[cnt][:nn, 2])))
+            zmax = int(npy.min(resampled_points[cnt][-nn:, 2]))
+            
+            for k in range(0, nn):
+                data = resampled_points[cnt][npy.where(npy.round(resampled_points[cnt][:, -1]) == k)]
+                count = data.shape[0]
+                if count == 0:
+                    continue
+                points = vtk.vtkPoints()
+                for i in range(count):
+                    points.InsertPoint(i, data[i, 0], data[i, 1], data[i, 2])
+        
+                para_spline = vtk.vtkParametricSpline()
+                para_spline.SetPoints(points)
+                para_spline.ClosedOff()
+                
+                znow = zmin
+                old_pt = [0.0, 0.0, 0.0]
+                numberOfOutputPoints = int((zmax - zmin + 1) * nn)
+                
+                for i in range(0, numberOfOutputPoints):
+                    t = i * 1.0 / numberOfOutputPoints
+                    pt = [0.0, 0.0, 0.0]
+                    para_spline.Evaluate([t, t, t], pt, [0] * 9)
+                    if pt[2] >= znow:
+                        if pt[2] - znow < znow - old_pt[2]:
+                            new_point = pt
+                        else:
+                            new_point = old_pt
+                        trans_points = npy.append(trans_points, [[new_point[0], new_point[1], znow, cnt]], axis = 0)
+                        znow += 1
+                        if znow > zmax:
+                            break
+                    old_pt = pt
+        '''
         
         moving_center = movingData.getPointSet('Centerline').copy()
         result_center_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
@@ -399,3 +445,9 @@ def saveTransform(wfile, T, R):
         for j in range(3):
             wfile.write("%f " % R[i, j])
     wfile.write("\n")
+def applyTransformForPoints(points, moving_res, fixed_res, R, T):
+    points *= moving_res[:3]
+    temp = ml.mat(points) * R + ml.ones((points.shape[0], 1)) * T.T
+    points = temp
+    points /= fixed_res[:3]
+    return points
