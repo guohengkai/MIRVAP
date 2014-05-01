@@ -218,12 +218,12 @@ def loadDicomArray(dir):
         cropFilter.SetLowerBoundaryCropSize([0, 0, imSize - cropSize])
         cropFilter.SetUpperBoundaryCropSize([0, 0, 0])
         array = sitk.GetArrayFromImage(cropFilter.Execute(image))
-        
         array = (array1, array)
         #For crop 68
         #array = (array, array1)
-        del array1, image
-        array = npy.concatenate((array[0], array[1]), axis = 0)
+        del array1, image, cropFilter
+        #array = npy.concatenate((array[0], array[1]), axis = 0)
+        
     return array
 
 def loadMatData(dir, datamodel):

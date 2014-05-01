@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-04-29, 17:32:04 -->
+<!-- Saved: 2014-05-01, 23:53:55 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -111,6 +111,7 @@
     <Source>GUI/qvtk/Plugin/util/PluginUtil.py</Source>
     <Source>Script/Analysis/CenterlineErrorAnalysis.py</Source>
     <Source>Script/Analysis/WeightedContourErrorAnalysis.py</Source>
+    <Source>Script/Registration/MRimageRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

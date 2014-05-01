@@ -78,8 +78,8 @@ class ImageBlendView(RegistrationDataView):
         self.reslice_mapper.BackgroundOn()
         
         array = data.getData()
-        self.minI = array.min()
-        self.maxI = array.max()
+        self.minI = 0
+        self.maxI = 255
         image_property = vtk.vtkImageProperty()
         image_property.SetColorWindow(self.maxI - self.minI)
         image_property.SetColorLevel((self.maxI + self.minI) / 2.0)
