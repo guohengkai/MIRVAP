@@ -123,6 +123,6 @@ class itkMutualInformationRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         array = sitk.GetArrayFromImage(resultImage)
-        print npy.sum(array)
+        #print npy.sum(array)
         
         return array, {}, para
