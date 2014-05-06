@@ -174,7 +174,7 @@ def getBifurcation(points):
 def loadDicomArrayFromDir(dir):
     imageReader = sitk.ImageSeriesReader()
     names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(dir, True)
-    print names
+    #print names
     imageReader.SetFileNames(names)
     image = imageReader.Execute()
     del imageReader

@@ -16,7 +16,7 @@ class MRimageRegistration(RegistrationBase):
     def __init__(self, gui):
         super(MRimageRegistration, self).__init__(gui)
     def getName(self):
-        return 'MR Images Simple Registration'
+        return 'MR Images Registration With MI'
                                  
     def register(self, fixedData, movingData):
         clip1 = movingData.info.getData('clip')
@@ -74,7 +74,7 @@ class MRimageRegistration(RegistrationBase):
         optimizerScales.SetElement(2, 1.0)
         
         #imageMetric.UseAllPixelsOn()
-        imageMetric.SetNumberOfHistogramBins(50)
+        imageMetric.SetNumberOfHistogramBins(64)
         imageMetric.SetNumberOfSpatialSamples(800000)
         
         optimizer.MinimizeOn()
