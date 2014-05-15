@@ -11,10 +11,13 @@ class MacroBase(ScriptBase):
     def __init__(self, gui):
         super(MacroBase, self).__init__(gui)
     
-    def run(self, window):
+    def run(self, window = None):
         dataset = self.load()
         self.process(dataset)
-        self.gui.showErrorMessage('Success', 'Test sucessfully!')
+        if self.gui:
+            self.gui.showErrorMessage('Success', 'Test sucessfully!')
+        else:
+            print 'Test sucessfully!'
     def load(self):
         raise NotImplementedError('Method "load" Not Impletemented!')
     def process(self, dataset):

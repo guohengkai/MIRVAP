@@ -22,7 +22,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -58,12 +58,12 @@ class IcpPointsetRegistration(RegistrationBase):
             fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
             moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
         
-        #fixed = fixed[:, :3]
-        #moving = moving[:, :3]
+        #fixed = fixed[fixed[:, 2] != fixed_bif]
+        #moving = moving[moving[:, 2] != moving_bif]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
-            fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+            fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         #print fixed.shape[0], moving.shape[0]
         #return None, None, None
         
@@ -71,7 +71,7 @@ class IcpPointsetRegistration(RegistrationBase):
         LandmarkTransform = vtk.vtkLandmarkTransform()
         LandmarkTransform.SetModeToRigidBody()
         MaxIterNum = 50
-        MaxNum = 200
+        MaxNum = 600
         
         targetPoints = [vtk.vtkPoints(), vtk.vtkPoints(), vtk.vtkPoints()]
         targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
@@ -105,17 +105,56 @@ class IcpPointsetRegistration(RegistrationBase):
         
         points1 = vtk.vtkPoints()
         points1.SetNumberOfPoints(nb_points)
-        closestp = vtk.vtkPoints()
-        closestp.SetNumberOfPoints(nb_points)
-        points2 = vtk.vtkPoints()
-        points2.SetNumberOfPoints(nb_points)
         
-        label = npy.zeros([nb_points], dtype = npy.int8)
+        label = npy.zeros([MaxNum * 2], dtype = npy.int8)
+        
         j = 0
         for i in range(nb_points):
             points1.SetPoint(i, moving[j][0], moving[j][1], moving[j][2])
             label[i] = moving[j][3]
             j += step
+        '''
+        j = 0
+        k = 0
+        temp = moving[moving[:, 3] == 0]
+        step = 1
+        if temp.shape[0] > MaxNum / 3:
+            step = temp.shape[0] * 3 / MaxNum
+        nb_points = temp.shape[0] / step
+        for i in range(nb_points):
+            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
+            label[k] = 0
+            j += step
+            k += 1
+        j = 0
+        temp = moving[moving[:, 3] == 2]
+        step = 1
+        if temp.shape[0] > MaxNum / 3:
+            step = temp.shape[0] * 3 / MaxNum
+        nb_points = temp.shape[0] / step
+        for i in range(nb_points):
+            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
+            label[k] = 2
+            j += step
+            k += 1
+        j = 0
+        temp = moving[moving[:, 3] == 1]
+        step = 1
+        if temp.shape[0] > MaxNum / 3:
+            step = temp.shape[0] * 3 / MaxNum
+        nb_points = temp.shape[0] / step
+        for i in range(nb_points):
+            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
+            label[k] = 1
+            j += step
+            k += 1
+        nb_points = k
+        '''
+        
+        closestp = vtk.vtkPoints()
+        closestp.SetNumberOfPoints(nb_points)
+        points2 = vtk.vtkPoints()
+        points2.SetNumberOfPoints(nb_points)
         
         id1 = id2 = vtk.mutable(0)
         dist = vtk.mutable(0.0)
@@ -132,16 +171,16 @@ class IcpPointsetRegistration(RegistrationBase):
             path = os.path.dirname(path)
         path += '/Data/Transform'
         wfile = open("%s/transform.txt" % path, 'w')
-        '''
         
         matrix = accumulate.GetMatrix()
         T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
         R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
                     [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
-                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
+                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
         if (fixed_bif >= 0) and (moving_bif >= 0):
-            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-        #saveTransform(wfile, T, R)
+            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
+        saveTransform(wfile, T, R)
+        '''
         
         while True:
             for i in range(nb_points):
@@ -163,6 +202,7 @@ class IcpPointsetRegistration(RegistrationBase):
                 LandmarkTransform.InternalTransformPoint(p1, p2)
                 b.SetPoint(i, p2)
             
+            '''
             matrix = accumulate.GetMatrix()
             T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
             R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
@@ -170,7 +210,8 @@ class IcpPointsetRegistration(RegistrationBase):
                         [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
             if (fixed_bif >= 0) and (moving_bif >= 0):
                 T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-            #saveTransform(wfile, T, R)
+            saveTransform(wfile, T, R)
+            '''
             b, a = a, b
             
         #wfile.close()
@@ -179,13 +220,14 @@ class IcpPointsetRegistration(RegistrationBase):
         T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
         R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
                     [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
-                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
+                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
         if (fixed_bif >= 0) and (moving_bif >= 0):
-            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         
         # Resample the moving contour
         moving_points = movingData.getPointSet('Contour').copy()
-        moving_center = movingData.getPointSet('Centerline').copy()                
+        moving_center = movingData.getPointSet('Centerline').copy()
+        discard = True
         new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
         
         T = -T

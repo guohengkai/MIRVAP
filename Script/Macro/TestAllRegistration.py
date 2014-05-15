@@ -174,4 +174,6 @@ class TestAllRegistration(MacroBase):
             
         del dataset
          
-        
+if __name__ == "__main__":
+    test = TestAllRegistration(None)
+    test.run()

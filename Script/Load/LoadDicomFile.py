@@ -25,7 +25,10 @@ class LoadDicomFile(LoadBase):
         try:
             data = db.loadDicomArray(dir)
         except Exception:
-            self.gui.showErrorMessage("Memory error", "Data exceeded memory limit! If this problem occurs again, please restart the application.")
+            if self.gui:
+                self.gui.showErrorMessage("Memory error", "Data exceeded memory limit! If this problem occurs again, please restart the application.")
+            else:
+                print "Data exceeded memory limit!"
             return []
         
         # Format: z * x * y
