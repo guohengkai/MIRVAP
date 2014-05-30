@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-05-10, 15:04:07 -->
+<!-- Saved: 2014-05-26, 23:02:47 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -113,6 +113,7 @@
     <Source>Script/Analysis/WeightedContourErrorAnalysis.py</Source>
     <Source>Script/Registration/MRimageRegistration.py</Source>
     <Source>Script/Macro/LoadAllMRDicomAsMat.py</Source>
+    <Source>Script/Macro/CountAllSlice.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

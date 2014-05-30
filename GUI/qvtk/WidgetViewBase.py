@@ -7,6 +7,7 @@ Created on 2014-03-01
 from Plugin.NullPlugin import NullPlugin
 import itk, vtk
 import numpy as npy
+from Plugin.ContourPlugin import ContourPlugin
 
 class WidgetViewBase(object):
     def __init__(self, parent):
@@ -15,6 +16,7 @@ class WidgetViewBase(object):
         self.datatype = (2, 3)
         if parent:
             self.plugin = [NullPlugin()]
+            #self.plugin = [ContourPlugin()]
             self.pluginIndex = self.parent.gui.win.nullIndex
     def setWidgetView(self, widget):
         self.parent.gui.showMessageOnStatusBar("Widget: " + self.getName())
@@ -149,6 +151,7 @@ class SingleDataView(WidgetViewBase):
         self.interactor_style.AddObserver("KeyPressEvent", self.KeyPressCallback)
         self.interactor_style.AddObserver("CharEvent", self.CharCallback)
         
+        #self.plugin[0].enable(self)
         self.updateAfter()
         
         self.render_window.Render()

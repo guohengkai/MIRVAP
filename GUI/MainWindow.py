@@ -51,6 +51,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.pluginGroup.addAction(x)
             self.menuPlugin.addAction(x)
             if str(x.text()) == 'Null':
+            #if str(x.text()) == 'Contour Editor':
                 x.setChecked(True)
                 self.nullIndex = self.actionPlugin.index(x)
     def getAllWidgetView(self):

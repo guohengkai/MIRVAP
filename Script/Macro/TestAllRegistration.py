@@ -9,7 +9,6 @@ from MIRVAP.Script.MacroBase import MacroBase
 import MIRVAP.Core.DataBase as db
 from util.dict4ini import DictIni
 from MIRVAP.Script.Registration.IcpPointsetRegistration import IcpPointsetRegistration
-from MIRVAP.Script.Registration.GmmregPointsetRegistration import GmmregPointsetRegistration
 from MIRVAP.Script.Analysis.ContourErrorAnalysis import ContourErrorAnalysis
 from MIRVAP.Script.Analysis.AreaIndexAnalysis import AreaIndexAnalysis
 from MIRVAP.Script.Analysis.CenterlineErrorAnalysis import CenterlineErrorAnalysis
@@ -29,7 +28,6 @@ class TestAllRegistration(MacroBase):
         self.cnt = len(self.ini.file.name_fix)
         
         self.icp = IcpPointsetRegistration(None)
-        self.gmm = GmmregPointsetRegistration(None)
         self.contourerror = ContourErrorAnalysis(None)
         self.areaerror = AreaIndexAnalysis(None)
         self.centerlineerror = CenterlineErrorAnalysis(None)
@@ -41,9 +39,10 @@ class TestAllRegistration(MacroBase):
         self.sheet1.write(1, 0, 'MRE')
         self.sheet1.write(5, 0, 'MAXE')
         self.sheet1.write(9, 0, 'Dice Index')
-        self.sheet1.write(13, 0, 'MCRE')
-        self.sheet1.write(17, 0, 'MAXCRE')
-        for j in range(5):
+        #self.sheet1.write(13, 0, 'MCRE')
+        #self.sheet1.write(17, 0, 'MAXCRE')
+        #for j in range(5):
+        for j in range(3):
             for i in range(4):
                 self.sheet1.write(j * 4 + i + 1, 1, title[i])
                 
@@ -51,23 +50,13 @@ class TestAllRegistration(MacroBase):
         self.sheet2.write(1, 0, 'MRE')
         self.sheet2.write(5, 0, 'MAXE')
         self.sheet2.write(9, 0, 'Dice Index')
-        self.sheet2.write(13, 0, 'MCRE')
-        self.sheet2.write(17, 0, 'MAXCRE')
-        for j in range(5):
+        #self.sheet2.write(13, 0, 'MCRE')
+        #self.sheet2.write(17, 0, 'MAXCRE')
+        #for j in range(5):
+        for j in range(3):
             for i in range(4):
                 self.sheet2.write(j * 4 + i + 1, 1, title[i])
         
-        """
-        self.sheet3 = self.book.add_sheet('gmm_con')
-        self.sheet3.write(1, 0, 'MRE')
-        self.sheet3.write(5, 0, 'MAXE')
-        self.sheet3.write(9, 0, 'Dice Index')
-        self.sheet3.write(13, 0, 'MCRE')
-        self.sheet3.write(17, 0, 'MAXCRE')
-        for j in range(5):
-            for i in range(4):
-                sheet.write(j * 4 + i + 1, 1, title[i])
-        """
         
         for i in range(self.cnt):
             dataset = self.load(i)
@@ -91,7 +80,7 @@ class TestAllRegistration(MacroBase):
             + self.ini.file.name_mov[i] + '.mat', None)
         point['Centerline'] = calCenterlineFromContour(point)
         fileData = db.BasicData(data, info, point)
-        dataset['mov'] = (fileData)
+        dataset['mov'] = fileData
         print 'Data %s loaded!' % self.ini.file.name_result[i]
             
             
@@ -111,21 +100,21 @@ class TestAllRegistration(MacroBase):
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
         dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
         print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
-        print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
+        #cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
+        #print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
         
         self.sheet1.write(0, i + 2, self.ini.file.name_result[i])
         for j in range(3):
             self.sheet1.write(j + 1, i + 2, mean_dis[j])
             self.sheet1.write(j + 5, i + 2, max_dis[j])
             self.sheet1.write(j + 9, i + 2, dice_index[j])
-            self.sheet1.write(j + 13, i + 2, cmean_dis[j])
-            self.sheet1.write(j + 17, i + 2, cmax_dis[j])
+            #self.sheet1.write(j + 13, i + 2, cmean_dis[j])
+            #self.sheet1.write(j + 17, i + 2, cmax_dis[j])
         self.sheet1.write(4, i + 2, mean_whole)
         self.sheet1.write(8, i + 2, max_whole)
         self.sheet1.write(12, i + 2, dice_index_all)
-        self.sheet1.write(16, i + 2, cmean_whole)
-        self.sheet1.write(20, i + 2, cmax_whole)
+        #self.sheet1.write(16, i + 2, cmean_whole)
+        #self.sheet1.write(20, i + 2, cmax_whole)
         self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
         del data, point, resultData
         
@@ -143,54 +132,24 @@ class TestAllRegistration(MacroBase):
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
         dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
         print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
-        print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
+        #cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
+        #print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
         
         self.sheet2.write(0, i + 2, self.ini.file.name_result[i])
         for j in range(3):
             self.sheet2.write(j + 1, i + 2, mean_dis[j])
             self.sheet2.write(j + 5, i + 2, max_dis[j])
             self.sheet2.write(j + 9, i + 2, dice_index[j])
-            self.sheet2.write(j + 13, i + 2, cmean_dis[j])
-            self.sheet2.write(j + 17, i + 2, cmax_dis[j])
+            #self.sheet2.write(j + 13, i + 2, cmean_dis[j])
+            #self.sheet2.write(j + 17, i + 2, cmax_dis[j])
         self.sheet2.write(4, i + 2, mean_whole)
         self.sheet2.write(8, i + 2, max_whole)
         self.sheet2.write(12, i + 2, dice_index_all)
-        self.sheet2.write(16, i + 2, cmean_whole)
-        self.sheet2.write(20, i + 2, cmax_whole)
+        #self.sheet2.write(16, i + 2, cmean_whole)
+        #self.sheet2.write(20, i + 2, cmax_whole)
         self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
         del data, point, resultData
-            
-        # GMM with contour
-        """
-        print 'Register Data %s with GMM(contour)...' % self.ini.file.name_result[i]
-        data, point, para = self.gmm.register(dataset['fix'], dataset['mov'], 0) 
-        resultData = db.BasicData(data, db.ImageInfo(dataset['fix'].info.data), point)
-        print 'Saving Data %s...' % self.ini.file.name_result[i]
-        db.saveMatData(self.savepath + self.ini.file.name_result[i] + '_gmm_con.mat', [resultData], 0)
-        print 'Done!'
-        mean_dis, mean_whole, max_dis, max_whole = self.contourerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
-        print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
-        dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
-        print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
-        print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
         
-        self.sheet3.write(0, i + 2, self.ini.file.name_result[i])
-        for j in range(3):
-            self.sheet3.write(j + 1, i + 2, mean_dis[j])
-            self.sheet3.write(j + 5, i + 2, max_dis[j])
-            self.sheet3.write(j + 9, i + 2, dice_index[j])
-            self.sheet3.write(j + 13, i + 2, cmean_dis[j])
-            self.sheet3.write(j + 17, i + 2, cmax_dis[j])
-        self.sheet3.write(4, i + 2, mean_whole)
-        self.sheet3.write(8, i + 2, max_whole)
-        self.sheet3.write(12, i + 2, dice_index_all)
-        self.sheet3.write(16, i + 2, cmean_whole)
-        self.sheet3.write(20, i + 2, cmax_whole)
-        book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
-        del data, point, resultData
-        """    
          
 if __name__ == "__main__":
     test = TestAllRegistration(None)
