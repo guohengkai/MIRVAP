@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-05-26, 23:02:47 -->
+<!-- Saved: 2014-06-01, 23:43:05 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -114,6 +114,10 @@
     <Source>Script/Registration/MRimageRegistration.py</Source>
     <Source>Script/Macro/LoadAllMRDicomAsMat.py</Source>
     <Source>Script/Macro/CountAllSlice.py</Source>
+    <Source>Script/Macro/TestMissingRobust.py</Source>
+    <Source>Script/Macro/TestDownsampleRobust.py</Source>
+    <Source>Script/Macro/TestInitialRobust.py</Source>
+    <Source>Script/Macro/TestOcclusionRobust.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

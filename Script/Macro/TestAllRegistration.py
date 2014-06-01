@@ -34,7 +34,7 @@ class TestAllRegistration(MacroBase):
         self.savepath = self.path + self.ini.file.savedir
         self.book = xlwt.Workbook()
         title = ['CCA', 'ECA', 'ICA', 'Overall']
-        
+        '''
         self.sheet1 = self.book.add_sheet('icp_con')
         self.sheet1.write(1, 0, 'MRE')
         self.sheet1.write(5, 0, 'MAXE')
@@ -45,7 +45,7 @@ class TestAllRegistration(MacroBase):
         for j in range(3):
             for i in range(4):
                 self.sheet1.write(j * 4 + i + 1, 1, title[i])
-                
+        '''
         self.sheet2 = self.book.add_sheet('icp_cen')
         self.sheet2.write(1, 0, 'MRE')
         self.sheet2.write(5, 0, 'MAXE')
@@ -56,7 +56,6 @@ class TestAllRegistration(MacroBase):
         for j in range(3):
             for i in range(4):
                 self.sheet2.write(j * 4 + i + 1, 1, title[i])
-        
         
         for i in range(self.cnt):
             dataset = self.load(i)
@@ -86,6 +85,7 @@ class TestAllRegistration(MacroBase):
             
         return dataset
     def process(self, dataset, i):
+        '''
         # ICP with contour
         print 'Register Data %s with ICP(contour)...' % self.ini.file.name_result[i]
         data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 0) 
@@ -117,7 +117,7 @@ class TestAllRegistration(MacroBase):
         #self.sheet1.write(20, i + 2, cmax_whole)
         self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
         del data, point, resultData
-        
+        '''
         # ICP with centerline
         print 'Register Data %s with ICP(centerline)...' % self.ini.file.name_result[i]
         data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 1) 
@@ -149,7 +149,6 @@ class TestAllRegistration(MacroBase):
         #self.sheet2.write(20, i + 2, cmax_whole)
         self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
         del data, point, resultData
-        
          
 if __name__ == "__main__":
     test = TestAllRegistration(None)

@@ -46,11 +46,12 @@ class ContourPlugin(PluginBase):
             self.contourWidget[i].SetInteractor(self.parent.window_interactor)
             self.contourWidget[i].SetRepresentation(self.contourRep[i])
         
-        # Disappear the line
-        self.contourRep[0].GetLinesProperty().SetOpacity(0)
-        self.contourRep[1].GetLinesProperty().SetOpacity(0)
-        self.contourRep[2].GetLinesProperty().SetOpacity(0)
-        self.contour = [False, False, False]
+        if self.editable:
+            # Disappear the line
+            self.contourRep[0].GetLinesProperty().SetOpacity(0)
+            self.contourRep[1].GetLinesProperty().SetOpacity(0)
+            self.contourRep[2].GetLinesProperty().SetOpacity(0)
+            self.contour = [False, False, False]
         
         self.contourRep[0].GetLinesProperty().SetColor(color[0])
         self.contourRep[1].GetLinesProperty().SetColor(color[1])

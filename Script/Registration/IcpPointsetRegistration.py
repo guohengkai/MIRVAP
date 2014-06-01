@@ -22,7 +22,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -52,16 +52,27 @@ class IcpPointsetRegistration(RegistrationBase):
         #print fixed_res
         
         # Augmentation of pointset
-        fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
+        #fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
+        fixed = fixed_points.copy()
         moving = moving_points.copy()
         if index == 0:
             fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
             moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
-        
+            #fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif, 8)
+            #moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif, 8)
+        '''
+        if index == 1:
+            fixed = util.augmentCenterline(fixed, fixed_res[-1] / moving_res[-1], 5)
+            moving = util.augmentCenterline(moving, moving_res[-1] / fixed_res[-1], 5)
+        '''
         #fixed = fixed[fixed[:, 2] != fixed_bif]
         #moving = moving[moving[:, 2] != moving_bif]
+        moving = moving[npy.cast[npy.int32](npy.abs(moving[:, 2] - moving_bif)) % down == 0]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
+        moving = moving[(npy.max(moving[:, 2]) - moving[:, 2] <= occ) | (moving[:, 2] - npy.min(moving[:, 2]) <= occ)]
+        moving = moving[npy.abs(moving[:, 2] - moving_bif * moving_res[2]) <= fov]
+        print moving.shape
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         #print fixed.shape[0], moving.shape[0]
@@ -78,10 +89,12 @@ class IcpPointsetRegistration(RegistrationBase):
         target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
         Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
         if index == 0:
+            label_dis = [3, 3, 3]
+            #label_dis = [3, 2, 1]
+        else:
             #label_dis = [3, 3, 3]
             label_dis = [3, 2, 1]
-        else:
-            label_dis = [3, 2, 1]
+            
         
         for i in range(3):
             for x in fixed[npy.round(fixed[:, 3]) != label_dis[i]]:
@@ -227,7 +240,7 @@ class IcpPointsetRegistration(RegistrationBase):
         # Resample the moving contour
         moving_points = movingData.getPointSet('Contour').copy()
         moving_center = movingData.getPointSet('Centerline').copy()
-        discard = True
+        #discard = True
         new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
         
         T = -T

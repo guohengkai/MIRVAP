@@ -147,6 +147,34 @@ def augmentPointset(ori_points, multiple, opt_size, bif, nn = -1):
                             break
                         i += 1
     return trans_points
+    
+def augmentCenterline(ori_points, multiple, times):
+    if multiple <= 1:
+        multiple = 1.0
+    multiple = int(times * multiple + 0.5)
+    trans_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+    ind = ori_points[:, 2].argsort()
+    ori_points = ori_points[ind]
+    for cnt in range(3):
+        resampled_points = ori_points[npy.where(npy.round(ori_points[:, -1]) == cnt)]
+        
+        count = resampled_points.shape[0]
+        points = vtk.vtkPoints()
+        for i in range(count):
+            points.InsertPoint(i, resampled_points[i, 0], resampled_points[i, 1], resampled_points[i, 2])
+
+        para_spline = vtk.vtkParametricSpline()
+        para_spline.SetPoints(points)
+        para_spline.ClosedOff()
+        
+        numberOfOutputPoints = count * multiple
+        
+        for i in range(0, numberOfOutputPoints):
+            t = i * 1.0 / numberOfOutputPoints
+            pt = [0.0, 0.0, 0.0]
+            para_spline.Evaluate([t, t, t], pt, [0] * 9)
+            trans_points = npy.append(trans_points, [[pt[0], pt[1], pt[2], cnt]], axis = 0)
+    return trans_points    
 
 def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_res, discard, R, T, C = npy.asmatrix([0, 0, 0]).T):
     resampled_points = [None, None, None]
