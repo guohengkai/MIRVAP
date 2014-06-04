@@ -30,7 +30,7 @@ def calCenterlineFromContour(data):
                 center_data = npy.append(center_data, current_center, axis = 0)
     return center_data            
 
-def calCentroidFromContour(data):
+def calCentroidFromContour(data, area = False):
     temp_area = npy.zeros([data.shape[0]])
     data = npy.append(data, [[data[0, 0], data[0, 1]]], axis = 0)
     for j in range(temp_area.shape[0]):
@@ -42,4 +42,7 @@ def calCentroidFromContour(data):
             current_center[0, k] += (data[j, k] + data[j + 1, k]) * temp_area[j]
     current_center[0, :2] /= 3 * npy.sum(temp_area)
     
-    return current_center
+    if not area:
+        return current_center
+    else:
+        return current_center, npy.abs(npy.sum(temp_area) / 2)

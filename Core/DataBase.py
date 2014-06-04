@@ -291,9 +291,10 @@ def loadMatData(dir, datamodel):
             pointSet2 = dict(zip(name, [point[key][0][0] for key in name]))
         else:
             pointSet2 = {}
-            
-        info.addData('fix', datamodel.append(BasicData(fixedImage, info1, pointSet1)))
-        info.addData('move', datamodel.append(BasicData(movingImage, info2, pointSet2)))
+        
+        if datamodel is not None:
+            info.addData('fix', datamodel.append(BasicData(fixedImage, info1, pointSet1)))
+            info.addData('move', datamodel.append(BasicData(movingImage, info2, pointSet2)))
     return image, info, pointSet
 
 def saveMatData(dir, datamodel, index):

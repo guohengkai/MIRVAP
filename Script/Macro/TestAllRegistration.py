@@ -69,13 +69,13 @@ class TestAllRegistration(MacroBase):
     def load(self, i):
         dataset = {'mov': [], 'fix': []}
         
-        data, info, point = db.loadMatData(self.path + self.ini.file.datadir
+        data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_fix[i] + '.mat', None)
         point['Centerline'] = calCenterlineFromContour(point)
         fileData = db.BasicData(data, info, point)
         dataset['fix'] = fileData
         
-        data, info, point = db.loadMatData(self.path + self.ini.file.datadir
+        data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_mov[i] + '.mat', None)
         point['Centerline'] = calCenterlineFromContour(point)
         fileData = db.BasicData(data, info, point)

@@ -22,7 +22,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -72,7 +72,7 @@ class IcpPointsetRegistration(RegistrationBase):
         moving[:, :3] *= moving_res[:3]
         moving = moving[(npy.max(moving[:, 2]) - moving[:, 2] <= occ) | (moving[:, 2] - npy.min(moving[:, 2]) <= occ)]
         moving = moving[npy.abs(moving[:, 2] - moving_bif * moving_res[2]) <= fov]
-        print moving.shape
+        #print moving.shape
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         #print fixed.shape[0], moving.shape[0]
@@ -89,11 +89,15 @@ class IcpPointsetRegistration(RegistrationBase):
         target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
         Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
         if index == 0:
-            label_dis = [3, 3, 3]
-            #label_dis = [3, 2, 1]
+            if not op:
+                label_dis = [3, 3, 3]
+            else:
+                label_dis = [3, 2, 1]
         else:
-            #label_dis = [3, 3, 3]
-            label_dis = [3, 2, 1]
+            if op:
+                label_dis = [3, 3, 3]
+            else:
+                label_dis = [3, 2, 1]
             
         
         for i in range(3):

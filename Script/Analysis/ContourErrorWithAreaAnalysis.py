@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2014-04-09
+Created on 2014-06-04
 
 @author: Hengkai Guo
 """
@@ -12,11 +12,11 @@ import MIRVAP.Core.DataBase as db
 import numpy as npy
 import vtk
 
-class ContourErrorAnalysis(AnalysisBase):
+class ContourErrorWithAreaAnalysis(AnalysisBase):
     def __init__(self, gui):
-        super(ContourErrorAnalysis, self).__init__(gui)
+        super(ContourErrorWithAreaAnalysis, self).__init__(gui)
     def getName(self):
-        return 'Contour Registration Error'
+        return 'Contour Registration Error With Area'
     def analysis(self, data, point_data_fix = None, all = False):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
@@ -30,6 +30,8 @@ class ContourErrorAnalysis(AnalysisBase):
         mean_dis = npy.array([0.0, 0.0, 0.0])
         max_dis = npy.array([0.0, 0.0, 0.0])
         square_sum_dis = npy.array([0.0, 0.0, 0.0])
+        area_mr = npy.array([0.0, 0.0, 0.0])
+        area_us = npy.array([0.0, 0.0, 0.0])
         if all:
             result = [{}, {}, {}]
             bif = db.getBifurcation(point_data_fix)
@@ -50,9 +52,13 @@ class ContourErrorAnalysis(AnalysisBase):
                         continue
                     cnt_num[cnt] += 1
                     #center_fix = npy.mean(data_fix[:, :2], axis = 0)
-                    center_fix = calCentroidFromContour(data_fix[:, :2])[0]
+                    center_fix, area_fix = calCentroidFromContour(data_fix[:, :2], True)
+                    center_fix = center_fix[0]
+                    area_mr[cnt] += area_fix
                     #center_result = npy.mean(data_result[:, :2], axis = 0)
-                    center_result = calCentroidFromContour(data_result[:, :2])[0]
+                    center_result, area_result = calCentroidFromContour(data_result[:, :2], True)
+                    center_result = center_result[0]
+                    area_us[cnt] += area_result
                     points_fix = getPointsOntheSpline(data_fix, center_fix, 900)
                     points_result = getPointsOntheSpline(data_result, center_result, 900)
                     
@@ -72,11 +78,14 @@ class ContourErrorAnalysis(AnalysisBase):
                         else:
                             ind_result = j
                         temp_dis = npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1])
+                        #temp_dis /= max([area_result / area_fix, area_fix / area_result])
                         max_dis[cnt] = npy.max([max_dis[cnt], temp_dis])
                         mean_dis[cnt] += temp_dis
                         square_sum_dis[cnt] += temp_dis ** 2
                         if all:
                             result[cnt][z - bif] = result[cnt].get(z - bif, 0) + temp_dis
+                    #if all:
+                        #result[cnt][z - bif] = area_result / area_fix
         
         cnt_total = npy.sum(cnt_num)
         sd = npy.sqrt(npy.max([(square_sum_dis - mean_dis ** 2 / (90 * cnt_num)) / (90 * cnt_num - 1), [0, 0, 0]], axis = 0))
@@ -84,6 +93,15 @@ class ContourErrorAnalysis(AnalysisBase):
         sd_all = npy.sqrt(npy.max([(npy.sum(square_sum_dis) - npy.sum(mean_dis) ** 2 / (90 * cnt_total)) / (90 * cnt_total - 1), 0]))
         
         mean_dis /= 90
+        
+        for cnt in range(3):
+            if area_mr[cnt] < area_us[cnt]:
+                rate = area_us[cnt] / area_mr[cnt]
+            else:
+                rate = area_us[cnt] / area_mr[cnt]
+            mean_dis[cnt] /= rate
+        
+        #print area_us[0] / cnt_num[0], area_mr[0] / cnt_num[0]
         mean_whole = npy.sum(mean_dis)
         mean_dis /= cnt_num
         mean_dis[mean_dis != mean_dis] = 0 # Replace the NAN in the mean distance

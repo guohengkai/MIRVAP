@@ -404,7 +404,7 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
                 old_pt = pt
     return new_trans_points, result_center_points
     
-def applyTransformForPoints(points, moving_res, fixed_res, R, T, C):
+def applyTransformForPoints(points, moving_res, fixed_res, R, T, C = npy.asmatrix([0, 0, 0]).T):
     points *= moving_res[:3]
     points -= C.T
     temp = ml.mat(points) * R + ml.ones((points.shape[0], 1)) * (T + C).T

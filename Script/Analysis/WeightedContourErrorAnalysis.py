@@ -18,7 +18,7 @@ class WeightedContourErrorAnalysis(AnalysisBase):
         super(WeightedContourErrorAnalysis, self).__init__(gui)
     def getName(self):
         return 'Weighted Contour Registration Error'
-    def analysis(self, data, point_data_fix = None):
+    def analysis(self, data, point_data_fix = None, area = False):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
         point_data_result = data.getPointSet('Contour').copy()
@@ -51,6 +51,9 @@ class WeightedContourErrorAnalysis(AnalysisBase):
         mean_dis = npy.array([0.0, 0.0, 0.0])
         max_dis = npy.array([0.0, 0.0, 0.0])
         square_sum_dis = npy.array([0.0, 0.0, 0.0])
+        if area:
+            area_mr = npy.array([0.0, 0.0, 0.0])
+            area_us = npy.array([0.0, 0.0, 0.0])
         
         for cnt in range(3):
             temp_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
@@ -68,9 +71,14 @@ class WeightedContourErrorAnalysis(AnalysisBase):
                         continue
                     cnt_num[cnt] += 1
                     #center_fix = npy.mean(data_fix[:, :2], axis = 0)
-                    center_fix = calCentroidFromContour(data_fix[:, :2])[0]
+                    center_fix, area_fix = calCentroidFromContour(data_fix[:, :2], True)
+                    center_fix = center_fix[0]
                     #center_result = npy.mean(data_result[:, :2], axis = 0)
-                    center_result = calCentroidFromContour(data_result[:, :2])[0]
+                    center_result, area_result = calCentroidFromContour(data_result[:, :2], True)
+                    center_result = center_result[0]
+                    if area:
+                        area_mr[cnt] += area_fix
+                        area_us[cnt] += area_result
                     points_fix = getPointsOntheSpline(data_fix, center_fix, 900)
                     points_result = getPointsOntheSpline(data_result, center_result, 900)
                     
@@ -98,12 +106,23 @@ class WeightedContourErrorAnalysis(AnalysisBase):
                             
                         weigh = npy.sqrt(npy.sin(angle - theta0) ** 2 + npy.cos(angle - theta0) ** 2 / w1)
                         temp_dis = npy.hypot(points_fix[ind_fix, 0] - points_result[ind_result, 0], points_fix[ind_fix, 1] - points_result[ind_result, 1]) / weigh
+                        #if area:
+                        #    temp_dis /= max([area_result / area_fix, area_fix / area_result])
                         max_dis[cnt] = npy.max([max_dis[cnt], temp_dis])
                         mean_dis[cnt] += temp_dis
         
         cnt_total = npy.sum(cnt_num)
         
         mean_dis /= 90
+        
+        if area:
+            for cnt in range(3):
+                if area_mr[cnt] < area_us[cnt]:
+                    rate = area_us[cnt] / area_mr[cnt]
+                else:
+                    rate = area_us[cnt] / area_mr[cnt]
+                mean_dis[cnt] /= rate
+        
         mean_whole = npy.sum(mean_dis)
         mean_dis /= cnt_num
         mean_dis[mean_dis != mean_dis] = 0 # Replace the NAN in the mean distance

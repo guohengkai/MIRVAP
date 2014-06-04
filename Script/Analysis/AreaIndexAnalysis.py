@@ -16,7 +16,7 @@ class AreaIndexAnalysis(AnalysisBase):
         super(AreaIndexAnalysis, self).__init__(gui)
     def getName(self):
         return 'Registration Area Index'
-    def analysis(self, data, point_data_fix = None):
+    def analysis(self, data, point_data_fix = None, area = False):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
         point_data_result = data.getPointSet('Contour').copy()
@@ -28,6 +28,9 @@ class AreaIndexAnalysis(AnalysisBase):
         cnt_num = npy.array([0, 0, 0])
         union_area = npy.array([0.0, 0.0, 0.0])
         total_area = npy.array([0.0, 0.0, 0.0])
+        if area:
+            mr_area = [0.0, 0.0, 0.0, 0.0]
+            us_area = [0.0, 0.0, 0.0, 0.0]
         
         for cnt in range(3):
             temp_result = point_data_result[npy.where(npy.round(point_data_result[:, -1]) == cnt)]
@@ -61,6 +64,11 @@ class AreaIndexAnalysis(AnalysisBase):
                     temp_result_area = npy.sum(result_mask)
                     total_area[cnt] += temp_fix_area + temp_result_area
                     union_area[cnt] += npy.sum(fix_mask | result_mask)
+                    if area:
+                        mr_area[cnt] += temp_fix_area
+                        mr_area[3] += temp_fix_area
+                        us_area[cnt] += temp_result_area
+                        us_area[3] += temp_result_area
                     
         intersect_area = total_area - union_area
         jaccard_index = intersect_area / union_area
@@ -79,7 +87,15 @@ class AreaIndexAnalysis(AnalysisBase):
                 % (dice_index[0], dice_index[1], dice_index[2], dice_index_all);
             self.gui.showErrorMessage("Registration Area Index", message)
         
-        return dice_index, dice_index_all
+        if not area:
+            return dice_index, dice_index_all
+        else:
+            for i in range(3):
+                mr_area[i] /= cnt_num[i]
+                us_area[i] /= cnt_num[i]
+            mr_area[3] /= npy.sum(cnt_num)
+            us_area[3] /= npy.sum(cnt_num)
+            return dice_index, dice_index_all, mr_area, us_area
 
 # Use BFS to fill the contour, a little slow
 def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
@@ -134,6 +150,8 @@ def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
         
         for dd in d:
             temp = queue[head, :] + dd
+            if temp[0] < 0 or temp[1] < 0 or temp[0] >= mask.shape[0] or temp[1] >= mask.shape[1]:
+                continue
             if mask[temp[0], temp[1]]:
                 continue
             tail += 1

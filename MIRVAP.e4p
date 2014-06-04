@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-06-01, 23:43:05 -->
+<!-- Saved: 2014-06-04, 21:27:45 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -118,6 +118,14 @@
     <Source>Script/Macro/TestDownsampleRobust.py</Source>
     <Source>Script/Macro/TestInitialRobust.py</Source>
     <Source>Script/Macro/TestOcclusionRobust.py</Source>
+    <Source>Script/Macro/TestNewContour.py</Source>
+    <Source>Script/Macro/TestDistanceError.py</Source>
+    <Source>Script/Macro/TestContourArea.py</Source>
+    <Source>Script/Analysis/ContourErrorWithAreaAnalysis.py</Source>
+    <Source>Script/Macro/TestAreaDistance.py</Source>
+    <Source>Script/Macro/TestAllNewContour.py</Source>
+    <Source>Script/Macro/TestAllNewContourReg.py</Source>
+    <Source>Script/Analysis/SurfaceErrorAnalysis.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
