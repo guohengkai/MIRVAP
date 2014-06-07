@@ -22,7 +22,8 @@ class CVModelLevelsetPlugin(ContourPlugin):
             if point_array.shape[0] != 1:
                 return
             
-            image = self.parent.parent.getData().getData()[npy.round(point_array[0, self.parent.view]), :, :].transpose()
+            image = self.parent.parent.getData().getData()[npy.round(point_array[0, self.parent.view]), :, :].transpose().copy()
+            image = (image - npy.min(image)) / (npy.max(image) - npy.min(image)) * 255
             result = ac_segmentation(point_array[0, :2], image)
             
             # Save all the new points

@@ -7,6 +7,7 @@ Created on 2014-06-06
 
 import numpy as npy
 import scipy.interpolate as itp
+import scipy.optimize as opt
 from mahotas.polygon import fill_polygon
 from po_function import po_orientation
 
@@ -45,10 +46,31 @@ class ac_energy(object):
         else:
             self.slopes = npy.append(self.slopes, float('nan'))
             return False
-
+class ac_evolution(object):
+    def start(self, amplitude_limit):
+        self.is_step_variable = (amplitude_limit <= 0)
+        self.mean_amplitudes = npy.array([1.0])
+        if self.is_step_variable:
+            self.steps = npy.array([-amplitude_limit], dtype = npy.float32)
+        
+    def store(self, amplitudes, step):
+        if self.mean_amplitudes[-1] >= 0:
+            self.mean_amplitudes = npy.append(self.mean_amplitudes, -1)
+            if self.is_step_variable:
+                self.steps = npy.append(self.steps, 0)
+        
+        self.mean_amplitudes[-1] = npy.mean(npy.abs(amplitudes))
+        if self.is_step_variable:
+            self.steps[-1] = step
+    def step(self):
+        if self.is_step_variable:
+            return self.steps[1:]
+        else:
+            return npy.array([])
 def ac_flattening(acontour):
     return acontour[:, :-1]
 def ac_normal(acontour):
+    #sgn = npy.sign(po_orientation(acontour))
     s = acontour.shape[1]
     cnt = npy.arange(0, s)
     spline = [0, 0]
@@ -59,12 +81,67 @@ def ac_normal(acontour):
     for j in range(s - 1):
         for i in range(2):
             tangent[i] = spline[i].derivatives(j)[1]
-        direction[0, j] = -tangent[1]
-        direction[1, j] = tangent[0]
+        direction[0, j] = tangent[1]
+        direction[1, j] = -tangent[0]
         direction[:, j] /= npy.sqrt(npy.sum(direction[:, j] ** 2))
     return direction
-def ac_amplitude(vertices, amplitude, amplitude_limit, framesize, o_acontour, \
-        o_direction, o_previous_steps, o_current_energy, o_energy_function, o_resolution, o_context):
+def ac_amplitude(vertices, amplitude, amplitude_limit, framesize, o_acontour = None, \
+        o_direction = None, o_previous_steps = None, o_current_energy = None, o_energy_function = None, o_resolution = None, o_context = None):
+    def n_optimal_step(amplitude_tmp):
+        current_limit = -amplitude_limit
+        
+        increment_limit = 0.1
+        intervals = 5
+        allowed_increase = 1.7
+        ad_hoc = 5
+        
+        if o_previous_steps.shape[0] > 0:
+            accounting_since = max(1, o_previous_steps.shape[0] - npy.floor(npy.min(framesize) / (ad_hoc * npy.mean(o_previous_steps)))) - 1
+            current_limit = min(current_limit, allowed_increase * npy.mean(o_previous_steps[accounting_since:]))
+        else:
+            accounting_since = 0
+        
+        increment = max((current_limit - increment_limit) / intervals, increment_limit)
+        list_of_steps = npy.arange(increment_limit, current_limit + increment, increment)
+        
+        energies = npy.zeros(list_of_steps.shape[0] + 1)
+        energies[0] = o_current_energy
+        idx = 0
+        for step in list_of_steps:
+            trial = step * amplitude_tmp
+            deformation = o_direction * trial
+            try:
+                deformed = ac_deformation(o_acontour, deformation, framesize, o_resolution)
+                if deformed.shape[0] == 0:
+                    break
+            except Exception:
+                break
+            idx += 1
+            energies[idx] = o_energy_function(deformed, o_context, True)
+            
+        if idx == 0:
+            optimal_step_now = 0
+        else:
+            energies = energies[0:idx + 1]
+            #print energies
+            if npy.std(energies) == 0:
+                optimal_step_now = 0
+            else:
+                energies = (energies - npy.mean(energies)) / npy.std(energies)
+                #print energies
+                list_of_steps = npy.insert(list_of_steps, 0, 0)
+                list_of_steps = list_of_steps[:idx + 1]
+                #print list_of_steps
+                fit = npy.poly1d(npy.polyfit(list_of_steps, energies, min(6, idx)))
+                optimal_step_now, fit_value, ierr, num = opt.fminbound(fit, 0, list_of_steps[-1], xtol = 0.1 * increment_limit, disp = 0, full_output = 1)
+                #print optimal_step_now, fit_value
+                min_ind = npy.argmin(energies)
+                discrete_min = energies[min_ind]
+                if fit_value > discrete_min:
+                    optimal_step_now = list_of_steps[min_ind]
+        #print optimal_step
+        return optimal_step_now
+                    
     # Reshaping
     optimal_amplitude = amplitude
     edge_vertices = npy.where((vertices[0, :] < 1) | (vertices[1, :] < 1) | (vertices[0, :] > framesize[0] - 2) | (vertices[1, :] > framesize[1] - 2) & (optimal_amplitude < 0))[0]
@@ -74,7 +151,17 @@ def ac_amplitude(vertices, amplitude, amplitude_limit, framesize, o_acontour, \
     maximum = npy.max(npy.abs(optimal_amplitude))
     if maximum > 0:
         optimal_amplitude /= maximum
-        optimal_step = amplitude_limit
+        
+    if maximum > 0:
+        if amplitude_limit >= 0:
+            if amplitude_limit > 0:
+                optimal_step = amplitude_limit
+            else:
+                optimal_step = maximum
+        else:
+            print optimal_amplitude
+            optimal_step = n_optimal_step(optimal_amplitude)
+            
         optimal_amplitude = optimal_step * optimal_amplitude
     else:
         optimal_step = 0

@@ -19,7 +19,7 @@ def po_circle(center, radius, nedges, o_resolution):
     circle[0, :-1] = center[0] + radius * npy.cos(sampling_angles)
     circle[1, :-1] = center[1] + radius * npy.sin(sampling_angles)
     circle[:, -1] = circle[:, 0]
-    
+    print npy.sign(po_orientation(circle))
     return circle
 def po_orientation(polygon):
     edges = npy.zeros(polygon.shape)
