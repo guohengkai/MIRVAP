@@ -183,7 +183,7 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
     bif_slice = 0
     
     for cnt in range(3):
-        temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)]
+        temp_result = moving_points[npy.where(npy.round(moving_points[:, -1]) == cnt)].copy()
         if not temp_result.shape[0]:
             continue
         zmin = int(npy.min(temp_result[:, 2]) + 0.5)
@@ -362,7 +362,7 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
                     
                         
     result_center_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
-    if moving_center.shape[0] > 1:
+    if moving_center is not None and moving_center.shape[0] > 1:
         result_center = moving_center[npy.where(moving_center[:, 0] >= 0)]
         
         result_center[:, :3] = applyTransformForPoints(result_center[:, :3], moving_res, fixed_res, R, T, C)

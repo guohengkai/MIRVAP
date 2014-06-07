@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-06-04, 21:27:45 -->
+<!-- Saved: 2014-06-06, 22:44:19 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -126,6 +126,13 @@
     <Source>Script/Macro/TestAllNewContour.py</Source>
     <Source>Script/Macro/TestAllNewContourReg.py</Source>
     <Source>Script/Analysis/SurfaceErrorAnalysis.py</Source>
+    <Source>Script/Macro/TestNoiseRobust.py</Source>
+    <Source>GUI/qvtk/Plugin/util/__init__.py</Source>
+    <Source>GUI/qvtk/Plugin/util/acontour/__init__.py</Source>
+    <Source>GUI/qvtk/Plugin/util/acontour/ac_segmentation.py</Source>
+    <Source>GUI/qvtk/Plugin/util/acontour/po_function.py</Source>
+    <Source>GUI/qvtk/Plugin/util/acontour/ac_function.py</Source>
+    <Source>GUI/qvtk/Plugin/NoiseContourPlugin.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
