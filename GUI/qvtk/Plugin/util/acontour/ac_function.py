@@ -174,12 +174,26 @@ def ac_deformation(acontour, deformation, framesize, resolution):
     vertices[:, -1] = vertices[:, 0]
     
     deformed = vertices
-    deformed = ac_resampling(deformed, resolution)
+    deformed = ac_resampling_spline(deformed, resolution)
     return deformed
     
 def ac_mask(acontour, framesize):
     mask = npy.zeros(framesize, dtype = npy.uint8)
-    fill_polygon([(int(x[1] + 0.5), int(x[0] + 0.5)) for x in acontour.transpose()], mask)
+    new_acontour = npy.zeros([2, 5 * acontour.shape[1] - 4], dtype = npy.float32)
+    
+    s = acontour.shape[1]
+    cnt = npy.arange(0, s) * 5
+    spline = [0, 0]
+    for i in range(2):
+        spline[i] = itp.InterpolatedUnivariateSpline(cnt, acontour[i, :])
+    for j in range(new_acontour.shape[1]):
+        if j % 5 == 0:
+            new_acontour[:, j] = acontour[:, j / 5]
+        else:
+            for i in range(2):
+                new_acontour[i, j] = spline[i](j)
+        
+    fill_polygon([(int(x[1] + 0.5), int(x[0] + 0.5)) for x in new_acontour.transpose()], mask)
     return mask
 
 def ac_resampling(acontour, resolution):
@@ -202,6 +216,31 @@ def ac_resampling(acontour, resolution):
         lengths = npy.insert(lengths, largest, lengths[largest])
     if npy.sign(po_orientation(vertices)) == npy.sign(po_orientation(acontour)):
         resampled = vertices
+    return resampled
+    
+def ac_resampling_spline(acontour, resolution):
+    import vtk
+    points = vtk.vtkPoints()
+    for i in range(acontour.shape[1] - 1):
+        points.InsertPoint(i, acontour[0, i], acontour[1, i], 0)
+        
+    para_spline = vtk.vtkParametricSpline()
+    para_spline.SetPoints(points)
+    para_spline.ClosedOn()
+    
+    pt = [0.0, 0.0, 0.0]
+    t = 0.05
+    para_spline.Evaluate([t, t, t], pt, [0] * 9)
+    l = npy.sqrt((pt[0] - acontour[0, 0]) ** 2 + (pt[1] - acontour[1, 0]) ** 2) / t
+    cnt = int(l / resolution + 0.5)
+    
+    resampled = npy.zeros([2, cnt], dtype = npy.float32)
+    resampled[:, 0] = acontour[:, 0]
+    for i in range(1, cnt):
+        t = i * 1.0 / cnt
+        pt = [0.0, 0.0, 0.0]
+        para_spline.Evaluate([t, t, t], pt, [0] * 9)
+        resampled[:, i] = pt[:2]
     return resampled
 
 if __name__ == "__main__":
