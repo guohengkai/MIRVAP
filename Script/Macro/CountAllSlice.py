@@ -26,6 +26,7 @@ class CountAllSlice(MacroBase):
         self.usslices = 0
         self.mrpoints = 0
         self.mrslices = 0
+        self.mr = [0, 0, 0, 0]
         self.book = xlwt.Workbook()
         title = ['Bottom', 'Bifurcation', 'Top', 'X', 'Y', 'Z']
         self.sheet_us = self.book.add_sheet('US')
@@ -39,21 +40,23 @@ class CountAllSlice(MacroBase):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset
+        self.mr[3] = self.mr[0] + self.mr[1] + self.mr[2]
         if self.gui:
             self.gui.showErrorMessage('Success', 'US Slice: %d, US Point: %d\nMR Slice: %d, MR Point: %d\nTotal Slice: %d, Total Point: %d\n' 
                 % (self.usslices, self.uspoints, self.mrslices, self.mrpoints, self.usslices + self.mrslices, self.uspoints + self.mrpoints))
+            print self.mr
         else:
             print 'Test sucessfully!'
             
     def load(self, i):
         dataset = {'us': [], 'mr': []}
         
-        data, info, point = db.loadMatData(self.path + self.ini.file.datadir
+        data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_fix[i] + '.mat', None)
         fileData = db.BasicData(data, info, point)
         dataset['mr'] = fileData
         
-        data, info, point = db.loadMatData(self.path + self.ini.file.datadir
+        data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_mov[i] + '.mat', None)
         fileData = db.BasicData(data, info, point)
         dataset['us'] = fileData
@@ -75,6 +78,11 @@ class CountAllSlice(MacroBase):
         top_mr = npy.max(point_mr)
         bif_mr = db.getBifurcation(dataset['mr'].pointSet.data['Contour'])
         res_mr = dataset['mr'].getResolution()
+        
+        point_mr = dataset['mr'].pointSet.data['Contour']
+        self.mr[0] += bif_mr - bottom_mr + 1
+        self.mr[1] += npy.max(point_mr[npy.round(point_mr[:, -1]) == 1][:, 2]) - bif_mr + 1
+        self.mr[2] += npy.max(point_mr[npy.round(point_mr[:, -1]) == 2][:, 2]) - bif_mr + 1
         
         self.usslices += top_us - bottom_us + 1
         self.uspoints += point_us.shape[0]

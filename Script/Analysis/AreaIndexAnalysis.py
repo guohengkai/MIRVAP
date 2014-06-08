@@ -7,6 +7,7 @@ Created on 2014-04-10
 
 from MIRVAP.Script.AnalysisBase import AnalysisBase
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
+from MIRVAP.GUI.qvtk.Plugin.util.acontour.ac_function import ac_mask
 from MIRVAP.Script.Registration.util.RegistrationUtil import getPointsOntheSpline
 import numpy as npy
 import vtk
@@ -20,6 +21,7 @@ class AreaIndexAnalysis(AnalysisBase):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
         point_data_result = data.getPointSet('Contour').copy()
+        image_size = image = data.getData()[0, :, :].transpose().shape
         self.spacing = data.getResolution().tolist()
         self.spacing[2] = 1.0 # The resolution of z axis is nothing to do with the analysis
         point_data_fix[:, :3] *= self.spacing[:3]
@@ -54,12 +56,8 @@ class AreaIndexAnalysis(AnalysisBase):
                     points_fix = getPointsOntheSpline(data_fix, center_fix, data_fix.shape[0] * 10)[:, :2]
                     points_result = getPointsOntheSpline(data_result, center_result, data_result.shape[0] * 10)[:, :2]
                     
-                    xmax = int(npy.max([npy.max(data_result[:, 0]), npy.max(data_fix[:, 0])]) + 0.5) + 2
-                    xmin = npy.max([int(npy.min([npy.min(data_result[:, 0]), npy.min(data_fix[:, 0])]) + 0.5) - 2, 0])
-                    ymax = int(npy.max([npy.max(data_result[:, 1]), npy.max(data_fix[:, 1])]) + 0.5) + 2
-                    ymin = npy.max([int(npy.min([npy.min(data_result[:, 1]), npy.min(data_fix[:, 1])]) + 0.5) - 2, 0])
-                    fix_mask = getMaskFromPoints(points_fix, xmin, xmax, ymin, ymax, center_fix)
-                    result_mask = getMaskFromPoints(points_result, xmin, xmax, ymin, ymax, center_result)
+                    fix_mask = ac_mask(points_fix.transpose(), image_size)
+                    result_mask = ac_mask(points_result.transpose(), image_size)
                     temp_fix_area = npy.sum(fix_mask)
                     temp_result_area = npy.sum(result_mask)
                     total_area[cnt] += temp_fix_area + temp_result_area
@@ -96,68 +94,3 @@ class AreaIndexAnalysis(AnalysisBase):
             mr_area[3] /= npy.sum(cnt_num)
             us_area[3] /= npy.sum(cnt_num)
             return dice_index, dice_index_all, mr_area, us_area
-
-# Use BFS to fill the contour, a little slow
-def getMaskFromPoints(points, xmin, xmax, ymin, ymax, center):
-    h = xmax - xmin + 1
-    w = ymax - ymin + 1
-    mask = npy.zeros([h, w], dtype = npy.int8)
-    
-    points[:, 0] -= xmin
-    points[:, 1] -= ymin
-    center[0] -= xmin
-    center[1] -= ymin
-    points = npy.append(points, [[points[0, 0], points[0, 1]]], axis = 0)
-    
-    for i in range(points.shape[0] - 1):
-        p = points[i + 1, :] - points[i, :]
-        if npy.abs(p[0]) >= npy.abs(p[1]):
-            k = p[1] / p[0]
-            if p[0] > 0:
-                x, y = points[i, :]
-                xend = points[i + 1, 0]
-            else:
-                x, y = points[i + 1, :]
-                xend = points[i, 0]
-            while x <= xend:
-                mask[int(x + 0.5), int(y + 0.5)] = 1
-                y += k
-                x += 1
-        else:
-            k = p[0] / p[1]
-            if p[1] > 0:
-                x, y = points[i, :]
-                yend = points[i + 1, 1]
-            else:
-                x, y = points[i + 1, :]
-                yend = points[i, 1]
-            while y <= yend:
-                mask[int(x + 0.5), int(y + 0.5)] = 1
-                x += k
-                y += 1
-    
-    center_x = int(center[0])
-    center_y = int(center[1])
-    d = npy.array([[1, 0], [0, -1], [0, 1], [-1, 0]])
-    queue = npy.zeros([h * w, 2], dtype = npy.int32)
-    head = -1
-    tail = 0
-    queue[tail, :] = [center_x, center_y]
-    mask[queue[tail, 0], queue[tail, 1]] = 1
-    
-    while True:
-        head += 1
-        
-        for dd in d:
-            temp = queue[head, :] + dd
-            if temp[0] < 0 or temp[1] < 0 or temp[0] >= mask.shape[0] or temp[1] >= mask.shape[1]:
-                continue
-            if mask[temp[0], temp[1]]:
-                continue
-            tail += 1
-            queue[tail, :] = temp
-            mask[queue[tail, 0], queue[tail, 1]] = 1
-        if head >= tail:
-            break
-    
-    return mask

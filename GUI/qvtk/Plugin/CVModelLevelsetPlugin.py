@@ -35,9 +35,6 @@ class CVModelLevelsetPlugin(ContourPlugin):
                 self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
             self.parent.render_window.Render()
             return
-        if ch == 'Up' or ch == 'Down':
-            
-            return
         if ch == 't' or ch == 'T':
             th = 1.5
             resolution = self.parent.parent.getData().getResolution().tolist()
@@ -61,7 +58,7 @@ class CVModelLevelsetPlugin(ContourPlugin):
             a2 = ac_area(point_array[:, :2].transpose(), frame_size)
             rate = a2 * 1.0 / a1
             print a1, a2, rate
-            if rate >= 1.5:
+            if rate >= 1.5 or rate <= 0.7:
                 point_array = last_points[:, :2]
                 point_array = npy.insert(point_array, self.parent.view, z, axis = 1) * space
                 self.contourRep[self.currentContour].ClearAllNodes()
@@ -96,7 +93,7 @@ class CVModelLevelsetPlugin(ContourPlugin):
         if points is None:
             return
         points = points[:, :-2]
-        
+        count = 0
         for i in range(start + delta, end + delta, delta):
             center = calCentroidFromContour(points).reshape(2)
             image = self.parent.parent.getData().getData()[i, :, :].transpose().copy()
@@ -106,13 +103,18 @@ class CVModelLevelsetPlugin(ContourPlugin):
             a1 = ac_area(points.transpose(), image.shape)
             a2 = ac_area(result, image.shape)
             rate = a2 * 1.0 / a1
-            if rate >= 1.5:
-                temp_array = points
+            if rate >= min(1.5 + count * 0.2, 2.1) or rate <= 0.7:
+                temp_array = points.copy()
+                if cnt != 1 and rate > 0.7:
+                    count += 1
             else:
-                temp_array = result.transpose()
+                temp_array = result.transpose().copy()
+                count = 0
             points = temp_array.copy()
+            
             temp_array = npy.insert(temp_array, [temp_array.shape[1]], npy.ones((temp_array.shape[0], 1), int) * i, axis = 1)
             self.parent.parent.getData().pointSet.setSlicePoint('Contour', temp_array, 2, i, cnt)
+            
             sys.stdout.write(str(i) + ',')
             sys.stdout.flush()
         print ' '

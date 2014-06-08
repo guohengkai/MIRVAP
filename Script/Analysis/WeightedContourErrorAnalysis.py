@@ -83,7 +83,7 @@ class WeightedContourErrorAnalysis(AnalysisBase):
                     points_result = getPointsOntheSpline(data_result, center_result, 900)
                     
                     normal = npy.array([None, None, None])
-                    # It's wrong!!!!!!
+                    
                     for i in range(3):
                         normal[i] = spline[cnt][i].derivatives(z)[1]
                     w1 = normal[2] ** 2 / npy.sum(normal ** 2) # cos(alpha) ^ 2
