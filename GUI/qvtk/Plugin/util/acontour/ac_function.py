@@ -9,6 +9,7 @@ import numpy as npy
 import scipy.interpolate as itp
 import scipy.optimize as opt
 from mahotas.polygon import fill_polygon
+from skimage.draw import polygon
 from po_function import po_orientation
 
 class ac_energy(object):
@@ -159,7 +160,7 @@ def ac_amplitude(vertices, amplitude, amplitude_limit, framesize, o_acontour = N
             else:
                 optimal_step = maximum
         else:
-            print optimal_amplitude
+            #print optimal_amplitude
             optimal_step = n_optimal_step(optimal_amplitude)
             
         optimal_amplitude = optimal_step * optimal_amplitude
@@ -175,6 +176,9 @@ def ac_deformation(acontour, deformation, framesize, resolution):
     
     deformed = vertices
     deformed = ac_resampling_spline(deformed, resolution)
+    deformed[deformed < 0] = 0
+    deformed[0, deformed[0, :] > framesize[0] - 1] = framesize[0] - 1
+    deformed[1, deformed[1, :] > framesize[1] - 1] = framesize[1] - 1
     return deformed
     
 def ac_mask(acontour, framesize):
@@ -192,10 +196,27 @@ def ac_mask(acontour, framesize):
         else:
             for i in range(2):
                 new_acontour[i, j] = spline[i](j)
-        
-    fill_polygon([(int(x[1] + 0.5), int(x[0] + 0.5)) for x in new_acontour.transpose()], mask)
+    #print new_acontour
+    fill_polygon([(int(x[0] + 0.5), int(x[1] + 0.5)) for x in new_acontour.transpose()], mask)
     return mask
-
+def ac_mask_simple(acontour, framesize):
+    mask = npy.zeros(framesize, dtype = npy.uint8)
+    new_acontour = npy.zeros([2, 5 * acontour.shape[1] - 4], dtype = npy.float32)
+    s = acontour.shape[1]
+    cnt = npy.arange(0, s) * 5
+    spline = [0, 0]
+    for i in range(2):
+        spline[i] = itp.InterpolatedUnivariateSpline(cnt, acontour[i, :])
+    for j in range(new_acontour.shape[1]):
+        if j % 5 == 0:
+            new_acontour[:, j] = acontour[:, j / 5]
+        else:
+            for i in range(2):
+                new_acontour[i, j] = spline[i](j)
+    
+    rr, cc = polygon(acontour[1, :], acontour[0, :])
+    mask[cc, rr] = 1
+    return mask
 def ac_resampling(acontour, resolution):
     resampled = acontour.copy()
     resolution **= 2
@@ -232,7 +253,7 @@ def ac_resampling_spline(acontour, resolution):
     t = 0.05
     para_spline.Evaluate([t, t, t], pt, [0] * 9)
     l = npy.sqrt((pt[0] - acontour[0, 0]) ** 2 + (pt[1] - acontour[1, 0]) ** 2) / t
-    cnt = int(l / resolution + 0.5)
+    cnt = max(int(l / resolution + 0.5), 5)
     
     resampled = npy.zeros([2, cnt], dtype = npy.float32)
     resampled[:, 0] = acontour[:, 0]
@@ -242,7 +263,10 @@ def ac_resampling_spline(acontour, resolution):
         para_spline.Evaluate([t, t, t], pt, [0] * 9)
         resampled[:, i] = pt[:2]
     return resampled
-
+def ac_area(acontour, framesize):
+    mask = ac_mask(acontour, framesize)
+    return npy.sum(mask)
+    
 if __name__ == "__main__":
     acontour = npy.array([[0, -10, 0, 10, 0],[10, 0, -10, 0, 10.0]])
     result = ac_resampling(acontour, 2)
