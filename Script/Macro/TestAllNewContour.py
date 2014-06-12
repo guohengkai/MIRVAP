@@ -79,7 +79,7 @@ class TestAllNewContour(MacroBase):
         self.sheet.write(4, k * 20 + i + 1, mean_whole)
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
         
-        self.book.save(self.path + self.ini.file.savedir + 'AllTest.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'Test_weighted.xls')
          
 if __name__ == "__main__":
     test = TestAllRegistration(None)

@@ -42,7 +42,7 @@ def ac_segmentation(center, frame, resolution = 4, amplitude_limit = 1, iteratio
     resolution = npy.floor(npy.mean(frame.shape) / 15)
     amplitude_limit = -npy.abs(resolution) / 2.5
     
-    initial_acontour = po_circle(center, 6, 0, resolution)
+    initial_acontour = po_circle(center, 3, 0, resolution)
     acontour = initial_acontour
     energy_class = ac_energy()
     evolution_class = ac_evolution()

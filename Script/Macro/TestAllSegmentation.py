@@ -192,5 +192,5 @@ class TestAllSegmentation(MacroBase):
         self.sheet2.write(12, i + 2, dice_index_all)
         self.sheet2.write(13, i + 2, time2 - time1)
         
-        self.book.save(self.path + self.ini.file.savedir + 'Test_segmentation_final_refined.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'Test_segmentation_final_refined2.xls')
         del data, point, resultData

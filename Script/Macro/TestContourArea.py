@@ -32,12 +32,14 @@ class TestContourArea(MacroBase):
         title = ['CCA', 'ECA', 'ICA', 'Overall']
         
         self.sheet = self.book.add_sheet('icp_cen')
-        self.sheet.write(1, 0, 'MR Area')
-        self.sheet.write(5, 0, 'US Area')
+        #self.sheet.write(1, 0, 'MR Area')
+        #self.sheet.write(5, 0, 'US Area')
+        self.sheet.write(1, 0, 'Delta')
+        '''
         for j in range(2):
             for i in range(4):
                 self.sheet.write(j * 4 + i + 1, 1, title[i])
-        
+        '''
         for i in range(self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
@@ -49,7 +51,7 @@ class TestContourArea(MacroBase):
             
     def load(self, i):
         dataset = {'result': [], 'fix': []}
-        data, info, point = db.loadMatData(self.path + self.ini.file.datadir
+        data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/icp-cen-noclip-label/'
             + self.ini.file.name_result[i] + '_icp_cen.mat', None)
         dataset['result'] = db.BasicData(data, info, point)
         
@@ -61,15 +63,17 @@ class TestContourArea(MacroBase):
             
         return dataset
     def process(self, dataset, i):
-        print 'Evaluation Data %s...' % self.ini.file.name_result[i]
-        dice_index, dice_index_all, mr_area, us_area = self.areaerror.analysis(dataset['result'], dataset['fix'].getPointSet('Contour').copy(), True)
-        print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        
+        #print 'Evaluation Data %s...' % self.ini.file.name_result[i]
+        #dice_index, dice_index_all, mr_area, us_area = self.areaerror.analysis(dataset['result'], dataset['fix'].getPointSet('Contour').copy(), True)
+        #print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
+        bif = db.getBifurcation(dataset['result'].pointSet.data['Contour']) - db.getBifurcation(dataset['fix'].pointSet.data['Contour'])
         self.sheet.write(0, i + 2, self.ini.file.name_result[i])
-        for j in range(4):
-            self.sheet.write(j + 1, i + 2, mr_area[j])
-            self.sheet.write(j + 5, i + 2, us_area[j])
-        self.book.save(self.path + self.ini.file.savedir + 'Area.xls')
+        self.sheet.write(1, i + 2, bif)
+        #for j in range(4):
+            #self.sheet.write(j + 1, i + 2, mr_area[j])
+            #self.sheet.write(j + 5, i + 2, us_area[j])
+            
+        self.book.save(self.path + self.ini.file.savedir + 'Bifurcation.xls')
          
 if __name__ == "__main__":
     test = TestAllRegistration(None)

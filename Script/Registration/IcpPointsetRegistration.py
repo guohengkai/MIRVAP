@@ -22,7 +22,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -234,10 +234,14 @@ class IcpPointsetRegistration(RegistrationBase):
         #wfile.close()
         # Get the result transformation parameters
         matrix = accumulate.GetMatrix()
+        
         T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
         R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
                     [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
                     [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
+        
+        #T = ml.mat([0, 0, 0]).T
+        #R = ml.mat([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).T
         if (fixed_bif >= 0) and (moving_bif >= 0):
             T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         

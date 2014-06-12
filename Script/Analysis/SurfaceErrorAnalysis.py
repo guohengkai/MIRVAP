@@ -29,7 +29,7 @@ class SurfaceErrorAnalysis(AnalysisBase):
         point_data_fix[:, :3] *= self.spacing[:3]
         point_data_mov[:, :3] *= spacing_mov[:3]
         
-        para = data.info.getData('transform')[0]
+        para = data.info.getData('transform')
         R = ml.mat(para[:9]).reshape(3, 3)
         T = ml.mat(para[9:12]).T
         T = R.I * T
