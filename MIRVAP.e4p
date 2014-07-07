@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-07-07, 21:30:37 -->
+<!-- Saved: 2014-07-07, 23:15:59 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -12,59 +12,47 @@
   <Author>Hengkai Guo</Author>
   <Email>guohengkaighk@gmail.com</Email>
   <Sources>
-    <Source>__init__.py</Source>
-    <Source>Core/__init__.py</Source>
-    <Source>GUI/__init__.py</Source>
-    <Source>Script/__init__.py</Source>
-    <Source>Script/Registration/__init__.py</Source>
-    <Source>Script/Load/__init__.py</Source>
-    <Source>Script/Load/LoadDicomFile.py</Source>
-    <Source>Core/DataBase.py</Source>
-    <Source>Core/ScriptBase.py</Source>
-    <Source>Script/Load/LoadMatFile.py</Source>
-    <Source>Core/DataModel.py</Source>
     <Source>main.py</Source>
-    <Source>GUI/MainWindow.py</Source>
-    <Source>GUI/Ui_MainWindow.py</Source>
-    <Source>GUI/MdiChild.py</Source>
-    <Source>GUI/Ui_MdiChild.py</Source>
-    <Source>Script/Save/__init__.py</Source>
-    <Source>Script/Save/SaveMatFile.py</Source>
-    <Source>Script/LoadBase.py</Source>
-    <Source>Script/RegistrationBase.py</Source>
-    <Source>Script/SaveBase.py</Source>
-    <Source>GUI/qvtk/PluginBase.py</Source>
-    <Source>GUI/qvtk/WidgetViewBase.py</Source>
-    <Source>GUI/qvtk/__init__.py</Source>
-    <Source>GUI/qvtk/Plugin/ClipPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/ContourPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/ContourViewPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/NullPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/__init__.py</Source>
-    <Source>GUI/qvtk/WidgetView/ComparingPointView.py</Source>
-    <Source>GUI/qvtk/WidgetView/FixedImageView.py</Source>
-    <Source>GUI/qvtk/WidgetView/MovingImageView.py</Source>
-    <Source>GUI/qvtk/WidgetView/ResultImageView.py</Source>
-    <Source>GUI/qvtk/WidgetView/SurfaceView.py</Source>
-    <Source>GUI/qvtk/WidgetView/__init__.py</Source>
-    <Source>Core/GuiControllerBase.py</Source>
-    <Source>GUI/PyQtGuiController.py</Source>
-    <Source>GUI/qvtk/WidgetView/ComparingSurfaceView.py</Source>
-    <Source>Script/Load/LoadDicomDir.py</Source>
-    <Source>Script/Registration/util/RegistrationUtil.py</Source>
-    <Source>Script/Registration/IcpPointsetRegistration.py</Source>
-    <Source>Script/Registration/util/__init__.py</Source>
-    <Source>GUI/qvtk/Plugin/util/PluginUtil.py</Source>
-    <Source>GUI/qvtk/Plugin/util/__init__.py</Source>
-    <Source>GUI/qvtk/Plugin/util/acontour/__init__.py</Source>
-    <Source>GUI/qvtk/Plugin/util/acontour/ac_segmentation.py</Source>
-    <Source>GUI/qvtk/Plugin/util/acontour/po_function.py</Source>
-    <Source>GUI/qvtk/Plugin/util/acontour/ac_function.py</Source>
-    <Source>GUI/qvtk/Plugin/CVModelLevelsetPlugin.py</Source>
+    <Source>ac_function.py</Source>
+    <Source>ac_segmentation.py</Source>
+    <Source>ClipPlugin.py</Source>
+    <Source>ComparingPointView.py</Source>
+    <Source>ComparingSurfaceView.py</Source>
+    <Source>ContourPlugin.py</Source>
+    <Source>ContourViewPlugin.py</Source>
+    <Source>convert2exe.py</Source>
+    <Source>CVModelLevelsetPlugin.py</Source>
+    <Source>DataBase.py</Source>
+    <Source>DataModel.py</Source>
+    <Source>FixedImageView.py</Source>
+    <Source>GuiControllerBase.py</Source>
+    <Source>IcpPointsetRegistration.py</Source>
+    <Source>LoadBase.py</Source>
+    <Source>LoadDicomDir.py</Source>
+    <Source>LoadDicomFile.py</Source>
+    <Source>LoadMatFile.py</Source>
+    <Source>MainWindow.py</Source>
+    <Source>MdiChild.py</Source>
+    <Source>MovingImageView.py</Source>
+    <Source>NullPlugin.py</Source>
+    <Source>PluginBase.py</Source>
+    <Source>PluginUtil.py</Source>
+    <Source>po_function.py</Source>
+    <Source>PyQtGuiController.py</Source>
+    <Source>RegistrationBase.py</Source>
+    <Source>RegistrationUtil.py</Source>
+    <Source>ResultImageView.py</Source>
+    <Source>SaveBase.py</Source>
+    <Source>SaveMatFile.py</Source>
+    <Source>ScriptBase.py</Source>
+    <Source>SurfaceView.py</Source>
+    <Source>Ui_MainWindow.py</Source>
+    <Source>Ui_MdiChild.py</Source>
+    <Source>WidgetViewBase.py</Source>
   </Sources>
   <Forms>
-    <Form>GUI/MainWindow.ui</Form>
-    <Form>GUI/MdiChild.ui</Form>
+    <Form>MainWindow.ui</Form>
+    <Form>MdiChild.ui</Form>
   </Forms>
   <Translations>
   </Translations>
