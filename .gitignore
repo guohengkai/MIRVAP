@@ -4,10 +4,6 @@
 
 *.py[co]
 *.log
-*.zip
-*.exe
-*.dll
-*.pyd
 
 # Packages
 *.egg
