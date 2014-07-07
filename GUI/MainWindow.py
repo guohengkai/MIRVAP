@@ -26,12 +26,10 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.msgLabel.setStyleSheet("QLabel{padding-left: 8px}")
         self.statusbar.addWidget(self.msgLabel)
         
-        self.menuScript = {'Load': self.menuLoad, 'Registration': self.menuRegister, 
-            'Analysis': self.menuAnalysis, 'Save': self.menuSave, 'Macro': self.menuMacro}
+        self.menuScript = {'Load': self.menuLoad, 'Registration': self.menuRegister, 'Save': self.menuSave}
         self.script = {}
         self.actionScript = {}
-        self.runScript = {'Load': self.runLoadScript, 'Registration': self.runRegisterScript, 
-            'Analysis': self.runAnalysisScript, 'Save': self.runSaveScript, 'Macro': self.runMacroScript}
+        self.runScript = {'Load': self.runLoadScript, 'Registration': self.runRegisterScript, 'Save': self.runSaveScript}
         
         self.getAllScript()
         self.getAllPlugin()
@@ -71,7 +69,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             del self.lastWindow
             self.lastWindow = None
             self.menuPlugin.setDisabled(True)
-            self.menuAnalysis.setDisabled(True)
             self.menuWidget_View.setDisabled(True)
             self.menuSave.setDisabled(True)
             self.actionPlugin[self.nullIndex].setChecked(True)
@@ -80,7 +77,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         window = window.widget()
         if window == self.lastWindow:
             return
-        self.menuAnalysis.setDisabled(False)
         self.menuSave.setDisabled(False)
         self.menuWidget_View.setDisabled(False)
         if self.lastWindow:
@@ -168,21 +164,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.addNewDataView(data)
         else:
             self.showMessageOnStatusBar(temp)
-    def runAnalysisScript(self, index):
-        window = self.mdiArea.currentSubWindow()
-        if not window:
-            self.gui.showErrorMessage('Error', 'There\'re no data!')
-        else:
-            temp = self.getMessageOnStatusBar()
-            self.showMessageOnStatusBar("Analysising...")
-            window = window.widget()
-            self.script['Analysis'][index](window)
-            self.showMessageOnStatusBar(temp)
-    def runMacroScript(self, index):
-        temp = self.getMessageOnStatusBar()
-        self.showMessageOnStatusBar("Processing...")
-        self.script['Macro'][index](None)
-        self.showMessageOnStatusBar(temp)
     def addNewDataView(self, data):
         index = self.gui.dataModel.append(data)
         if type(data) is db.ResultData:
@@ -205,10 +186,4 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.gui.showErrorMessage('Success', 'Sucessfully clear all the data!')
         self.showMessageOnStatusBar("")
         self.menuRegister.setDisabled(True)
-    def closeEvent(self, event):
-        reply = QtGui.QMessageBox.question(self, "Quit", "Are you sure to quit?", 
-            QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-        if reply == QtGui.QMessageBox.Ok:
-            event.accept()
-        else:
-            event.ignore()
+    

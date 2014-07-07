@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-06-11, 00:05:41 -->
+<!-- Saved: 2014-07-07, 21:01:25 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -22,20 +22,14 @@
     <Source>Core/DataBase.py</Source>
     <Source>Core/ScriptBase.py</Source>
     <Source>Script/Load/LoadMatFile.py</Source>
-    <Source>Test/__init__.py</Source>
     <Source>Core/DataModel.py</Source>
     <Source>main.py</Source>
     <Source>GUI/MainWindow.py</Source>
     <Source>GUI/Ui_MainWindow.py</Source>
     <Source>GUI/MdiChild.py</Source>
-    <Source>Script/Analysis/__init__.py</Source>
-    <Source>Script/Registration/TestRegistration.py</Source>
     <Source>GUI/Ui_MdiChild.py</Source>
-    <Source>Script/Load/LoadDataModel.py</Source>
     <Source>Script/Save/__init__.py</Source>
     <Source>Script/Save/SaveMatFile.py</Source>
-    <Source>Script/Save/SaveScreenshot.py</Source>
-    <Source>Script/AnalysisBase.py</Source>
     <Source>Script/LoadBase.py</Source>
     <Source>Script/RegistrationBase.py</Source>
     <Source>Script/SaveBase.py</Source>
@@ -47,102 +41,33 @@
     <Source>GUI/qvtk/Plugin/ContourViewPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/NullPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/__init__.py</Source>
-    <Source>GUI/qvtk/WidgetView/CenterLineView.py</Source>
     <Source>GUI/qvtk/WidgetView/CheckerboardView.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingPointView.py</Source>
     <Source>GUI/qvtk/WidgetView/FixedImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/ImageBlendView.py</Source>
-    <Source>GUI/qvtk/WidgetView/MIPView.py</Source>
     <Source>GUI/qvtk/WidgetView/MovingImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/ResultImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/SurfaceView.py</Source>
     <Source>GUI/qvtk/WidgetView/__init__.py</Source>
     <Source>Core/GuiControllerBase.py</Source>
     <Source>GUI/PyQtGuiController.py</Source>
-    <Source>Test/TestGuiController.py</Source>
-    <Source>Script/Load/LoadPhantom.py</Source>
-    <Source>Script/Registration/GmmregPointsetRegistration.py</Source>
-    <Source>ThirdParty/__init__.py</Source>
-    <Source>ThirdParty/gmmreg/__init__.py</Source>
-    <Source>ThirdParty/elastix/__init__.py</Source>
-    <Source>ThirdParty/gmmreg/executeGmmreg.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingSurfaceView.py</Source>
-    <Source>Script/Registration/itkMutualInformationRegistration.py</Source>
-    <Source>Script/Registration/vtkIcpPointsetRegistration.py</Source>
-    <Source>Test/TryForUSContour.py</Source>
-    <Source>GUI/qvtk/Plugin/AutoUSContourPlugin.py</Source>
-    <Source>Test/get_min.py</Source>
-    <Source>Test/get_snaxels.py</Source>
-    <Source>Test/Snake.py</Source>
-    <Source>Test/Snaxel.py</Source>
-    <Source>GUI/qvtk/Plugin/AutoMRContourPlugin.py</Source>
-    <Source>GUI/qvtk/Plugin/AutoCenterlineFromContourPlugin.py</Source>
-    <Source>Script/Save/SaveSliceImg.py</Source>
     <Source>Script/Load/LoadDicomDir.py</Source>
-    <Source>Script/Analysis/ContourErrorAnalysis.py</Source>
-    <Source>Script/Analysis/AreaIndexAnalysis.py</Source>
-    <Source>VesselSegmentation/ContourPlugin.py</Source>
-    <Source>VesselSegmentation/DataBase.py</Source>
-    <Source>VesselSegmentation/GuiControllerBase.py</Source>
-    <Source>VesselSegmentation/main2.py</Source>
-    <Source>VesselSegmentation/MainWindow.py</Source>
-    <Source>VesselSegmentation/MdiChild.py</Source>
-    <Source>VesselSegmentation/PluginBase.py</Source>
-    <Source>VesselSegmentation/PyQtGuiController.py</Source>
-    <Source>VesselSegmentation/ResultImageView.py</Source>
-    <Source>VesselSegmentation/WidgetViewBase.py</Source>
-    <Source>VesselSegmentation/dict4ini.py</Source>
-    <Source>VesselSegmentation/initParameter.py</Source>
-    <Source>VesselSegmentation/Ui_SegmentationMainWindow.py</Source>
-    <Source>VesselSegmentation/convert2exe.py</Source>
-    <Source>VesselSegmentation/init_convert2exe.py</Source>
-    <Source>VesselSegmentation/Ui_SettingWindow.py</Source>
-    <Source>VesselSegmentation/SettingWindow.py</Source>
     <Source>Script/Registration/util/RegistrationUtil.py</Source>
     <Source>Script/Registration/IcpPointsetRegistration.py</Source>
-    <Source>GUI/qvtk/WidgetView/SurfaceGifView.py</Source>
-    <Source>Script/MacroBase.py</Source>
-    <Source>Script/Macro/TestAllRegistration.py</Source>
-    <Source>Script/Macro/__init__.py</Source>
-    <Source>Script/Macro/util/dict4ini.py</Source>
-    <Source>Script/Macro/util/__init__.py</Source>
     <Source>Script/Registration/util/__init__.py</Source>
     <Source>GUI/qvtk/Plugin/util/PluginUtil.py</Source>
-    <Source>Script/Analysis/CenterlineErrorAnalysis.py</Source>
-    <Source>Script/Analysis/WeightedContourErrorAnalysis.py</Source>
-    <Source>Script/Registration/MRimageRegistration.py</Source>
-    <Source>Script/Macro/LoadAllMRDicomAsMat.py</Source>
-    <Source>Script/Macro/CountAllSlice.py</Source>
-    <Source>Script/Macro/TestMissingRobust.py</Source>
-    <Source>Script/Macro/TestDownsampleRobust.py</Source>
-    <Source>Script/Macro/TestInitialRobust.py</Source>
-    <Source>Script/Macro/TestOcclusionRobust.py</Source>
-    <Source>Script/Macro/TestNewContour.py</Source>
-    <Source>Script/Macro/TestDistanceError.py</Source>
-    <Source>Script/Macro/TestContourArea.py</Source>
-    <Source>Script/Analysis/ContourErrorWithAreaAnalysis.py</Source>
-    <Source>Script/Macro/TestAreaDistance.py</Source>
-    <Source>Script/Macro/TestAllNewContour.py</Source>
-    <Source>Script/Macro/TestAllNewContourReg.py</Source>
-    <Source>Script/Analysis/SurfaceErrorAnalysis.py</Source>
-    <Source>Script/Macro/TestNoiseRobust.py</Source>
     <Source>GUI/qvtk/Plugin/util/__init__.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/__init__.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/ac_segmentation.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/po_function.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/ac_function.py</Source>
-    <Source>GUI/qvtk/Plugin/NoiseContourPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/CVModelLevelsetPlugin.py</Source>
-    <Source>Script/Macro/TestAllSegmentation.py</Source>
-    <Source>Script/Macro/TestAllWithoutSegmentation.py</Source>
-    <Source>Script/Macro/TestSegmentationRate.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
     <Form>GUI/MdiChild.ui</Form>
-    <Form>VesselSegmentation/SegmentationMainWindow.ui</Form>
-    <Form>VesselSegmentation/SettingWindow.ui</Form>
   </Forms>
   <Translations>
   </Translations>

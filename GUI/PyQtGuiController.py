@@ -46,9 +46,9 @@ class PyQtGuiController(GuiControllerBase):
             self.showErrorMessage('Error', 'There\'re no enough data!')
             return
         names = self.dataModel.getNameDict()
-        fixedIndex = self.getDataIndex(names, "Select the fixed image")
+        fixedIndex = self.getDataIndex(names, "Fixed image")
         if fixedIndex is not None:
-            movingIndex = self.getDataIndex(names, "Select the moving image")
+            movingIndex = self.getDataIndex(names, "Moving image")
             if movingIndex is not None:
                 return (fixedIndex, movingIndex)
     def getInputName(self, window):

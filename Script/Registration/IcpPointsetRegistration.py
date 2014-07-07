@@ -6,7 +6,7 @@ Created on 2014-04-24
 """
 
 from MIRVAP.Script.RegistrationBase import RegistrationBase
-from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour, calCenterlineFromContour
 import MIRVAP.Core.DataBase as db
 import numpy as npy
 import numpy.matlib as ml
@@ -22,7 +22,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
+    def register(self, fixedData, movingData, index = 1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -31,8 +31,13 @@ class IcpPointsetRegistration(RegistrationBase):
             fixed_points = fixedData.getPointSet('Contour')
             moving_points = movingData.getPointSet('Contour')
         else:
-            fixed_points = fixedData.getPointSet('Centerline')
-            moving_points = movingData.getPointSet('Centerline')
+            #fixed_points = fixedData.getPointSet('Centerline')
+            #moving_points = movingData.getPointSet('Centerline')
+            fixed_points = calCenterlineFromContour(fixedData.pointSet.data)
+            moving_points = calCenterlineFromContour(movingData.pointSet.data)
+            fixedData.pointSet.data['Centerline'] = fixed_points.copy()
+            movingData.pointSet.data['Centerline'] = moving_points.copy()
+            
         
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
