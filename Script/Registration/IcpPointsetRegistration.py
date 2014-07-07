@@ -11,7 +11,7 @@ import MIRVAP.Core.DataBase as db
 import numpy as npy
 import numpy.matlib as ml
 from scipy import interpolate
-import itk, vtk
+import vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
 import sys, os

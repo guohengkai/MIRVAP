@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-07-07, 21:01:25 -->
+<!-- Saved: 2014-07-07, 21:30:37 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -41,11 +41,8 @@
     <Source>GUI/qvtk/Plugin/ContourViewPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/NullPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/__init__.py</Source>
-    <Source>GUI/qvtk/WidgetView/CheckerboardView.py</Source>
-    <Source>GUI/qvtk/WidgetView/ComparingImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingPointView.py</Source>
     <Source>GUI/qvtk/WidgetView/FixedImageView.py</Source>
-    <Source>GUI/qvtk/WidgetView/ImageBlendView.py</Source>
     <Source>GUI/qvtk/WidgetView/MovingImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/ResultImageView.py</Source>
     <Source>GUI/qvtk/WidgetView/SurfaceView.py</Source>
