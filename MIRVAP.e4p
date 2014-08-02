@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-06-11, 00:05:41 -->
+<!-- Saved: 2014-08-02, 23:40:39 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -65,18 +65,10 @@
     <Source>Script/Registration/GmmregPointsetRegistration.py</Source>
     <Source>ThirdParty/__init__.py</Source>
     <Source>ThirdParty/gmmreg/__init__.py</Source>
-    <Source>ThirdParty/elastix/__init__.py</Source>
     <Source>ThirdParty/gmmreg/executeGmmreg.py</Source>
     <Source>GUI/qvtk/WidgetView/ComparingSurfaceView.py</Source>
     <Source>Script/Registration/itkMutualInformationRegistration.py</Source>
     <Source>Script/Registration/vtkIcpPointsetRegistration.py</Source>
-    <Source>Test/TryForUSContour.py</Source>
-    <Source>GUI/qvtk/Plugin/AutoUSContourPlugin.py</Source>
-    <Source>Test/get_min.py</Source>
-    <Source>Test/get_snaxels.py</Source>
-    <Source>Test/Snake.py</Source>
-    <Source>Test/Snaxel.py</Source>
-    <Source>GUI/qvtk/Plugin/AutoMRContourPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/AutoCenterlineFromContourPlugin.py</Source>
     <Source>Script/Save/SaveSliceImg.py</Source>
     <Source>Script/Load/LoadDicomDir.py</Source>
@@ -132,7 +124,6 @@
     <Source>GUI/qvtk/Plugin/util/acontour/ac_segmentation.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/po_function.py</Source>
     <Source>GUI/qvtk/Plugin/util/acontour/ac_function.py</Source>
-    <Source>GUI/qvtk/Plugin/NoiseContourPlugin.py</Source>
     <Source>GUI/qvtk/Plugin/CVModelLevelsetPlugin.py</Source>
     <Source>Script/Macro/TestAllSegmentation.py</Source>
     <Source>Script/Macro/TestAllWithoutSegmentation.py</Source>

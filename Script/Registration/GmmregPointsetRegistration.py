@@ -49,9 +49,9 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         # Augmentation of pointset
         fixed = fixed_points.copy()
-        tmp_fix = fixedData.getPointSet('Centerline')
-        tmp_fix = tmp_fix[tmp_fix[:, 0] >= 0].copy()
-        ctrl_pts = util.getControlPoints(tmp_fix, 1.0 / fixed_res[2])
+        tmp_mov = movingData.getPointSet('Centerline')
+        tmp_mov = tmp_mov[tmp_mov[:, 0] >= 0].copy()
+        ctrl_pts = util.getControlPoints(tmp_mov, 1.0 / moving_res[2])
         moving = moving_points.copy()
         if index == 0:
             fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
@@ -60,21 +60,21 @@ class GmmregPointsetRegistration(RegistrationBase):
         fixed = fixed[:, :3]
         moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
-        ctrl_pts *= fixed_res[:3]
+        ctrl_pts *= moving_res[:3]
+        ctrl_pts_backup = ctrl_pts.copy()
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-            ctrl_pts[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
         #print fixed.shape[0], moving.shape[0]
         
         eg.initial_data(fixed, moving, ctrl_pts)
         
-        
+        #'''
         code = eg.run_executable(method = 'nonrigid')
         print code
         if code != 0:
             return None, None, None
-        
+        #'''
         trans, para, para2 = eg.get_final_result(methodname = "nonrigid")
         
         # Clear the temp files
@@ -98,6 +98,32 @@ class GmmregPointsetRegistration(RegistrationBase):
             
             T = -T
             T = R * T
+            
+            """
+            # Copy the output points of GMMREG for test
+            new_trans_points = trans
+            
+            if (fixed_bif >= 0) and (moving_bif >= 0):
+                new_trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+                
+            new_trans_points[:, :3] /= fixed_res[:3]
+            new_trans_points = npy.insert(new_trans_points, [new_trans_points.shape[1]], moving_points[:, -1].reshape(-1, 1), axis = 1)
+            new_trans_points = npy.append(new_trans_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
+            #result_center_points = movingData.getPointSet('Centerline').copy()
+            result_center_points = movingData.getPointSet('Contour').copy()  
+            """
+            
+            transform = sitk.Transform(3, sitk.sitkAffine)
+            para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
+            transform.SetParameters(para)
+            transform.SetFixedParameters(C.T.tolist()[0])
+            
+            movingImage = movingData.getSimpleITKImage()
+            fixedImage = fixedData.getSimpleITKImage()
+            resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
+            
+            return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
+            
         else: # EM_TPS
             moving_points = movingData.getPointSet('Contour').copy()
             moving_points = moving_points[npy.where(moving_points[:, 0] >= 0)]
@@ -124,7 +150,6 @@ class GmmregPointsetRegistration(RegistrationBase):
             basis = ml.zeros([m, n], dtype = npy.float32)
             basis[:, 0] = 1
             basis[:, 1:4] = moving
-            
             
             U = util.ComputeTPSKernel(moving, ctrl_pts)
             basis[:, 4:] = U * ml.mat(trans)
@@ -180,37 +205,104 @@ class GmmregPointsetRegistration(RegistrationBase):
             result_center_points[:, :3] /= fixed_res[:3]
             result_center_points = npy.insert(result_center_points, [result_center_points.shape[1]], moving_points[:, -1].reshape(-1, 1), axis = 1)
             result_center_points = npy.append(result_center_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
+            #print result_center_points
             
+            moving = ctrl_pts_backup.copy()
+            m = moving.shape[0]
+            M = ml.mat(moving.copy())
             
-        
-        """
-        # Copy the output points of GMMREG for test
-        new_trans_points = trans
-        
-        if (fixed_bif >= 0) and (moving_bif >= 0):
-            new_trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-            
-        new_trans_points[:, :3] /= fixed_res[:3]
-        new_trans_points = npy.insert(new_trans_points, [new_trans_points.shape[1]], moving_points[:, -1].reshape(-1, 1), axis = 1)
-        new_trans_points = npy.append(new_trans_points, npy.array([[-1, -1, -1, -1]]), axis = 0)
-        #result_center_points = movingData.getPointSet('Centerline').copy()
-        result_center_points = movingData.getPointSet('Contour').copy()  
-        """
-        
-        T = ml.mat([0, 0, 0]).T
-        C = ml.mat([0, 0, 0]).T
-        R = ml.mat([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).T
-        
-        transform = sitk.Transform(3, sitk.sitkAffine)
-        para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
-        transform.SetParameters(para)
-        transform.SetFixedParameters(C.T.tolist()[0])
-        
-        movingImage = movingData.getSimpleITKImage()
-        fixedImage = fixedData.getSimpleITKImage()
-        resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
-        
-        return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
-        #return sitk.GetArrayFromImage(resultImage), {'Contour': result_center_points, 'Centerline': new_trans_points}, para + C.T.tolist()[0]
-        
+            C = npy.asmatrix(para2[:3])
+            C = ml.repmat(C, m, 1)
+            moving -= C
+            moving /= para2[3]
 
+            C2 = npy.asmatrix(para2[4:7])
+            C2 = ml.repmat(C2, m, 1)
+            
+            basis = ml.zeros([m, n], dtype = npy.float32)
+            basis[:, 0] = 1
+            basis[:, 1:4] = moving
+            
+            U = util.ComputeTPSKernel(moving, ctrl_pts)
+            basis[:, 4:] = U * ml.mat(trans)
+            #print npy.array(basis)
+            
+            T = basis * ml.mat(para)
+            T *= para2[3]
+            T += C2 - C
+            
+            if (fixed_bif >= 0) and (moving_bif >= 0):
+                T[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+            
+            M += T
+            result_ctrl = npy.array(M).copy()
+            #print result_ctrl
+            
+            image_type = fixedData.getITKImageType()
+            transform_type = itk.ThinPlateSplineKernelTransform.D3
+            transform = transform_type.New()
+            pointset_type = itk.PointSet.PD33S
+            source_pointset = pointset_type.New()
+            target_pointset = pointset_type.New()
+            count = 0
+            for point in ctrl_pts_backup:
+                tmp_point = itk.Point.D3()
+                tmp_point[0] = point[0]
+                tmp_point[1] = point[1]
+                tmp_point[2] = point[2]
+                source_pointset.SetPoint(count, tmp_point)
+                count += 1
+            count = 0
+            for point in ctrl_pts_backup:
+                tmp_point = itk.Point.D3()
+                tmp_point[0] = point[0]
+                tmp_point[1] = point[1]
+                tmp_point[2] = point[2]
+                target_pointset.SetPoint(count, tmp_point)
+                count += 1
+                
+            transform.SetSourceLandmarks(source_pointset)
+            transform.SetTargetLandmarks(target_pointset)
+            transform.ComputeWMatrix()
+            
+            """
+            # Test for TPS Transform
+            moving_points = movingData.getPointSet('Centerline').copy()
+            moving_points = moving_points[npy.where(moving_points[:, 0] >= 0)]
+            moving = moving_points[:, :3].copy()
+            moving *= moving_res[:3]
+            for point in moving:
+                tmp_point = itk.Point.D3()
+                tmp_point[0] = point[0]
+                tmp_point[1] = point[1]
+                tmp_point[2] = point[2]
+                rst_point = transform.TransformPoint(tmp_point)
+                point[0] = rst_point[0]
+                point[1] = rst_point[1]
+                point[2] = rst_point[2]
+            moving /= fixed_res[:3]
+            print moving
+            """
+            
+            image_type = fixedData.getITKImageType()
+            resampler = itk.ResampleImageFilter[image_type, image_type].New()
+            movingImage = movingData.getITKImage()
+            fixedImage = fixedData.getITKImage()
+            
+            resampler.SetTransform(transform)
+            resampler.SetInput(movingImage)
+            
+            region = fixedImage.GetLargestPossibleRegion()
+            
+            resampler.SetSize(region.GetSize())
+            resampler.SetOutputSpacing(fixedImage.GetSpacing())
+            resampler.SetOutputDirection(fixedImage.GetDirection())
+            resampler.SetOutputOrigin(fixedImage.GetOrigin())
+            resampler.SetDefaultPixelValue(0)
+            resampler.Update()
+        
+            outputImage = resampler.GetOutput()
+            image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
+            print image
+            return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0]
+        
