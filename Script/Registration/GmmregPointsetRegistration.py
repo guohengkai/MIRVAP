@@ -14,6 +14,7 @@ import numpy.matlib as ml
 import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
+import util.Hybrid.GmmregUtil as gutil
 
 class GmmregPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -32,7 +33,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         else:
             fixed_points = fixedData.getPointSet('Centerline')
             moving_points = movingData.getPointSet('Centerline')
-        
+        method = "rigid"
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
         fixed_points = fixed_points.copy()[npy.where(fixed_points[:, 0] >= 0)]
@@ -49,9 +50,9 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         # Augmentation of pointset
         fixed = fixed_points.copy()
-        tmp_mov = movingData.getPointSet('Centerline')
-        tmp_mov = tmp_mov[tmp_mov[:, 0] >= 0].copy()
-        ctrl_pts = util.getControlPoints(tmp_mov, 1.0 / moving_res[2])
+        tmp_fix = fixedData.getPointSet('Centerline')
+        tmp_fix = tmp_fix[tmp_fix[:, 0] >= 0].copy()
+        ctrl_pts = gutil.getControlPoints(tmp_fix, 1.0 / fixed_res[2])
         moving = moving_points.copy()
         if index == 0:
             fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
@@ -60,22 +61,23 @@ class GmmregPointsetRegistration(RegistrationBase):
         fixed = fixed[:, :3]
         moving = moving[:, :3]
         fixed[:, :3] *= fixed_res[:3]
-        ctrl_pts *= moving_res[:3]
+        ctrl_pts *= fixed_res[:3]
         ctrl_pts_backup = ctrl_pts.copy()
         moving[:, :3] *= moving_res[:3]
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
+            ctrl_pts[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
         #print fixed.shape[0], moving.shape[0]
         
         eg.initial_data(fixed, moving, ctrl_pts)
         
-        #'''
-        code = eg.run_executable(method = 'nonrigid')
-        print code
+        '''
+        code = eg.run_executable(method = method)
+        #print code
         if code != 0:
             return None, None, None
         #'''
-        trans, para, para2 = eg.get_final_result(methodname = "nonrigid")
+        trans, para, para2 = eg.get_final_result(methodname = method)
         
         # Clear the temp files
         #eg.clear_temp_file()
@@ -88,6 +90,7 @@ class GmmregPointsetRegistration(RegistrationBase):
             C2 = npy.asmatrix(para2[4:7]).T
             T0 = npy.asmatrix(para[4:]).T
             R = util.quaternion2rotation(para[:4])
+            
             T = S1 * T0 + C2 - C
             if (fixed_bif >= 0) and (moving_bif >= 0):
                 T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
@@ -151,7 +154,7 @@ class GmmregPointsetRegistration(RegistrationBase):
             basis[:, 0] = 1
             basis[:, 1:4] = moving
             
-            U = util.ComputeTPSKernel(moving, ctrl_pts)
+            U = gutil.ComputeTPSKernel(moving, ctrl_pts)
             basis[:, 4:] = U * ml.mat(trans)
             #print npy.array(basis)
             
@@ -189,7 +192,7 @@ class GmmregPointsetRegistration(RegistrationBase):
             basis[:, 0] = 1
             basis[:, 1:4] = moving
             
-            U = util.ComputeTPSKernel(moving, ctrl_pts)
+            U = gutil.ComputeTPSKernel(moving, ctrl_pts)
             basis[:, 4:] = U * ml.mat(trans)
             #print npy.array(basis)
             
@@ -223,7 +226,7 @@ class GmmregPointsetRegistration(RegistrationBase):
             basis[:, 0] = 1
             basis[:, 1:4] = moving
             
-            U = util.ComputeTPSKernel(moving, ctrl_pts)
+            U = gutil.ComputeTPSKernel(moving, ctrl_pts)
             basis[:, 4:] = U * ml.mat(trans)
             #print npy.array(basis)
             

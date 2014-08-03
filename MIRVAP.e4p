@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-08-02, 23:40:39 -->
+<!-- Saved: 2014-08-04, 00:07:14 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -128,6 +128,13 @@
     <Source>Script/Macro/TestAllSegmentation.py</Source>
     <Source>Script/Macro/TestAllWithoutSegmentation.py</Source>
     <Source>Script/Macro/TestSegmentationRate.py</Source>
+    <Source>Script/Save/SaveRawFile.py</Source>
+    <Source>ThirdParty/Elastix/executeElastix.py</Source>
+    <Source>ThirdParty/Elastix/__init__.py</Source>
+    <Source>Script/Registration/util/Hybrid/__init__.py</Source>
+    <Source>Script/Registration/util/Hybrid/GmmregUtil.py</Source>
+    <Source>Script/Registration/util/Hybrid/ElastixUtil.py</Source>
+    <Source>Script/Registration/NonrigidHybridRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

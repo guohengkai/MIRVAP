@@ -29,6 +29,33 @@ def quaternion2rotation(q):
     ss = x2 + y2 + z2 + r2
     R = R / ss
     return R
+def rotation2angle(R):
+    # ZXY
+    xx = npy.arcsin(R[2, 1])
+    A = npy.cos(xx)
+    if npy.abs(A) > 0.00005:
+        yy = npy.arctan2(R[2, 0] / A, R[2, 2] / A)
+        zz = npy.arctan2(R[0, 1] / A, R[1, 1] / A)
+    else:
+        zz = 0
+        yy = npy.arctan2(R[1, 0], R[0, 0])
+    return [xx, yy, zz]
+def angle2rotation(theta):
+    # ZXY
+    xx, yy, zz = theta
+    cx = npy.cos(xx)
+    sx = npy.sin(xx)
+    cy = npy.cos(yy)
+    sy = npy.sin(yy)
+    cz = npy.cos(zz)
+    sz = npy.sin(zz)
+    
+    Rx = ml.mat([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    Ry = ml.mat([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    Rz = ml.mat([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+    
+    R = Rz * Rx * Ry
+    return R
 def getPointsOntheSpline(data, center, numberOfOutputPoints):
     if data.shape[0] >= 4:
         # Sort the pointSet for a convex contour
@@ -423,59 +450,4 @@ def isDifferent(p1, p2):
         
     return True
 
-def ComputeTPSKernel(model, ctrl_pts):
-    m = model.shape[0]
-    n = ctrl_pts.shape[0]
-    M = ml.mat(model)
-    C = ml.mat(ctrl_pts)
-    result = ml.zeros([m, n], dtype = npy.float32)
-    
-    for i in range(m):
-        for j in range(n):
-            v = M[i, :] - C[j, :]
-            r = npy.linalg.norm(v)
-            result[i, j] = -r
-    
-    return result
 
-def getControlPoints(points, step):
-    ctrl_pts = npy.array([[-1, -1, -1.0]])
-    
-    ind = points[:, 2].argsort()
-    points_sort = points[ind]
-    
-    for cnt in range(3):
-        resampled_points = points_sort[npy.where(npy.round(points_sort[:, -1]) == cnt)]
-        zmin = int(npy.ceil(resampled_points[0, 2]))
-        zmax = int(resampled_points[-1, 2])
-        
-        count = resampled_points.shape[0]
-        points = vtk.vtkPoints()
-        for i in range(count):
-            points.InsertPoint(i, resampled_points[i, 0], resampled_points[i, 1], resampled_points[i, 2])
-
-        para_spline = vtk.vtkParametricSpline()
-        para_spline.SetPoints(points)
-        para_spline.ClosedOff()
-        
-        znow = zmin
-        old_pt = [0.0, 0.0, 0.0]
-        numberOfOutputPoints = int((zmax - zmin + 1) * 10)
-        
-        for i in range(0, numberOfOutputPoints):
-            t = i * 1.0 / numberOfOutputPoints
-            pt = [0.0, 0.0, 0.0]
-            para_spline.Evaluate([t, t, t], pt, [0] * 9)
-            if pt[2] >= znow:
-                if pt[2] - znow < znow - old_pt[2]:
-                    new_point = pt
-                else:
-                    new_point = old_pt
-                ctrl_pts = npy.append(ctrl_pts, [[new_point[0], new_point[1], znow]], axis = 0)
-                znow += step
-                if znow > zmax:
-                    break
-            old_pt = pt
-    
-    ctrl_pts = ctrl_pts[1:, :]
-    return ctrl_pts

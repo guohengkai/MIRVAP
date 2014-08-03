@@ -18,7 +18,7 @@ def run_executable(gmmreg_exe = None, f_config = "temp.ini", method = "rigid"):
         methodname = 'rigid'
     else:
         methodname = 'EM_TPS'
-    cmd = '\"%s\" \"%s\" %s' % (gmmreg_exe, get_exe_path() + "/" + f_config, methodname)
+    cmd = '"%s" "%s" %s' % (gmmreg_exe, get_exe_path() + "/" + f_config, methodname)
     #print cmd
     return subprocess.call(cmd, shell = True)
     

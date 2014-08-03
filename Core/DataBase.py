@@ -11,7 +11,7 @@ class DataBase(object):
 
 import numpy as npy
 import SimpleITK as sitk
-import itk
+import itk, vtk
 import scipy.io as sio
 import copy as cp
 
@@ -296,7 +296,29 @@ def loadMatData(dir, datamodel):
             info.addData('fix', datamodel.append(BasicData(fixedImage, info1, pointSet1)))
             info.addData('move', datamodel.append(BasicData(movingImage, info2, pointSet2)))
     return image, info, pointSet
-
+def saveRawData(dir, datamodel, index):
+    data = datamodel[index]
+    image = data.getITKImage()
+    image_type = data.getITKImageType()
+    itk_vtk_converter = itk.ImageToVTKImageFilter[image_type].New()
+    itk_vtk_converter.SetInput(image)
+    
+    writer = vtk.vtkMetaImageWriter()
+    writer.SetInput(itk_vtk_converter.GetOutput())
+    writer.SetFileName(dir + '.mhd')
+    writer.SetRAWFileName(dir + '.raw')
+    writer.Write()
+    
+def loadRawData(dir, image_type):
+    reader = vtk.vtkMetaImageReader()
+    reader.SetFileName(dir)
+    reader.Update()
+    
+    vtk_itk_converter = itk.VTKImageToImageFilter[image_type].New()
+    vtk_itk_converter.SetInput(reader.GetOutput())
+    
+    return itk.PyBuffer[image_type].GetArrayFromImage(vtk_itk_converter.GetOutput()).copy()
+    
 def saveMatData(dir, datamodel, index):
     data = datamodel[index]
     image = data.data
@@ -383,4 +405,9 @@ def getViewAndFlipFromOrientation(orientation, dimension):
     return (view, flip)
     
 if __name__ == "__main__":
-    basic = BasicData()
+    #basic = BasicData()
+    dir = "D:\\Python src\\MIRVAP\\Data\\US_37_Left_con.mhd"
+    image_type = itk.Image[itk.F, 3]
+    data = loadRawData(dir, image_type)
+    print data.shape
+    print data
