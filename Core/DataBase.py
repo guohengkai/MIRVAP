@@ -309,7 +309,10 @@ def saveRawData(dir, datamodel, index):
     writer.SetRAWFileName(dir + '.raw')
     writer.Write()
     
-def loadRawData(dir, image_type):
+def loadRawData(dir, image_type = None):
+    if image_type == None:
+        image_type = itk.Image[itk.F, 3]
+    
     reader = vtk.vtkMetaImageReader()
     reader.SetFileName(dir)
     reader.Update()

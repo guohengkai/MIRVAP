@@ -57,3 +57,26 @@ def getBinaryImageFromSegmentation(image, pointset):
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point, image_size).transpose()
                         
     return data
+
+def getKeyPoints(pointset, r1 = 5, r2 = 10):
+    result = npy.zeros([9, 3], dtype = npy.float32)
+    
+    # TO BE DONE
+    return result
+    
+# Input 9 points for each image, output the rigid transform matrix (4 * 4)
+def getRigidTransform(fix, mov):
+    # TO BE DONE
+    return T
+    
+def applyRigidTransformOnPoints(points, T):
+    # TO BE DONE
+    return result_points
+    
+def getMatrixFromGmmPara(para):
+    # TO BE DONE
+    return T
+    
+def getElastixParaFromMatrix(T):
+    # TO BE DONE
+    return para

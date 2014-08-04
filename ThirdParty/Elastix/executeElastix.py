@@ -9,16 +9,19 @@ import sys, os
 import subprocess
 import ConfigParser
 import numpy as npy
+import MIRVAP.Core.DataBase as db
 
 # elastix or transformix
-def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd", fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt"):
+def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd", fixm = "fixm.mhd", movm = "movm.mhd", 
+        fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt"):
     if exe is None:
         exe = "%s.exe" % type
     gen_path = get_exe_path() + "/"
     if type == "elastix":
-        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s"' % \
+        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s" -fMask "%s" -mMask "%s"' % \
             (gen_path + exe, gen_path + fix, gen_path + mov, gen_path + outDir, 
-            gen_path + para, gen_path + fixp, gen_path + movp, gen_path + tp)
+            gen_path + para, gen_path + fixp, gen_path + movp, gen_path + tp, 
+            gen_path + fixm, gen_path + movm)
         for p in para:
             cmd += ' -p "%s"' % (gen_path + p)
     elif type == "transformix":
@@ -43,13 +46,26 @@ def get_exe_path():
     path += '/ThirdParty/Elastix'
     #print path
     return path
-
+    
+def writeImageFile(image, file_name):
+    db.saveRawData(get_exe_path() + "/" + file_name, [image], 0)
+    
+def readImageFile(file_name):
+    return db.readRawData(get_exe_path() + "/" + file_name)
+    
 def writePointsetFile(pointset, file_name = "point.txt"):
     f = open(get_exe_path() + "/" + file_name, 'w')
     f.writeline('point')
     f.writeline(pointset.shape[0])
     for point in pointset:
         f.writeline("%f %f %f" % tuple(point[:3]))
+    f.close()
+    
+def readPointsetFile(file_name):
+    f = open(get_exe_path() + "/" + file_name, 'r')
+    
+    # TO BE DONE
+    
     f.close()
     
 def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type = "MI", spacing = 20, w1 = 1.0, w2 = 1.0):

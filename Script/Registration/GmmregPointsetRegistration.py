@@ -22,7 +22,7 @@ class GmmregPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'GMMREG Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, method = "EM_TPS"):
+    def register(self, fixedData, movingData, index = -1, discard = False, method = "rigid", execute = True):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -33,7 +33,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         else:
             fixed_points = fixedData.getPointSet('Centerline')
             moving_points = movingData.getPointSet('Centerline')
-        method = "rigid"
+        
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
         fixed_points = fixed_points.copy()[npy.where(fixed_points[:, 0] >= 0)]
@@ -71,12 +71,12 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         eg.initial_data(fixed, moving, ctrl_pts)
         
-        '''
-        code = eg.run_executable(method = method)
-        #print code
-        if code != 0:
-            return None, None, None
-        #'''
+        if execute:
+            code = eg.run_executable(method = method)
+            #print code
+            if code != 0:
+                return None, None, None
+        
         trans, para, para2 = eg.get_final_result(methodname = method)
         
         # Clear the temp files
@@ -306,6 +306,6 @@ class GmmregPointsetRegistration(RegistrationBase):
         
             outputImage = resampler.GetOutput()
             image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
-            print image
+            #print image
             return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0]
         

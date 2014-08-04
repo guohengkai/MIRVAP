@@ -30,13 +30,17 @@ class SurfaceErrorAnalysis(AnalysisBase):
         point_data_mov[:, :3] *= spacing_mov[:3]
 
         if point_data_result is None:
-            para = data.info.getData('transform')
+            para = npy.array(data.info.getData('transform')).flatten()
             point_data_result = point_data_mov.copy()
             R = ml.mat(para[:9]).reshape(3, 3)
             T = ml.mat(para[9:12]).T
+            if para.shape[0] > 12:
+                C = ml.mat(para[12:]).T
+            else:
+                C = ml.zeros([3, 1], dtype = npy.float32)
             T = R.I * T
             T = -T
-            point_data_result[:, :3] = util.applyTransformForPoints(point_data_mov[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T)
+            point_data_result[:, :3] = util.applyTransformForPoints(point_data_mov[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, C)
         else:
             point_data_reuslt = point_data_reuslt[point_data_reuslt[:, -1] >= 0]
             point_data_result[:, :3] *= self.spacing[:3]

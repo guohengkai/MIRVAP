@@ -46,3 +46,21 @@ def calCentroidFromContour(data, area = False):
         return current_center
     else:
         return current_center, npy.abs(npy.sum(temp_area) / 2)
+
+# Need to be tested
+def calIntensityCentroidFromContour(image, pointset):
+    mask = ac_mask(pointset[:, :2].transpose(), image.transpose().shape).transpose()
+    result = image * mask
+    cnt = npy.sum(mask)
+    m00 = npy.sum(result) / cnt
+    xx, yy = npy.mgrid[:image.shape[0], :image.shape[1]]
+    m10 = npy.sum(xx * result) / cnt
+    m01 = npy.sum(yy * result) / cnt
+    
+    center = npy.array([m10 / m00, m01 / m00])
+    return center
+
+# Most distant point in the contour(max(min(d(x, edge))))
+def calCenterFromContour():
+    # TO BE DONE
+    return center
