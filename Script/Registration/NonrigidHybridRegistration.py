@@ -39,39 +39,37 @@ class NonrigidHybridRegistration(RegistrationBase):
         moving_points = moving_points_ori.copy()
         fixed_points_cen = fixed_points_cen.copy()[npy.where(fixed_points_cen[:, 0] >= 0)]
         moving_points_cen = moving_points_cen.copy()[npy.where(moving_points_cen[:, 0] >= 0)]
-        fixed_points[:, :3] *= fixed_res
-        moving_points[:, :3] *= moving_res
-        fixed_points_cen[:, :3] *= fixed_res
-        moving_points_cen[:, :3] *= moving_res
         
         fix_img = fixedData.getData().copy()
         mov_img = movingData.getData().copy()
         
         # Calculate the initial rigid transformation for 9 points T0
-        fix_key_point = eutil.getKeyPoints(fixed_points_cen)
-        mov_key_point = eutil.getKeyPoints(moving_points_cen)
-        T0 = eutil.getRigidTransform(fix_key_point, mov_key_point) # 4 * 4 Matrix
-        moving_points = eutil.applyRigidTransformOnPoints(moving_points, T0)
-        moving_points_cen_result = eutil.applyRigidTransformOnPoints(moving_points_cen, T0)
+        fix_key_point = eutil.getKeyPoints(fixed_points_cen, fixed_res)
+        mov_key_point = eutil.getKeyPoints(moving_points_cen, moving_res)
+        T0, mov_bif = eutil.getRigidTransform(fix_key_point, mov_key_point) # 4 * 4 Matrix
+        moving_points = eutil.applyRigidTransformOnPoints(moving_points, moving_res, T0)
+        moving_points_cen_result = eutil.applyRigidTransformOnPoints(moving_points_cen, moving_res, T0)
+        crop_fixed_index, crop_moving_index = eutil.cropCenterline(fixed_points_cen, moving_points_cen_result, fixed_res, moving_res, fix_key_point[0, :] / fixed_res, mov_bif / moving_res)
         
         # Use GMMREG for centerline-based rigid registration T1
         gmm = GmmregPointsetRegistration(self.gui)
         new_fixedData = db.BasicData(fix_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
-            {'Contour': fixed_points, 'Centerline': fixed_points_cen})
+            {'Contour': fixed_points, 'Centerline': fixed_points_cen[crop_fixed_index, :]})
         new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(movingData.getInfo().data), 
-            {'Contour': moving_points, 'Centerline': moving_points_cen_result})
+            {'Contour': moving_points, 'Centerline': moving_points_cen_result[crop_moving_index]})
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "rigid")
         T1 = eutil.getMatrixFromGmmPara(para)
-        T_init = T1 * T0
+        T_init = T0 * T1
         moving_points = points['Contour'].copy()
         moving_points_cen_result = points['Centerline'].copy()
         
         # Use GMMREG for centerline-based TPS registration
         new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
-            {'Contour': moving_points, 'Centerline': moving_points_cen}) # The image has been resampled into fixed resolution
+            {'Contour': moving_points, 'Centerline': moving_points_cen_result}) # The image has been resampled into fixed resolution
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "EM_TPS")
         result_points_cen = points['Centerline'].copy()
         result_points_cen[:, :3] *= fixed_res
+        moving_points_cen_result[:, :3] *= fixed_res
         
         # Save the images for Elastix registration
         ee.writeImageFile(fixedData, "fix.mhd")
@@ -86,7 +84,9 @@ class NonrigidHybridRegistration(RegistrationBase):
         #resultImage = eutil.getMaskFromCenterline(image, fixed_points_cen, fixed_res)
         
         # Save Elastix registration configuration
-        ee.writePointsetFile(moving_points_cen, "movp.txt")
+        tmp = moving_points_cen.copy()
+        tmp[:, :3] *= moving_res
+        ee.writePointsetFile(tmp, "movp.txt")
         ee.writePointsetFile(result_points_cen, "fixp.txt")
         ee.writeParameterFile("para_rigid.txt", "rigid", "SSD", spacing, w1, w2)
         ee.writeParameterFile("para_spline.txt", "bspline", "SSD", spacing, w1, w2)
@@ -101,16 +101,19 @@ class NonrigidHybridRegistration(RegistrationBase):
             
         # Read the output files into self data formats
         result_img = ee.readImageFile("Output/result.1.mhd")
-        
-        ee.writePointsetFile(moving_points, "mov.txt")
+        tmp = moving_points_ori.copy()
+        tmp[:, :3] *= moving_res
+        ee.writePointsetFile(tmp, "mov.txt")
         ee.run_executable(type = "transformix", mov = "mov.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
         ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
         result_con = ee.readPointsetFile("Output/outputpoints.txt")
+        result_con[:, :3] /= fixed_res
         
         ee.writePointsetFile(moving_points_cen_result, "movc.txt")
         ee.run_executable(type = "transformix", mov = "movc.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving centerline using rigid transformation
         ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
         result_cen = ee.readPointsetFile("Output/outputpoints.txt")
+        result_cen[:, :3] /= fixed_res
         
         return result_img, {'Contour': result_con, 'Centerline': result_cen}, [0, 0, 0]
         

@@ -231,6 +231,7 @@ class ContourPlugin(PluginBase):
                 return
                 
             # Sort the pointSet for a convex contour: TO BE DONE FOR NEW ALGORITHM
+            '''
             point = npy.delete(point_array, self.parent.view, axis = 1)
             core = point.mean(axis = 0)
             point -= core
@@ -238,7 +239,9 @@ class ContourPlugin(PluginBase):
             ind = angle.argsort()
             for i in range(point_array.shape[0]):
                 self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[ind[i], :].tolist())
-                
+            '''
+
+            
             self.parent.render_window.Render()
             return
         if ch in ['1', '2', '3']:

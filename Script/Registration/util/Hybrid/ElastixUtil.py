@@ -9,6 +9,8 @@ import numpy as npy
 import numpy.matlib as ml
 import vtk
 from MIRVAP.GUI.qvtk.Plugin.util.acontour.ac_function import ac_mask
+import MIRVAP.Script.Registration.util.RegistrationUtil as util
+import MIRVAP.Core.DataBase as db
 
 def getMaskFromCenterline(image, pointset, spacing, radius = 10):
     data = npy.zeros(image.shape, dtype = npy.uint8)
@@ -58,25 +60,119 @@ def getBinaryImageFromSegmentation(image, pointset):
                         
     return data
 
-def getKeyPoints(pointset, r1 = 5, r2 = 10):
-    result = npy.zeros([9, 3], dtype = npy.float32)
+def getBifurcationOfCenterline(pointset):
+    z = pointset[:, 2]
+    ind0 = npy.argmax(z[npy.round(pointset[:, -1]) == 0])
+    ind1 = npy.argmin(z[npy.round(pointset[:, -1]) == 1])
+    ind2 = npy.argmin(z[npy.round(pointset[:, -1]) == 2])
+
+    point = npy.mean(pointset[[ind0, ind1, ind2], :3], axis = 0)
+    return point
     
-    # TO BE DONE
-    return result
+def getKeyPoints(pointset, res, radius = [5.0, 8.0, 10.0]):
+    l = len(radius)
+    result = npy.zeros([1 + 3 * l, 3], dtype = npy.float32)
+    result[0, :] = getBifurcationOfCenterline(pointset) * res
+
+    point_tmp = pointset.copy()
+    point_tmp[:, :3] *= res
+
+    # Calculate the distance to bifurcation for each points
+    d = npy.sqrt(((point_tmp[:, 0] - result[0, 0]) * res[0]) ** 2 + \
+                 ((point_tmp[:, 1] - result[0, 1]) * res[1]) ** 2 + \
+                 ((point_tmp[:, 2] - result[0, 2]) * res[2]) ** 2)
+
+    # Get the points for each radius
+    i = 0
+    for r in radius:
+        # Get the points for vessel
+        for cnt in range(3):
+            ind = npy.where(npy.round(point_tmp[:, -1]) == cnt)
+            pr = point_tmp[ind]
+            dr = npy.abs(d[ind] - r)
+            min_ind = npy.argmin(dr)
+            result[i, :] = pr[min_ind, :3]
+            i += 1
+    
+    return result # In real resolution
     
 # Input 9 points for each image, output the rigid transform matrix (4 * 4)
-def getRigidTransform(fix, mov):
-    # TO BE DONE
-    return T
+def getRigidTransform(fix, mov): # In real resolution
+    LandmarkTransform = vtk.vtkLandmarkTransform()
+    LandmarkTransform.SetModeToRigidBody()
     
-def applyRigidTransformOnPoints(points, T):
-    # TO BE DONE
+    n = fix.shape[0]
+    fix_point = vtk.vtkPoints()
+    fix_point.SetNumberOfPoints(n)
+    mov_point = vtk.vtkPoints()
+    mov_point.SetNumberOfPoints()
+    mov_point.SetNumberOfPoints(n)
+
+    for i in range(n):
+        fix_point.SetPoint(i, fix[i, 0], fix[i, 1], fix[i, 2])
+        mov_point.SetPoint(i, mov[i, 0], mov[i, 1], mov[i, 2])
+
+    LandmarkTransform.SetSourceLandmarks(mov_point)
+    LandmarkTransform.SetTargetLandmarks(fix_point)
+    LandmarkTransform.Update()
+
+    matrix = LandmarkTransform.GetMatrix()
+    T = ml.zeros([4, 4], dtype = npy.float32)
+    for i in range(4):
+        for j in range(4):
+            T[i, j] = matrix.GetElement(j, i)
+
+    p1 = mov[0, :].tolist()
+    p2 = [0.0, 0, 0]
+    LandmarkTransform.InternalTransformPoint(p1, p2)
+    
+    return T, npy.array(p2)
+    
+def applyRigidTransformOnPoints(points, res, T): # Y = XT
+    X = ml.ones([points.shape[0], 4], dtype = npy.float32)
+    tmp = points
+    tmp[:, :3] *= res
+    X[:, :3] = tmp
+    Y = X * T
+    result_points = npy.array(points.copy())
+    result_points[:, :3] = Y
+    result_points[:, :3] /= res
     return result_points
     
 def getMatrixFromGmmPara(para):
-    # TO BE DONE
+    R = ml.mat(para[:9]).reshape(3, 3)
+    T0 = ml.mat(para[9:12]).T
+    if para.shape[0] > 12:
+        C = ml.mat(para[12:])
+    else:
+        C = ml.zeros([1, 3], dtype = npy.float32)
+    T0 = R.I * T0
+    T0 = -T0.T
+
+    T = ml.zeros([4, 4], dtype = npy.float32)
+    T[-1, -1] = 1
+    T[:3, :3] = R
+    T[-1, :3] = T0 + C - C * R
+    
     return T
     
 def getElastixParaFromMatrix(T):
-    # TO BE DONE
-    return para
+    para = npy.zeros(9, dtype = npy.float32)
+
+    para[:3] = util.rotation2angle(T[:3, :3])
+    para[3:6] = T[-1, :3]
+    
+    return para # The center can be always set to zeros
+
+def cropCenterline(fix, mov, fix_res, mov_res, fix_bif, mov_bif):
+    fix_max = npy.max(fix[:, 2])
+    fix_min = npy.min(fix[:, 2])
+    mov_max = npy.max(mov[:, 2])
+    mov_min = npy.min(mov[:, 2])
+
+    up_dis = min((fix_max - fix_bif) * fix_res[2], (mov_max - mov_bif) * mov_res[2])
+    down_dis = min((fix_bif - fix_min) * fix_res[2], (mov_bif - mov_min) * mov_res[2])
+
+    fix_index = npy.where((fix[:, 2] <= fix_bif + up_dis / fix_res[2]) & (fix[:, 2] >= fix_bif - down_dis / fix_res[2]))
+    mov_index = npy.where((mov[:, 2] <= mov_bif + up_dis / mov_res[2]) & (mov[:, 2] >= mov_bif - down_dis / mov_res[2]))
+    return fix_index, mov_index

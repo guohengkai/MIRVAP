@@ -64,9 +64,20 @@ def writePointsetFile(pointset, file_name = "point.txt"):
 def readPointsetFile(file_name):
     f = open(get_exe_path() + "/" + file_name, 'r')
     
-    # TO BE DONE
-    
+    s = f.readline() # 'point'
+    s = f.readline()
+    n = int(s)
+
+    pointset = npy.zeros([n, 3], dtype = npy.float32)
+    i = 0
+    for s in f.readlines():
+        point = s.split(' ')
+        pointset[i, :] = map(float, point)
+        i += 1
+        
     f.close()
+
+    return pointset
     
 def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type = "MI", spacing = 20, w1 = 1.0, w2 = 1.0):
     if trans_type == "rigid":
