@@ -97,7 +97,10 @@ class GmmregPointsetRegistration(RegistrationBase):
             
             moving_points = movingData.getPointSet('Contour').copy()
             moving_center = movingData.getPointSet('Centerline').copy()                
-            new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T, C)
+            #new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T, C)
+            new_trans_points = util.applyTransformForPoints(moving_points, moving_res, fixed_res, R, T, C)
+            result_center_points = util.applyTransformForPoints(moving_center, moving_res, fixed_res, R, T, C)
+            
             
             T = -T
             T = R * T

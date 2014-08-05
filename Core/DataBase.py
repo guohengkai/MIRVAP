@@ -47,7 +47,8 @@ class ImageInfo(DataBase):
 class ImageData(DataBase):
     def __init__(self, data = None, info = None):
         if data != None:
-            data = data.astype(dtype = npy.float32)
+            if data.dtype != npy.float32:
+                data = data.astype(dtype = npy.float32)
         self.data = data
         self.info = info
         

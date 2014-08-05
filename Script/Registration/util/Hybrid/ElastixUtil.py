@@ -37,7 +37,7 @@ def getMaskFromCenterline(image, pointset, spacing, radius = 10):
                 
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point.transpose(), image_size).transpose()
                 
-    return data
+    return npy.cast['float32'](data)
     
 def getBinaryImageFromSegmentation(image, pointset):
     data = npy.zeros(image.shape, dtype = npy.uint8)
@@ -58,7 +58,7 @@ def getBinaryImageFromSegmentation(image, pointset):
                 data_point = data_point[:, :2].transpose()
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point, image_size).transpose()
                         
-    return data
+    return npy.cast['float32'](data)
 
 def getBifurcationOfCenterline(pointset):
     z = pointset[:, 2]
@@ -105,7 +105,6 @@ def getRigidTransform(fix, mov): # In real resolution
     fix_point = vtk.vtkPoints()
     fix_point.SetNumberOfPoints(n)
     mov_point = vtk.vtkPoints()
-    mov_point.SetNumberOfPoints()
     mov_point.SetNumberOfPoints(n)
 
     for i in range(n):
@@ -132,17 +131,17 @@ def applyRigidTransformOnPoints(points, res, T): # Y = XT
     X = ml.ones([points.shape[0], 4], dtype = npy.float32)
     tmp = points
     tmp[:, :3] *= res
-    X[:, :3] = tmp
+    X[:, :3] = tmp[:, :3]
     Y = X * T
     result_points = npy.array(points.copy())
-    result_points[:, :3] = Y
+    result_points[:, :3] = Y[:, :3]
     result_points[:, :3] /= res
     return result_points
     
 def getMatrixFromGmmPara(para):
     R = ml.mat(para[:9]).reshape(3, 3)
     T0 = ml.mat(para[9:12]).T
-    if para.shape[0] > 12:
+    if len(para) > 12:
         C = ml.mat(para[12:])
     else:
         C = ml.zeros([1, 3], dtype = npy.float32)

@@ -49,12 +49,12 @@ class NonrigidHybridRegistration(RegistrationBase):
         T0, mov_bif = eutil.getRigidTransform(fix_key_point, mov_key_point) # 4 * 4 Matrix
         moving_points = eutil.applyRigidTransformOnPoints(moving_points, moving_res, T0)
         moving_points_cen_result = eutil.applyRigidTransformOnPoints(moving_points_cen, moving_res, T0)
-        crop_fixed_index, crop_moving_index = eutil.cropCenterline(fixed_points_cen, moving_points_cen_result, fixed_res, moving_res, fix_key_point[0, :] / fixed_res, mov_bif / moving_res)
+        crop_fixed_index, crop_moving_index = eutil.cropCenterline(fixed_points_cen, moving_points_cen_result, fixed_res, moving_res, fix_key_point[0, 2] / fixed_res[2], mov_bif[2] / moving_res[2])
         
         # Use GMMREG for centerline-based rigid registration T1
         gmm = GmmregPointsetRegistration(self.gui)
         new_fixedData = db.BasicData(fix_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
-            {'Contour': fixed_points, 'Centerline': fixed_points_cen[crop_fixed_index, :]})
+            {'Contour': fixed_points, 'Centerline': fixed_points_cen[crop_fixed_index]})
         new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(movingData.getInfo().data), 
             {'Contour': moving_points, 'Centerline': moving_points_cen_result[crop_moving_index]})
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "rigid")
@@ -72,15 +72,16 @@ class NonrigidHybridRegistration(RegistrationBase):
         moving_points_cen_result[:, :3] *= fixed_res
         
         # Save the images for Elastix registration
-        ee.writeImageFile(fixedData, "fix.mhd")
-        ee.writeImageFile(movingData, "mov.mhd")
+        ee.writeImageFile(fixedData, "fix")
+        ee.writeImageFile(movingData, "mov")
         mov_img = movingData.getData().copy()
         fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
         mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
         fix_binary_data = db.BasicData(fix_binary_mask.copy(), db.ImageInfo(fixedData.getInfo().data))
         mov_binary_data = db.BasicData(mov_binary_mask.copy(), db.ImageInfo(movingData.getInfo().data))
-        ee.writeImageFile(fix_binary_data, "fixm.mhd")
-        ee.writeImageFile(mov_binary_data, "movm.mhd")
+        print npy.sum(fix_binary_data)
+        ee.writeImageFile(fix_binary_data, "fixm")
+        ee.writeImageFile(mov_binary_data, "movm")
         #resultImage = eutil.getMaskFromCenterline(image, fixed_points_cen, fixed_res)
         
         # Save Elastix registration configuration

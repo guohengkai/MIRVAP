@@ -16,6 +16,9 @@ Test/Data
 *.xls
 *.xlsx
 
+*.mhd
+*.raw
+
 # Unit test / coverage reports
 .coverage
 .tox

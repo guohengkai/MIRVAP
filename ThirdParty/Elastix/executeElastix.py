@@ -55,10 +55,10 @@ def readImageFile(file_name):
     
 def writePointsetFile(pointset, file_name = "point.txt"):
     f = open(get_exe_path() + "/" + file_name, 'w')
-    f.writeline('point')
-    f.writeline(pointset.shape[0])
+    f.writelines('point')
+    f.writelines(pointset.shape[0])
     for point in pointset:
-        f.writeline("%f %f %f" % tuple(point[:3]))
+        f.writelines("%f %f %f" % tuple(point[:3]))
     f.close()
     
 def readPointsetFile(file_name):
@@ -98,86 +98,86 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     
     f = open(get_exe_path() + "/" + file_name, "w")
     
-    f.writeline('(FixedInternalImagePixelType "float")')
-    f.writeline('(MovingInternalImagePixelType "float")')
-    f.writeline('(UseDirectionCosines "false")')
+    f.writelines('(FixedInternalImagePixelType "float")')
+    f.writelines('(MovingInternalImagePixelType "float")')
+    f.writelines('(UseDirectionCosines "false")')
     
     # Main Components
-    f.writeline('(Registration "MultiResolutionRegistration")')
-    f.writeline('(Interpolator "BSplineInterpolator")')
-    f.writeline('(ResampleInterpolator "FinalBSplineInterpolator")')
-    f.writeline('(Resampler "DefaultResampler")')
+    f.writelines('(Registration "MultiResolutionRegistration")')
+    f.writelines('(Interpolator "BSplineInterpolator")')
+    f.writelines('(ResampleInterpolator "FinalBSplineInterpolator")')
+    f.writelines('(Resampler "DefaultResampler")')
     
-    f.writeline('(FixedImagePyramid "FixedRecursiveImagePyramid")')
-    f.writeline('(MovingImagePyramid "MovingRecursiveImagePyramid")')
+    f.writelines('(FixedImagePyramid "FixedRecursiveImagePyramid")')
+    f.writelines('(MovingImagePyramid "MovingRecursiveImagePyramid")')
     
-    f.writeline('(Optimizer "AdaptiveStochasticGradientDescent")')
-    f.writeline('(Transform "%s")' % trans)
-    f.writeline('(Metric "%s" "CorrespondingPointsEuclideanDistanceMetric")' % metric)
-    f.writeline('(Metric0Weight %f)' % w1)
-    f.writeline('(Metric1Weight %f)' % w2)
+    f.writelines('(Optimizer "AdaptiveStochasticGradientDescent")')
+    f.writelines('(Transform "%s")' % trans)
+    f.writelines('(Metric "%s" "CorrespondingPointsEuclideanDistanceMetric")' % metric)
+    f.writelines('(Metric0Weight %f)' % w1)
+    f.writelines('(Metric1Weight %f)' % w2)
     
     # Transformation
-    f.writeline('(AutomaticTransformInitialization "true")')
-    f.writeline('(AutomaticScalesEstimation "true")')
-    f.writeline('(HowToCombineTransforms "Compose")')
-    f.writeline('(FinalGridSpacingInPhysicalUnits %d)' % spacing)
+    f.writelines('(AutomaticTransformInitialization "true")')
+    f.writelines('(AutomaticScalesEstimation "true")')
+    f.writelines('(HowToCombineTransforms "Compose")')
+    f.writelines('(FinalGridSpacingInPhysicalUnits %d)' % spacing)
     
     # Similarity measure
-    f.writeline('(NumberOfHistogramBins 32)')
-    f.writeline('(ErodeMask "false")')
+    f.writelines('(NumberOfHistogramBins 32)')
+    f.writelines('(ErodeMask "false")')
     
     # Multiresolution
-    f.writeline('(NumberOfResolutions 4)')
+    f.writelines('(NumberOfResolutions 4)')
     
     # Optimizer
-    f.writeline('(MaximumNumberOfIterations 2000)')
+    f.writelines('(MaximumNumberOfIterations 2000)')
     
     # Image sampling
-    f.writeline('(NumberOfSpatialSamples 2000)')
-    f.writeline('(NewSamplesEveryIteration "true")')
-    f.writeline('(ImageSampler "Random")')
+    f.writelines('(NumberOfSpatialSamples 2000)')
+    f.writelines('(NewSamplesEveryIteration "true")')
+    f.writelines('(ImageSampler "Random")')
     
     # Interpolation and Resampling
-    f.writeline('(BSplineInterpolationOrder 1)')
-    f.writeline('(FinalBSplineInterpolationOrder 3)')
-    f.writeline('(DefaultPixelValue 0)')
-    f.writeline('(WriteResultImage "true")')
-    f.writeline('(ResultImagePixelType "float")')
-    f.writeline('(ResultImageFormat "mhd")')
+    f.writelines('(BSplineInterpolationOrder 1)')
+    f.writelines('(FinalBSplineInterpolationOrder 3)')
+    f.writelines('(DefaultPixelValue 0)')
+    f.writelines('(WriteResultImage "true")')
+    f.writelines('(ResultImagePixelType "float")')
+    f.writelines('(ResultImageFormat "mhd")')
     
     f.close()
     
 def writeTransformFile(para, size, spacing, file_name = "transpara.txt"):
     f = open(get_exe_path() + "/" + file_name, "w")
     
-    f.writeline('(Transform "EulerTransform")')
-    f.writeline('(NumberOfParameters 6)')
-    f.writeline('(TransformParameters %f %f %f %f %f %f)' % tuple(para[:6])) # 3 rotation angles, translation vetor
-    f.writeline('(InitialTransformParametersFileName "NoInitialTransform")')
-    f.writeline('(HowToCombineTransforms "Compose")')
+    f.writelines('(Transform "EulerTransform")')
+    f.writelines('(NumberOfParameters 6)')
+    f.writelines('(TransformParameters %f %f %f %f %f %f)' % tuple(para[:6])) # 3 rotation angles, translation vetor
+    f.writelines('(InitialTransformParametersFileName "NoInitialTransform")')
+    f.writelines('(HowToCombineTransforms "Compose")')
     
     # Image specific
-    f.writeline('(FixedImageDimension 3)')
-    f.writeline('(MovingImageDimension 3)')
-    f.writeline('(FixedInternalImagePixelType "float")')
-    f.writeline('(MovingInternalImagePixelType "float")')
-    f.writeline('(Size %d %d %d)' % tuple(size))
-    f.writeline('(Index 0 0)')
-    f.writeline('(Spacing %f %f %f)' % tuple(spacing))
-    f.writeline('(Origin 0.0000000000 0.0000000000)')
+    f.writelines('(FixedImageDimension 3)')
+    f.writelines('(MovingImageDimension 3)')
+    f.writelines('(FixedInternalImagePixelType "float")')
+    f.writelines('(MovingInternalImagePixelType "float")')
+    f.writelines('(Size %d %d %d)' % tuple(size))
+    f.writelines('(Index 0 0)')
+    f.writelines('(Spacing %f %f %f)' % tuple(spacing))
+    f.writelines('(Origin 0.0000000000 0.0000000000)')
     
     # EulerTransform specific
-    f.writeline('(CenterOfRotationPoint %f %f %f)' % tuple(para[-3:]))
+    f.writelines('(CenterOfRotationPoint %f %f %f)' % tuple(para[-3:]))
     
     # ResampleInterpolator specific
-    f.writeline('(ResampleInterpolator "FinalBSplineInterpolator")')
-    f.writeline('(FinalBSplineInterpolationOrder 3)')
+    f.writelines('(ResampleInterpolator "FinalBSplineInterpolator")')
+    f.writelines('(FinalBSplineInterpolationOrder 3)')
     
     # Resampler specific
-    f.writeline('(Resampler "DefaultResampler")')
-    f.writeline('(DefaultPixelValue 0)')
-    f.writeline('(ResultImagePixelType "float")')
-    f.writeline('(ResultImageFormat "mhd")')
+    f.writelines('(Resampler "DefaultResampler")')
+    f.writelines('(DefaultPixelValue 0)')
+    f.writelines('(ResultImagePixelType "float")')
+    f.writelines('(ResultImageFormat "mhd")')
     
     f.close()

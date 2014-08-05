@@ -432,15 +432,15 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
     return new_trans_points, result_center_points
     
 def applyTransformForPoints(points, moving_res, fixed_res, R, T, C = npy.asmatrix([0, 0, 0]).T):
-    points *= moving_res[:3]
-    points -= C.T
+    points[:, :3] *= moving_res[:3]
+    points[:, :3] -= C.T
     if T.shape[1] == 1:
         TT = ml.ones((points.shape[0], 1)) * T.T
     else:
         TT = T
-    temp = ml.mat(points) * R + TT + ml.ones((points.shape[0], 1)) * C.T
-    points = temp
-    points /= fixed_res[:3]
+    temp = ml.mat(points[:, :3]) * R + TT + ml.ones((points.shape[0], 1)) * C.T
+    points[:, :3] = temp
+    points[:, :3] /= fixed_res[:3]
     return points
 def isDifferent(p1, p2):
     if p1[-1] != p2[-1]:
