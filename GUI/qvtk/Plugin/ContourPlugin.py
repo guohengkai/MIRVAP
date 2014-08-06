@@ -240,9 +240,76 @@ class ContourPlugin(PluginBase):
             for i in range(point_array.shape[0]):
                 self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[ind[i], :].tolist())
             '''
+            point = point_array.copy()
+            n = point.shape[0]
+            for i in range(n):
+                point[i, 2] = i
+            label = npy.zeros(n, dtype = npy.uint8)
+            for i in range(n - 1):
+                for j in range(i + 1, n):
+                    # Select two points to seperate the pointset
+                    point_x = point[i, :]
+                    point_y = point[j, :]
 
-            
-            self.parent.render_window.Render()
+                    for k in range(n):
+                        if k == i or k == j:
+                            label[k] = 2
+                        else:
+                            point_z = point[k, :]
+                            result = (point_x[0] - point_z[0]) * (point_y[1] - point_z[1]) - (point_x[1] - point_z[1]) * (point_y[0] - point_z[0])
+                            if result >= 0:
+                                label[k] = 1
+                            else:
+                                label[k] = 0
+                    ind_up = npy.where(label >= 0)
+                    ind_down = npy.where(label != 1)
+                    points_up = point[ind_up]
+                    points_down = point[ind_down]
+
+                    # Sort for each sub-pointset
+                    core = points_up[:, :3].mean(axis = 0)
+                    points_up[:, :3] -= core
+                    angle = npy.arctan2(points_up[:, 1], points_up[:, 0])
+                    ind = angle.argsort()
+                    ind_up = points_up[ind]
+                    i_ind_up = npy.where(points_up[:, 2] == i)[0]
+                    j_ind_up = npy.where(points_up[:, 2] == j)[0]
+                    if npy.abs(i_ind_up - j_ind_up) != 1 and npy.abs(i_ind_up - j_ind_up) != points_up.shape[0] - 1:
+                        continue
+
+                    core = points_down[:, :3].mean(axis = 0)
+                    points_down[:, :3] -= core
+                    angle = npy.arctan2(points_down[:, 1], points_down[:, 0])
+                    ind = angle.argsort()
+                    ind_down = points_down[ind]
+                    i_ind_down = npy.where(points_down[:, 2] == i)[0]
+                    j_ind_down = npy.where(points_down[:, 2] == j)[0]
+                    if npy.abs(i_ind_down - j_ind_down) != 1 and npy.abs(i_ind_down - j_ind_down) != points_down.shape[0] - 1:
+                        continue
+
+                    # Merge the sort results
+                    start_up = j_ind_up
+                    start_down = i_ind_down
+                    if i_ind_up < j_ind_up or (j_ind_up == 0 and i_ind_up > j_ind_up):
+                        delta_up = 1
+                    else:
+                        delta_up = -1
+                    if i_ind_down < j_ind_down or (j_ind_up == 0 and i_ind_up > j_ind_up):
+                        delta_down = -1
+                    else:
+                        delta_down = 1
+
+                    i = 0
+                    while start_up != i_ind_up:
+                        self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[points_up[start_up, 2], :].tolist())
+                        i += 1
+                        start_up += delta_up
+                    while start_down != j_ind_down:
+                        self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[points_down[start_down, 2], :].tolist())
+                        i += 1
+                        start_down += delta_down
+
+                    self.parent.render_window.Render()
             return
         if ch in ['1', '2', '3']:
             temp = int(ch) - 1

@@ -62,6 +62,7 @@ class NonrigidHybridRegistration(RegistrationBase):
         T_init = T0 * T1
         moving_points = points['Contour'].copy()
         moving_points_cen_result = points['Centerline'].copy()
+        del new_movingData
         
         # Use GMMREG for centerline-based TPS registration
         new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
@@ -70,6 +71,8 @@ class NonrigidHybridRegistration(RegistrationBase):
         result_points_cen = points['Centerline'].copy()
         result_points_cen[:, :3] *= fixed_res
         moving_points_cen_result[:, :3] *= fixed_res
+        del new_movingData
+        del new_fixedData
         
         # Save the images for Elastix registration
         ee.writeImageFile(fixedData, "fix")
@@ -77,11 +80,13 @@ class NonrigidHybridRegistration(RegistrationBase):
         mov_img = movingData.getData().copy()
         fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
         mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
-        fix_binary_data = db.BasicData(fix_binary_mask.copy(), db.ImageInfo(fixedData.getInfo().data))
-        mov_binary_data = db.BasicData(mov_binary_mask.copy(), db.ImageInfo(movingData.getInfo().data))
+        fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
+        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         print npy.sum(fix_binary_data)
         ee.writeImageFile(fix_binary_data, "fixm")
+        del fix_binary_data
         ee.writeImageFile(mov_binary_data, "movm")
+        del mov_binary_data
         #resultImage = eutil.getMaskFromCenterline(image, fixed_points_cen, fixed_res)
         
         # Save Elastix registration configuration

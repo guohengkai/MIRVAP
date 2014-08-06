@@ -309,6 +309,9 @@ def saveRawData(dir, datamodel, index):
     writer.SetFileName(dir + '.mhd')
     writer.SetRAWFileName(dir + '.raw')
     writer.Write()
+
+    del image
+    del itk_vtk_converter
     
 def loadRawData(dir, image_type = None):
     if image_type == None:
