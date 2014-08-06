@@ -15,6 +15,7 @@ Test/Data
 *.ini
 *.xls
 *.xlsx
+*.log
 
 *.mhd
 *.raw

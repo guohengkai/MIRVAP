@@ -20,8 +20,7 @@ def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd
     if type == "elastix":
         cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s" -fMask "%s" -mMask "%s"' % \
             (gen_path + exe, gen_path + fix, gen_path + mov, gen_path + outDir, 
-            gen_path + para, gen_path + fixp, gen_path + movp, gen_path + tp, 
-            gen_path + fixm, gen_path + movm)
+            gen_path + fixp, gen_path + movp, gen_path + tp, gen_path + fixm, gen_path + movm)
         for p in para:
             cmd += ' -p "%s"' % (gen_path + p)
     elif type == "transformix":
@@ -35,7 +34,7 @@ def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd
             (gen_path + exe, input_type, gen_path + mov, gen_path + outDir, gen_path + tp)
     else:
         return -1
-    print cmd
+    #print cmd
     return subprocess.call(cmd, shell = True)
 
 def get_exe_path():
@@ -56,7 +55,7 @@ def readImageFile(file_name):
 def writePointsetFile(pointset, file_name = "point.txt"):
     f = open(get_exe_path() + "/" + file_name, 'w')
     f.write('point' + '\n')
-    f.write(pointset.shape[0] + '\n')
+    f.write('%d\n' % pointset.shape[0])
     for point in pointset:
         f.write("%f %f %f" % tuple(point[:3]) + '\n')
     f.close()
@@ -103,7 +102,7 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     f.write('(UseDirectionCosines "false")' + '\n')
     
     # Main Components
-    f.write('(Registration "MultiResolutionRegistration")' + '\n')
+    f.write('(Registration "MultiMetricMultiResolutionRegistration")' + '\n')
     f.write('(Interpolator "BSplineInterpolator")' + '\n')
     f.write('(ResampleInterpolator "FinalBSplineInterpolator")' + '\n')
     f.write('(Resampler "DefaultResampler")' + '\n')
@@ -118,7 +117,7 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     f.write('(Metric1Weight %f)' % w2 + '\n')
     
     # Transformation
-    f.write('(AutomaticTransformInitialization "true")' + '\n')
+    f.write('(AutomaticTransformInitialization "false")' + '\n')
     f.write('(AutomaticScalesEstimation "true")' + '\n')
     f.write('(HowToCombineTransforms "Compose")' + '\n')
     f.write('(FinalGridSpacingInPhysicalUnits %d)' % spacing + '\n')

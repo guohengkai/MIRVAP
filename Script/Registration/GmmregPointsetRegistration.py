@@ -75,6 +75,7 @@ class GmmregPointsetRegistration(RegistrationBase):
             code = eg.run_executable(method = method)
             #print code
             if code != 0:
+                print "GMM Fail!"
                 return None, None, None
         
         trans, para, para2 = eg.get_final_result(methodname = method)
