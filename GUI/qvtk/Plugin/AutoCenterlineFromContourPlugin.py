@@ -4,7 +4,7 @@ Created on 2014-04-04
 
 @author: Hengkai Guo
 """
-import cv
+
 import numpy as npy
 
 from ContourPlugin import ContourPlugin

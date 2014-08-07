@@ -297,6 +297,7 @@ def loadMatData(dir, datamodel):
             info.addData('fix', datamodel.append(BasicData(fixedImage, info1, pointSet1)))
             info.addData('move', datamodel.append(BasicData(movingImage, info2, pointSet2)))
     return image, info, pointSet
+    
 def saveRawData(dir, datamodel, index):
     data = datamodel[index]
     image = data.getITKImage()
@@ -312,6 +313,7 @@ def saveRawData(dir, datamodel, index):
 
     del image
     del itk_vtk_converter
+    del writer
     
 def loadRawData(dir, image_type = None):
     if image_type == None:

@@ -47,7 +47,9 @@ def get_exe_path():
     return path
     
 def writeImageFile(image, file_name):
-    db.saveRawData(get_exe_path() + "/" + file_name, [image], 0)
+    data_model = [image]
+    db.saveRawData(get_exe_path() + "/" + file_name, data_model, 0)
+    del data_model
     
 def readImageFile(file_name):
     return db.readRawData(get_exe_path() + "/" + file_name)
@@ -62,7 +64,8 @@ def writePointsetFile(pointset, file_name = "point.txt"):
     
 def readPointsetFile(file_name):
     f = open(get_exe_path() + "/" + file_name, 'r')
-    
+    # Need to fix, because the format of output pointset is more complicated
+    '''
     s = f.readline() # 'point'
     s = f.readline()
     n = int(s)
@@ -73,7 +76,8 @@ def readPointsetFile(file_name):
         point = s.split(' ')
         pointset[i, :] = map(float, point)
         i += 1
-        
+    '''
+
     f.close()
 
     return pointset

@@ -8,7 +8,7 @@ Created on 2014-04-24
 import numpy as npy
 import numpy.matlib as ml
 import vtk
-from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour, sortContourPoints
 
 def quaternion2rotation(q):
     R = ml.zeros([3, 3], dtype = npy.float32)
@@ -31,14 +31,18 @@ def quaternion2rotation(q):
     return R
 def rotation2angle(R):
     # ZXY
-    xx = npy.arcsin(R[2, 1])
+    #xx = npy.arcsin(R[2, 1])
+    xx = -npy.arcsin(R[2, 0])
     A = npy.cos(xx)
     if npy.abs(A) > 0.00005:
-        yy = npy.arctan2(R[2, 0] / A, R[2, 2] / A)
-        zz = npy.arctan2(R[0, 1] / A, R[1, 1] / A)
+        #yy = npy.arctan2(R[2, 0] / A, R[2, 2] / A)
+        #zz = npy.arctan2(R[0, 1] / A, R[1, 1] / A)
+        yy = npy.arctan2(R[2, 1] / A, R[2, 2] / A)
+        zz = npy.arctan2(R[1, 0] / A, R[0, 0] / A)
     else:
         zz = 0
-        yy = npy.arctan2(R[1, 0], R[0, 0])
+        #yy = npy.arctan2(R[1, 0], R[0, 0])
+        yy = npy.arctan2(R[0, 1], R[0, 2])
     return [xx, yy, zz]
 def angle2rotation(theta):
     # ZXY
@@ -57,15 +61,8 @@ def angle2rotation(theta):
     R = Rz * Rx * Ry
     return R
 def getPointsOntheSpline(data, center, numberOfOutputPoints):
-    if data.shape[0] >= 4:
-        # Sort the pointSet for a convex contour
-        point = npy.delete(data, 2, axis = 1)
-        #core = point.mean(axis = 0)
-        core = center[:2]
-        point[:, :2] -= core
-        angle = npy.arctan2(point[:, 1], point[:, 0])
-        ind = angle.argsort()
-        data[:, :] = data[ind, :]
+    ind = sortContourPoints(data)
+    data[:, :] = data[ind, :]
         
     count = data.shape[0]
     points = vtk.vtkPoints()
@@ -373,16 +370,9 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
                 if data_result.shape[0] == 0:
                     continue
                 
-                center_result = calCentroidFromContour(data_result[:, :2])[0]
-                if data_result.shape[0] >= 4:
-                    # Sort the pointSet for a convex contour
-                    point = npy.delete(data_result, 2, axis = 1)
-                    #core = point.mean(axis = 0)
-                    core = center_result[:2]
-                    point[:, :2] -= core
-                    angle = npy.arctan2(point[:, 1], point[:, 0])
-                    ind = angle.argsort()
-                    data_result[:, :] = data_result[ind, :]
+                ind = util.sortContourPoints(data_result)
+                data_result[:, :] = data_result[ind, :]
+
                 for x in data_result:
                     if isDifferent(new_trans_points[-1, :], x):
                         new_trans_points = npy.append(new_trans_points, x.reshape(1, -1), axis = 0)
@@ -442,6 +432,7 @@ def applyTransformForPoints(points, moving_res, fixed_res, R, T, C = npy.asmatri
     points[:, :3] = temp
     points[:, :3] /= fixed_res[:3]
     return points
+
 def isDifferent(p1, p2):
     if p1[-1] != p2[-1]:
         return True

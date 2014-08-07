@@ -6,6 +6,7 @@ Created on 2014-02-16
 """
 
 from MIRVAP.GUI.qvtk.PluginBase import PluginBase
+import util.PluginUtil as util
 import vtk
 import numpy as npy
 
@@ -107,15 +108,8 @@ class ContourPlugin(PluginBase):
             if point_array[i].shape[0]:
                 result = True
                 
-                if point_array[i].shape[0] >= 4:
-                    
-                    # Sort the pointSet for a convex contour
-                    point = npy.delete(point_array[i], self.parent.view, axis = 1)
-                    core = point.mean(axis = 0)
-                    point -= core
-                    angle = npy.arctan2(point[:, 1], point[:, 0])
-                    ind = angle.argsort()
-                    point_array[i][:, :] = point_array[i][ind, :]
+                ind = util.sortContourPoints(point_array[i])
+                point_array[i][:, :] = point_array[i][ind, :]
                 
                 for row in point_array[i]:
                     space = self.parent.space
@@ -144,16 +138,12 @@ class ContourPlugin(PluginBase):
             space += [1]
         for i in range(3):
             point_array = self.getAllPoint(i) / space
-            # Sort the pointSet for a convex contour
-            if point_array.shape[0] >= 4:
-                point = npy.delete(point_array, self.parent.view, axis = 1)
-                core = point.mean(axis = 0)
-                point -= core
-                angle = npy.arctan2(point[:, 1], point[:, 0])
-                point_array = point_array[angle.argsort()]
-            #print i, point_array
+            
+            ind = util.sortContourPoints(point_array)
+            point_array = point_array[ind]
+            
             self.parent.parent.getData(self.datakey).pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
-        #print self.parent.parent.getData(self.datakey).pointSet.data
+        
     def getAllPoint(self, cnt = -1):
         if cnt == -1:
             cnt = self.currentContour
@@ -195,6 +185,7 @@ class ContourPlugin(PluginBase):
                 self.key = 'Centerline'
             else:
                 self.key = 'Contour'
+
             if self.editable or self.key == 'Centerline':
                 self.contourRep[0].GetProperty().SetOpacity(1)
                 self.contourRep[1].GetProperty().SetOpacity(1)
@@ -203,6 +194,7 @@ class ContourPlugin(PluginBase):
                 self.contourRep[0].GetProperty().SetOpacity(0)
                 self.contourRep[1].GetProperty().SetOpacity(0)
                 self.contourRep[2].GetProperty().SetOpacity(0)
+
             self.parent.updateAfter()
             self.parent.render_window.Render()
             return
@@ -216,6 +208,7 @@ class ContourPlugin(PluginBase):
         if ch == 'c':
             if self.key == 'Centerline':
                 return
+
             if self.contour[self.currentContour]:
                 self.contourRep[self.currentContour].GetLinesProperty().SetOpacity(0)
             else:
@@ -226,118 +219,10 @@ class ContourPlugin(PluginBase):
         if ch == 's':
             if self.key == 'Centerline':
                 return
+
             point_array = self.getAllPoint()
-            if point_array.shape[0] < 4:
-                return
-                
-            # Sort the pointSet for a convex contour
-            if point_array.shape[0] < 8:
-                point = npy.delete(point_array, self.parent.view, axis = 1)
-                core = point.mean(axis = 0)
-                point -= core
-                angle = npy.arctan2(point[:, 1], point[:, 0])
-                ind = angle.argsort()
-                for i in range(point_array.shape[0]):
-                    self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[ind[i], :].tolist())
-                self.parent.render_window.Render()
-                return
-            
-            point = point_array.copy()
-            n = point.shape[0]
-            for i in range(n):
-                point[i, 2] = i
-            label = npy.zeros(n, dtype = npy.uint8)
-            result_ind = npy.zeros(n, dtype = npy.uint8)
-            tmp_ind = npy.zeros(n, dtype = npy.uint8)
-            tmp_diff = npy.zeros([n, 2], dtype = npy.float32)
-            dis = 99999999
-            flag = False
-            for i in range(n - 1):
-                for j in range(i + 1, n):
-                    # Select two points to seperate the pointset
-                    point_x = point[i, :]
-                    point_y = point[j, :]
-                    
-                    t1 = t2 = 0
-                    for k in range(n):
-                        if k == i or k == j:
-                            label[k] = 2
-                        else:
-                            point_z = point[k, :]
-                            result = (point_x[0] - point_z[0]) * (point_y[1] - point_z[1]) - (point_x[1] - point_z[1]) * (point_y[0] - point_z[0])
-                            if result >= 0:
-                                label[k] = 1
-                                t1 += 1
-                            else:
-                                label[k] = 0
-                                t2 += 1
-                    if t1 <= 2 or t2 <= 2:
-                        continue
-                    
-                    ind_up = npy.where(label > 0)
-                    ind_down = npy.where(label != 1)
-                    points_up = point[ind_up]
-                    points_down = point[ind_down]
-
-                    # Sort for each sub-pointset
-                    core = points_up[:, :2].mean(axis = 0)
-                    points_up[:, :2] -= core
-                    angle = npy.arctan2(points_up[:, 1], points_up[:, 0])
-                    ind = angle.argsort()
-                    ind_up = points_up[ind]
-                    i_ind_up = npy.where(ind_up[:, 2] == i)[0][0]
-                    j_ind_up = npy.where(ind_up[:, 2] == j)[0][0]
-                    if npy.abs(i_ind_up - j_ind_up) != 1 and npy.abs(i_ind_up - j_ind_up) != points_up.shape[0] - 1:
-                        continue
-
-                    core = points_down[:, :2].mean(axis = 0)
-                    points_down[:, :2] -= core
-                    angle = npy.arctan2(points_down[:, 1], points_down[:, 0])
-                    ind = angle.argsort()
-                    ind_down = points_down[ind]
-                    i_ind_down = npy.where(ind_down[:, 2] == i)[0][0]
-                    j_ind_down = npy.where(ind_down[:, 2] == j)[0][0]
-                    if npy.abs(i_ind_down - j_ind_down) != 1 and npy.abs(i_ind_down - j_ind_down) != points_down.shape[0] - 1:
-                        continue
-
-                    # Merge the sort results
-                    flag = True
-                    start_up = j_ind_up
-                    start_down = i_ind_down
-                    if (i_ind_up < j_ind_up and j_ind_up - i_ind_up == 1) or (j_ind_up == 0 and i_ind_up - j_ind_up > 1):
-                        delta_up = 1
-                    else:
-                        delta_up = -1
-                    if (i_ind_down < j_ind_down and j_ind_down - i_ind_down == 1) or (j_ind_down == 0 and i_ind_down - j_ind_down > 1):
-                        delta_down = -1
-                    else:
-                        delta_down = 1
-                    
-                    p = 0
-                    m = points_up.shape[0]
-                    while start_up != i_ind_up:
-                        tmp_ind[p] = int(ind_up[start_up, 2])
-                        p += 1
-                        start_up = (start_up + delta_up + m) % m
-                    m = points_down.shape[0]
-                    while start_down != j_ind_down:
-                        tmp_ind[p] = int(ind_down[start_down, 2])
-                        p += 1
-                        start_down = (start_down + delta_down + m) % m
-                    if p != n:
-                        print aaa
-                    tmp_diff[:-1, :] = point_array[tmp_ind[1:], :2] - point_array[tmp_ind[:-1], :2]
-                    tmp_diff[-1, :] = point_array[tmp_ind[0], :2] - point_array[tmp_ind[-1], :2]
-                    tmp_dis = npy.sum(npy.hypot(tmp_diff[:, 0], tmp_diff[:, 1]))
-                    if tmp_dis < dis:
-                        dis = tmp_dis
-                        result_ind = tmp_ind.copy()
-                    
-
-            if not flag:
-                return
-                
-            for i in range(n):
+            result_ind = util.sortContourPoints(point_array)
+            for i in range(point_array.shape[0]):
                 self.contourRep[self.currentContour].SetNthNodeWorldPosition(i, point_array[result_ind[i], :].tolist())
             self.parent.render_window.Render()
             

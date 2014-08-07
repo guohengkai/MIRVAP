@@ -23,7 +23,7 @@ class NonrigidHybridRegistration(RegistrationBase):
     def getName(self):
         return 'Nonrigid Hybrid Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, spacing = 20, w1 = 1.0, w2 = 1.0):
+    def register(self, fixedData, movingData, spacing = 20, w1 = 1.0, w2 = 1.0, type = "SSD"): # Type can be SSD or MI or CR
         # Initial data
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -37,8 +37,10 @@ class NonrigidHybridRegistration(RegistrationBase):
         moving_points_ori = moving_points.copy()[npy.where(moving_points[:, 0] >= 0)]
         fixed_points = fixed_points_ori.copy()
         moving_points = moving_points_ori.copy()
-        fixed_points_cen = fixed_points_cen.copy()[npy.where(fixed_points_cen[:, 0] >= 0)]
-        moving_points_cen = moving_points_cen.copy()[npy.where(moving_points_cen[:, 0] >= 0)]
+        fixed_points_cen_ori = fixed_points_cen.copy()[npy.where(fixed_points_cen[:, 0] >= 0)]
+        moving_points_cen_ori = moving_points_cen.copy()[npy.where(moving_points_cen[:, 0] >= 0)]
+        fixed_points_cen = fixed_points_cen_ori.copy()
+        moving_points_cen = moving_points_cen_ori.copy()
         
         fix_img = fixedData.getData().copy()
         mov_img = movingData.getData().copy()
@@ -78,28 +80,43 @@ class NonrigidHybridRegistration(RegistrationBase):
         # Save the images for Elastix registration
         #ee.writeImageFile(fixedData, "fix")
         #ee.writeImageFile(movingData, "mov")
-        mov_img = movingData.getData().copy()
-        fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
-        mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
-        fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
-        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
-        print npy.sum(fix_binary_data)
+        if type == "SSD":
+            mov_img = movingData.getData().copy()
+            fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
+            mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
+            fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
+            mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
+            #ee.writeImageFile(fix_binary_data, "fixm")
+            del fix_binary_data
+            del fix_binary_mask
+            #ee.writeImageFile(mov_binary_data, "movm")
+            del mov_binary_data
+            del mov_binary_mask
+        else:
+            mov_img = movingData.getData().copy()
+            fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_cen_ori, fixed_res)
+            mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_cen_ori, moving_res)
+            fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
+            mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
+            
         #ee.writeImageFile(fix_binary_data, "fixm")
         del fix_binary_data
+        del fix_binary_mask
         #ee.writeImageFile(mov_binary_data, "movm")
         del mov_binary_data
-        #resultImage = eutil.getMaskFromCenterline(image, fixed_points_cen, fixed_res)
+        del mov_binary_mask
         
         # Save Elastix registration configuration
         tmp = moving_points_cen.copy()
         tmp[:, :3] *= moving_res
         ee.writePointsetFile(tmp, "movp.txt")
         ee.writePointsetFile(result_points_cen, "fixp.txt")
-        ee.writeParameterFile("para_rigid.txt", "rigid", "SSD", spacing, w1, w2)
-        ee.writeParameterFile("para_spline.txt", "bspline", "SSD", spacing, w1, w2)
+        ee.writeParameterFile("para_rigid.txt", "rigid", type, spacing, w1, w2)
+        ee.writeParameterFile("para_spline.txt", "bspline", type, spacing, w1, w2)
         init_para = eutil.getElastixParaFromMatrix(T_init)
         ee.writeTransformFile(init_para, fix_img.shape, fixed_res)
         #print aaa
+
         # Use Elastix for hybrid registration
         code = ee.run_executable(type = "elastix", para = ["para_rigid.txt", "para_spline.txt"])
         if code != 0:
