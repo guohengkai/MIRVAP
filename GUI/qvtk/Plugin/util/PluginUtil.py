@@ -26,6 +26,10 @@ def calCenterlineFromContour(data):
             if data is not None:
                 if data.shape[0] == 0:
                     continue
+                
+                ind = sortContourPoints(data)
+                data = data[ind]
+                
                 current_center = calCentroidFromContour(data[:, :2])
                 current_center = npy.append(current_center, [[i, cnt]], axis = 1)
                 center_data = npy.append(center_data, current_center, axis = 0)
@@ -86,7 +90,7 @@ def sortContourPoints(point_array): # Input: 3D pointset array
     n = point_array.shape[0]
     if n < 4:
         return npy.arange(n, dtype = npy.uint8)
-    elif n < 8: # Sort the pointSet for a convex contour
+    elif n < 12: # Sort the pointSet for a convex contour
         return sortConvexContourPoints(npy.delete(point_array[:, :3], 2, axis = 1))
     else:
         point = point_array[:, :3].copy()
@@ -177,4 +181,4 @@ def sortContourPoints(point_array): # Input: 3D pointset array
         if not flag: # Can't find the solution (Abnormal)
             return npy.arange(n, dtype = npy.uint8)
 
-        return result_ind[i]
+        return result_ind

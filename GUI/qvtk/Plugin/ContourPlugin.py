@@ -108,8 +108,9 @@ class ContourPlugin(PluginBase):
             if point_array[i].shape[0]:
                 result = True
                 
-                ind = util.sortContourPoints(point_array[i])
-                point_array[i][:, :] = point_array[i][ind, :]
+                # Comment them for a more efficient view
+                #ind = util.sortContourPoints(point_array[i])
+                #point_array[i] = point_array[i][ind]
                 
                 for row in point_array[i]:
                     space = self.parent.space
@@ -139,8 +140,9 @@ class ContourPlugin(PluginBase):
         for i in range(3):
             point_array = self.getAllPoint(i) / space
             
-            ind = util.sortContourPoints(point_array)
-            point_array = point_array[ind]
+            # Comment them for a more efficient view
+            #ind = util.sortContourPoints(point_array)
+            #point_array = point_array[ind]
             
             self.parent.parent.getData(self.datakey).pointSet.setSlicePoint(self.key, point_array, view, slice - 1, i)
         

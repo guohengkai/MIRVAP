@@ -14,6 +14,7 @@ import SimpleITK as sitk
 import itk, vtk
 import scipy.io as sio
 import copy as cp
+import os
 
 class ImageInfo(DataBase):
     def __init__(self, data = None):
@@ -325,8 +326,27 @@ def loadRawData(dir, image_type = None):
     
     vtk_itk_converter = itk.VTKImageToImageFilter[image_type].New()
     vtk_itk_converter.SetInput(reader.GetOutput())
+    vtk_itk_converter.Update()
     
-    return itk.PyBuffer[image_type].GetArrayFromImage(vtk_itk_converter.GetOutput()).copy()
+    image = vtk_itk_converter.GetOutput()
+    spacing = npy.array([0.0, 0, 0])
+    spacing[:3] = image.GetSpacing()
+    
+    # Set image information
+    orientation = [1, 0, 0, 0, 1, 0]
+    modality = 'Unknown'
+    name = os.path.basename(dir)[:-len(os.path.splitext(dir)[1])]
+    
+    info = ImageInfo({'modality': modality, 'resolution': spacing[::-1], 
+        'orientation': orientation, 'name': name})
+    
+    view, flip = getViewAndFlipFromOrientation(orientation, 3)
+    info.addData('view', view)
+    info.addData('flip', flip)
+    
+    pointset = {}
+    
+    return itk.PyBuffer[image_type].GetArrayFromImage(image).copy(), info, pointset
     
 def saveMatData(dir, datamodel, index):
     data = datamodel[index]
@@ -417,6 +437,6 @@ if __name__ == "__main__":
     #basic = BasicData()
     dir = "D:\\Python src\\MIRVAP\\Data\\US_37_Left_con.mhd"
     image_type = itk.Image[itk.F, 3]
-    data = loadRawData(dir, image_type)
+    data, info, pointset = loadRawData(dir, image_type)
     print data.shape
     print data

@@ -13,16 +13,18 @@ import MIRVAP.Core.DataBase as db
 
 # elastix or transformix
 def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd", fixm = "fixm.mhd", movm = "movm.mhd", 
-        fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt"):
+        fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt", mask = True):
     if exe is None:
         exe = "%s.exe" % type
     gen_path = get_exe_path() + "/"
     if type == "elastix":
-        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s" -fMask "%s" -mMask "%s"' % \
+        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s"' % \
             (gen_path + exe, gen_path + fix, gen_path + mov, gen_path + outDir, 
-            gen_path + fixp, gen_path + movp, gen_path + tp, gen_path + fixm, gen_path + movm)
+            gen_path + fixp, gen_path + movp, gen_path + tp)
         for p in para:
             cmd += ' -p "%s"' % (gen_path + p)
+        if mask:
+            cmd += ' -fMask "%s" -mMask "%s"' % (gen_path + fixm, gen_path + movm)
     elif type == "transformix":
         if mov[-3:] == 'mhd':
             input_type = "in"
@@ -165,7 +167,7 @@ def writeTransformFile(para, size, spacing, file_name = "transpara.txt"):
     f.write('(MovingImageDimension 3)' + '\n')
     f.write('(FixedInternalImagePixelType "float")' + '\n')
     f.write('(MovingInternalImagePixelType "float")' + '\n')
-    f.write('(Size %d %d %d)' % tuple(size) + '\n')
+    f.write('(Size %d %d %d)' % tuple(size[::-1]) + '\n')
     f.write('(Index 0 0)' + '\n')
     f.write('(Spacing %f %f %f)' % tuple(spacing) + '\n')
     f.write('(Origin 0.0000000000 0.0000000000)' + '\n')

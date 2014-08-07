@@ -10,6 +10,7 @@ import numpy.matlib as ml
 import vtk
 from MIRVAP.GUI.qvtk.Plugin.util.acontour.ac_function import ac_mask
 import MIRVAP.Script.Registration.util.RegistrationUtil as util
+from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import sortContourPoints
 import MIRVAP.Core.DataBase as db
 
 def getMaskFromCenterline(image, pointset, spacing, radius = 10):
@@ -55,6 +56,10 @@ def getBinaryImageFromSegmentation(image, pointset):
             if data_point is not None:
                 if data_point.shape[0] == 0:
                     continue
+                
+                ind = sortContourPoints(data_point)
+                data_point = data_point[ind]
+                
                 data_point = data_point[:, :2].transpose()
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point, image_size).transpose()
                         
@@ -139,7 +144,6 @@ def applyRigidTransformOnPoints(points, res, T): # Y = XT
     return result_points
     
 def getMatrixFromGmmPara(para):
-    print len(para)
     R = ml.mat(para[:9]).reshape(3, 3)
     T0 = ml.mat(para[9:12]).T
     if len(para) > 12:
@@ -161,8 +165,6 @@ def getElastixParaFromMatrix(T):
 
     para[:3] = util.rotation2angle(T[:3, :3])
     para[3:6] = T[-1, :3]
-    #para[:3] = util.rotation2angle(T[:3, :3].I)
-    #para[3:6] = (-T[:3, :3].I * T[-1, :3].T).flatten()
     
     return para # The center can be always set to zeros
 

@@ -31,18 +31,15 @@ def quaternion2rotation(q):
     return R
 def rotation2angle(R):
     # ZXY
-    #xx = npy.arcsin(R[2, 1])
-    xx = -npy.arcsin(R[2, 0])
+    xx = npy.arcsin(R[1, 2])
     A = npy.cos(xx)
     if npy.abs(A) > 0.00005:
-        #yy = npy.arctan2(R[2, 0] / A, R[2, 2] / A)
-        #zz = npy.arctan2(R[0, 1] / A, R[1, 1] / A)
-        yy = npy.arctan2(R[2, 1] / A, R[2, 2] / A)
-        zz = npy.arctan2(R[1, 0] / A, R[0, 0] / A)
+        yy = npy.arctan2(-R[0, 2] / A, R[2, 2] / A)
+        zz = npy.arctan2(-R[1, 0] / A, R[1, 1] / A)
     else:
         zz = 0
-        #yy = npy.arctan2(R[1, 0], R[0, 0])
-        yy = npy.arctan2(R[0, 1], R[0, 2])
+        yy = npy.arctan2(R[0, 1], R[0, 0])
+    
     return [xx, yy, zz]
 def angle2rotation(theta):
     # ZXY
@@ -54,11 +51,11 @@ def angle2rotation(theta):
     cz = npy.cos(zz)
     sz = npy.sin(zz)
     
-    Rx = ml.mat([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
-    Ry = ml.mat([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
-    Rz = ml.mat([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+    Rx = ml.mat([[1, 0, 0], [0, cx, sx], [0, -sx, cx]])
+    Ry = ml.mat([[cy, 0, -sy], [0, 1, 0], [sy, 0, cy]])
+    Rz = ml.mat([[cz, sz, 0], [-sz, cz, 0], [0, 0, 1]])
     
-    R = Rz * Rx * Ry
+    R = Ry * Rx * Rz
     return R
 def getPointsOntheSpline(data, center, numberOfOutputPoints):
     ind = sortContourPoints(data)
@@ -370,7 +367,7 @@ def resliceTheResultPoints(moving_points, moving_center, nn, moving_res, fixed_r
                 if data_result.shape[0] == 0:
                     continue
                 
-                ind = util.sortContourPoints(data_result)
+                ind = sortContourPoints(data_result)
                 data_result[:, :] = data_result[ind, :]
 
                 for x in data_result:
