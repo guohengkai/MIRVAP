@@ -88,16 +88,15 @@ class NonrigidHybridRegistration(RegistrationBase):
             mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
             useMask = False
             fixn = "fixm.mhd"
-            movn = "movm.mhd"
         else:
             mov_img = movingData.getData().copy()
-            fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_cen_ori, fixed_res)
-            mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_cen_ori, moving_res)
+            fix_binary_mask = eutil.getMaskFromCenterline(fix_img, fixed_points_cen_ori, fixed_res)
+            mov_binary_mask = eutil.getMaskFromCenterline(mov_img, moving_points_cen_ori, moving_res)
             fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
             mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
             useMask = True
             fixn = "fix.mhd"
-            movn = "mov.mhd"
+            
             
         ee.writeImageFile(fix_binary_data, "fixm")
         del fix_binary_data
@@ -113,31 +112,54 @@ class NonrigidHybridRegistration(RegistrationBase):
         ee.writePointsetFile(result_points_cen, "fixp.txt")
         ee.writeParameterFile("para_rigid.txt", "rigid", type, spacing, w1, w2)
         ee.writeParameterFile("para_spline.txt", "bspline", type, spacing, w1, w2)
-        init_para = eutil.getElastixParaFromMatrix(T_init.I)
-        ee.writeTransformFile(init_para, mov_img.shape, moving_res)
-        #ee.writeTransformFile(init_para, fix_img.shape, fixed_res)
+        init_para_inv = eutil.getElastixParaFromMatrix(T_init.I)
+        ee.writeTransformFile(init_para_inv, fix_img.shape, fixed_res, type = type) # For transformation of image
+        init_para = eutil.getElastixParaFromMatrix(T_init)
+        ee.writeTransformFile(init_para, fix_img.shape, fixed_res, "transpara2.txt") # For transformation of points
+        
+        # Apply the initial transformation (It seems -t0 didn't work in Elastix)
+        ee.run_executable(type = "transformix", mov = "movp.txt", tp = "transpara2.txt")
+        ee.writePointsetFileFromResult("Output/outputpoints.txt", "movp0.txt")
+        
+        if type == "SSD":
+            ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transpara.txt")
+        else:
+            ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transpara.txt", outDir = "")
+            ee.run_executable(type = "transformix", mov = "mov.mhd", tp = "transpara.txt")
 
         # Use Elastix for hybrid registration
-        code = ee.run_executable(type = "elastix", para = ["para_rigid.txt", "para_spline.txt"], fix = fixn, mov = movn, mask = useMask)
+        code = ee.run_executable(type = "elastix", para = ["para_rigid.txt", "para_spline.txt"], 
+            fix = fixn, mov = "Output/result.mhd", movm = "result.mhd", movp = "movp0.txt", mask = useMask)
         if code != 0:
             print "Elastix error!"
             return None, None, None
             
         # Read the output files into self data formats
-        result_img = ee.readImageFile("Output/result.1.mhd")
+        if type == "SSD":
+            ee.run_executable(type = "transformix", mov = "mov.mhd", tp = "transpara.txt") # Transform the moving image using initial transformation
+            ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.0.txt") # Transform the moving image using rigid transformation
+            ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+            result_img = ee.readImageFile("Output/result.mhd")
+        else:
+            result_img = ee.readImageFile("Output/result.1.mhd")
+        '''
         tmp = moving_points_ori.copy()
         tmp[:, :3] *= moving_res
         ee.writePointsetFile(tmp, "mov.txt")
-        ee.run_executable(type = "transformix", mov = "mov.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
+        ee.run_executable(type = "transformix", mov = "mov.txt", tp = "transpara2.txt") # Transform the moving segmentation result using initial transformation
+        # Need the inverse transformation?
+        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
         ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
         result_con = ee.readPointsetFile("Output/outputpoints.txt")
         result_con[:, :3] /= fixed_res
         
         ee.writePointsetFile(moving_points_cen_result, "movc.txt")
-        ee.run_executable(type = "transformix", mov = "movc.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving centerline using rigid transformation
+        ee.run_executable(type = "transformix", mov = "movc.txt", tp = "transpara2.txt") # Transform the moving centerline result using initial transformation
+        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving centerline using rigid transformation
         ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
         result_cen = ee.readPointsetFile("Output/outputpoints.txt")
         result_cen[:, :3] /= fixed_res
-        
-        return result_img, {'Contour': result_con, 'Centerline': result_cen}, [0, 0, 0]
+        '''
+        #return result_img, {'Contour': result_con, 'Centerline': result_cen}, [0, 0, 0]
+        return result_img, {}, [0, 0, 0]
         

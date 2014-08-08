@@ -6,6 +6,7 @@ Created on 2014-08-03
 """
 
 import sys, os
+import re
 import subprocess
 import ConfigParser
 import numpy as npy
@@ -13,18 +14,20 @@ import MIRVAP.Core.DataBase as db
 
 # elastix or transformix
 def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd", fixm = "fixm.mhd", movm = "movm.mhd", 
-        fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt", mask = True):
+        fixp = "fixp.txt", movp = "movp.txt", outDir = "Output/", para = ["para.txt"], tp = "transpara.txt", mask = True, init = False):
     if exe is None:
         exe = "%s.exe" % type
     gen_path = get_exe_path() + "/"
     if type == "elastix":
-        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s" -t0 "%s"' % \
+        cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s"' % \
             (gen_path + exe, gen_path + fix, gen_path + mov, gen_path + outDir, 
-            gen_path + fixp, gen_path + movp, gen_path + tp)
+            gen_path + fixp, gen_path + movp)
         for p in para:
             cmd += ' -p "%s"' % (gen_path + p)
         if mask:
             cmd += ' -fMask "%s" -mMask "%s"' % (gen_path + fixm, gen_path + movm)
+        if init:
+            cmd += ' -t0 "%s"' % (gen_path + tp)
     elif type == "transformix":
         if mov[-3:] == 'mhd':
             input_type = "in"
@@ -54,7 +57,8 @@ def writeImageFile(image, file_name):
     del data_model
     
 def readImageFile(file_name):
-    return db.readRawData(get_exe_path() + "/" + file_name)
+    image, info, point = db.loadRawData(get_exe_path() + "/" + file_name)
+    return image
     
 def writePointsetFile(pointset, file_name = "point.txt"):
     f = open(get_exe_path() + "/" + file_name, 'w')
@@ -66,20 +70,17 @@ def writePointsetFile(pointset, file_name = "point.txt"):
     
 def readPointsetFile(file_name):
     f = open(get_exe_path() + "/" + file_name, 'r')
-    # Need to fix, because the format of output pointset is more complicated
-    '''
-    s = f.readline() # 'point'
-    s = f.readline()
-    n = int(s)
-
+    
+    lines = f.readlines()
+    n = len(lines)
     pointset = npy.zeros([n, 3], dtype = npy.float32)
+    pattern = "OutputPoint = \\[ (.*?) (.*?) (.*?) \\]"
+    prog = re.compile(pattern)
     i = 0
-    for s in f.readlines():
-        point = s.split(' ')
-        pointset[i, :] = map(float, point)
+    for line in lines:
+        result = prog.findall(line)
+        pointset[i, :] = [float(result[0][0]), float(result[0][1]), float(result[0][2])]
         i += 1
-    '''
-
     f.close()
 
     return pointset
@@ -153,7 +154,12 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     
     f.close()
     
-def writeTransformFile(para, size, spacing, file_name = "transpara.txt"):
+def writeTransformFile(para, size, spacing, file_name = "transpara.txt", type = "SSD"):
+    if type == "SSD":
+        spline_order = 0
+    else:
+        spline_order = 3
+        
     f = open(get_exe_path() + "/" + file_name, "w")
     
     f.write('(Transform "EulerTransform")' + '\n')
@@ -177,7 +183,7 @@ def writeTransformFile(para, size, spacing, file_name = "transpara.txt"):
     
     # ResampleInterpolator specific
     f.write('(ResampleInterpolator "FinalBSplineInterpolator")' + '\n')
-    f.write('(FinalBSplineInterpolationOrder 3)' + '\n')
+    f.write('(FinalBSplineInterpolationOrder %d)' % spline_order + '\n')
     
     # Resampler specific
     f.write('(Resampler "DefaultResampler")' + '\n')
@@ -186,3 +192,51 @@ def writeTransformFile(para, size, spacing, file_name = "transpara.txt"):
     f.write('(ResultImageFormat "mhd")' + '\n')
     
     f.close()
+
+def writePointsetFileFromResult(input, output):
+    writePointsetFile(readPointsetFile(input), output)
+
+def changeOutputBSplineOrder(file_name, order = 0):
+    f = open(get_exe_path() + "/" + file_name, "w")
+    # TO BE DONE
+    
+    f.close()
+def getTransformName(file_name):
+    # TO BE DONE
+    return name
+
+def generateInverseTransformFile(file_name, fix_img_name):
+    # Write temporary parameter files
+    f = open(get_exe_path() + "/tmp_para.txt", "w")
+    f.write('(FixedInternalImagePixelType "float")' + '\n')
+    f.write('(MovingInternalImagePixelType "float")' + '\n')
+    f.write('(UseDirectionCosines "false")' + '\n')
+    f.write('(Registration "MultiResolutionRegistration")' + '\n')
+    f.write('(Interpolator "BSplineInterpolator")' + '\n')
+    f.write('(ResampleInterpolator "FinalBSplineInterpolator")' + '\n')
+    f.write('(Resampler "DefaultResampler")' + '\n')
+    f.write('(FixedImagePyramid "FixedRecursiveImagePyramid")' + '\n')
+    f.write('(MovingImagePyramid "MovingRecursiveImagePyramid")' + '\n')
+    f.write('(Optimizer "AdaptiveStochasticGradientDescent")' + '\n')
+    f.write('(Transform "%s")' % getTransformName(file_name) + '\n')
+    f.write('(Metric "DisplacementMagnitudePenalty")' + '\n')
+    f.write('(AutomaticTransformInitialization "false")' + '\n')
+    f.write('(AutomaticScalesEstimation "true")' + '\n')
+    f.write('(HowToCombineTransforms "Compose")' + '\n')
+    f.write('(FinalGridSpacingInPhysicalUnits %d)' % spacing + '\n')
+    f.write('(NumberOfResolutions 4)' + '\n')
+    f.write('(MaximumNumberOfIterations 2000)' + '\n')
+    f.write('(NumberOfSpatialSamples 2000)' + '\n')
+    f.write('(NewSamplesEveryIteration "true")' + '\n')
+    f.write('(ImageSampler "Random")' + '\n')
+    f.write('(BSplineInterpolationOrder 1)' + '\n')
+    f.write('(FinalBSplineInterpolationOrder 3)' + '\n')
+    f.write('(DefaultPixelValue 0)' + '\n')
+    f.write('(WriteResultImage "false")' + '\n')
+    f.close()
+    
+    # Use registration to get the inverse transformation
+    run_executable(type = "elastix", fix = fix_img_name, mov = fix_img_name, outDir = "", para = ["tmp_para.txt"], tp = file_name, mask = False, init = True)
+    
+    # Return the transformation name
+    return "TransformParameters.0.txt"

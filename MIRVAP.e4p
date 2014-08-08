@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-08-04, 00:07:14 -->
+<!-- Saved: 2014-08-08, 00:48:05 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -135,6 +135,7 @@
     <Source>Script/Registration/util/Hybrid/GmmregUtil.py</Source>
     <Source>Script/Registration/util/Hybrid/ElastixUtil.py</Source>
     <Source>Script/Registration/NonrigidHybridRegistration.py</Source>
+    <Source>Script/Load/LoadRawFile.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>
