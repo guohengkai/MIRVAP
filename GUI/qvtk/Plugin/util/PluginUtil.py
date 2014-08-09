@@ -9,9 +9,10 @@ import numpy as npy
 import cv2, cv
 from MIRVAP.GUI.qvtk.Plugin.util.acontour.ac_function import ac_mask
 
-def calCenterlineFromContour(data, func = None, image = None):
-    if func is None:
-        func = calCentroidFromContour
+def calCenterlineFromContour(data, type = 0, image = None):
+    funcs = [calCentroidFromContour, calIntensityCentroidFromContour, calCenterFromContour]
+    func = funcs[type]
+    
     # Get the input information (begin, end, bifurcation)
     point_data_result = npy.array(data['Contour'])
     center_data = npy.array([[-1, -1, -1, -1]])

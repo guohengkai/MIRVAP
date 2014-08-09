@@ -109,6 +109,10 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     else:
         return
     
+    if w1 < 0:
+        w1 = 1.0
+        w2 = 0
+        
     f = open(get_exe_path() + "/" + file_name, "w")
     
     f.write('(FixedInternalImagePixelType "float")' + '\n')
@@ -279,3 +283,11 @@ def generateInverseTransformFile(file_name, fix_img_name, new_file_name = None):
         new_file_name = file_name[:-4] + "_inv.txt"
     #copyFile("TransformParameters.0.txt", new_file_name)
     changeOutputInitTransform("TransformParameters.0.txt")
+
+def renameImage(file_name, new_file_name):
+    dir = get_exe_path() + "/"
+    os.rename(dir + file_name + ".mhd", dir + new_file_name + ".mhd")
+    os.rename(dir + file_name + ".raw", dir + new_file_name + ".raw")
+    
+    pattern = "(?<=ElementDataFile = )(.*?)(?=\\.raw)"
+    changeOuputParameter(new_file_name + ".mhd", pattern, new_file_name)
