@@ -47,6 +47,7 @@ def get_exe_path():
     if os.path.isfile(path):
         path = os.path.dirname(path)
         
+    path = path.replace("\\", "/")
     path += '/ThirdParty/Elastix'
     #print path
     return path
@@ -95,10 +96,16 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
         
     if metric_type == "MI":
         metric = "AdvancedMattesMutualInformation"
+        order = 3
+        in_order = 1
     elif metric_type == "CR":
         metric = "AdvancedNormalizedCorrelation"
+        order = 3
+        in_order = 1
     elif metric_type == "SSD":
         metric = "AdvancedMeanSquares"
+        order = 0
+        in_order = 0
     else:
         return
     
@@ -145,8 +152,8 @@ def writeParameterFile(file_name = "para.txt", trans_type = "rigid", metric_type
     f.write('(ImageSampler "Random")' + '\n')
     
     # Interpolation and Resampling
-    f.write('(BSplineInterpolationOrder 1)' + '\n')
-    f.write('(FinalBSplineInterpolationOrder 3)' + '\n')
+    f.write('(BSplineInterpolationOrder %d)' % in_order + '\n')
+    f.write('(FinalBSplineInterpolationOrder %d)' % order + '\n')
     f.write('(DefaultPixelValue 0)' + '\n')
     f.write('(WriteResultImage "true")' + '\n')
     f.write('(ResultImagePixelType "float")' + '\n')
@@ -196,16 +203,47 @@ def writeTransformFile(para, size, spacing, file_name = "transpara.txt", type = 
 def writePointsetFileFromResult(input, output):
     writePointsetFile(readPointsetFile(input), output)
 
-def changeOutputBSplineOrder(file_name, order = 0):
-    f = open(get_exe_path() + "/" + file_name, "w")
-    # TO BE DONE
+def changeOuputParameter(file_name, pattern, new):
+    fin = open(get_exe_path() + "/" + file_name, "r")
+    lines = fin.readlines()
+    fin.close()
     
-    f.close()
-def getTransformName(file_name):
-    # TO BE DONE
-    return name
+    fout = open(get_exe_path() + "/" + file_name, "w")
+    prog = re.compile(pattern)
+    for line in lines:
+        fout.write(prog.sub(new, line))
+    
+    fout.close()
 
-def generateInverseTransformFile(file_name, fix_img_name):
+def changeOutputBSplineOrder(file_name, order = 0):
+    pattern = '(?<=\\(FinalBSplineInterpolationOrder )(.*?)(?=\\))'
+    changeOuputParameter(file_name, pattern, str(order))
+    
+def changeOutputInitTransform(file_name):
+    pattern = '(?<=\\(InitialTransformParametersFileName ")(.*?)(?="\\))'
+    changeOuputParameter(file_name, pattern, "NoInitialTransform")
+def getTransformName(file_name):
+    f = open(get_exe_path() + "/" + file_name, "r")
+    name = ""
+    
+    lines = f.readlines()
+    pattern = '\\(Transform "(.*?)"\\)'
+    prog = re.compile(pattern)
+    for line in lines:
+        result = prog.findall(line)
+        if len(result) > 0:
+            name = result[0]
+            break
+    f.close()
+    
+    return name
+def copyFile(inFile, outFile):
+    dir = get_exe_path() + "/"
+    cmd = 'copy "%s" "%s"' % (dir + inFile, dir + outFile)
+    print cmd
+    print subprocess.call(cmd, shell = True)
+
+def generateInverseTransformFile(file_name, fix_img_name, new_file_name = None):
     # Write temporary parameter files
     f = open(get_exe_path() + "/tmp_para.txt", "w")
     f.write('(FixedInternalImagePixelType "float")' + '\n')
@@ -220,11 +258,10 @@ def generateInverseTransformFile(file_name, fix_img_name):
     f.write('(Optimizer "AdaptiveStochasticGradientDescent")' + '\n')
     f.write('(Transform "%s")' % getTransformName(file_name) + '\n')
     f.write('(Metric "DisplacementMagnitudePenalty")' + '\n')
-    f.write('(AutomaticTransformInitialization "false")' + '\n')
+    f.write('(AutomaticTransformInitialization "true")' + '\n')
     f.write('(AutomaticScalesEstimation "true")' + '\n')
     f.write('(HowToCombineTransforms "Compose")' + '\n')
-    f.write('(FinalGridSpacingInPhysicalUnits %d)' % spacing + '\n')
-    f.write('(NumberOfResolutions 4)' + '\n')
+    f.write('(NumberOfResolutions 1)' + '\n')
     f.write('(MaximumNumberOfIterations 2000)' + '\n')
     f.write('(NumberOfSpatialSamples 2000)' + '\n')
     f.write('(NewSamplesEveryIteration "true")' + '\n')
@@ -238,5 +275,7 @@ def generateInverseTransformFile(file_name, fix_img_name):
     # Use registration to get the inverse transformation
     run_executable(type = "elastix", fix = fix_img_name, mov = fix_img_name, outDir = "", para = ["tmp_para.txt"], tp = file_name, mask = False, init = True)
     
-    # Return the transformation name
-    return "TransformParameters.0.txt"
+    if new_file_name == None:
+        new_file_name = file_name[:-4] + "_inv.txt"
+    #copyFile("TransformParameters.0.txt", new_file_name)
+    changeOutputInitTransform("TransformParameters.0.txt")

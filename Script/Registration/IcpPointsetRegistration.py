@@ -262,6 +262,20 @@ class IcpPointsetRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
+        '''
+        import util.Hybrid.ElastixUtil as eutil
+        fixed_points = fixedData.getPointSet('Contour').copy()
+        fixed_points[:, :3] *= fixed_res
+        fix_img_mask = eutil.getBinaryImageFromSegmentation(fixedData.getData(), fixed_points)
+        result_points = new_trans_points.copy()
+        result_points[:, :3] *= fixed_res
+        result_img_mask = eutil.getBinaryImageFromSegmentation(sitk.GetArrayFromImage(resultImage), result_points)
+        dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
+        print dice_index
+        del fix_img_mask
+        del result_img_mask
+        '''
+        
         return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]
             
 def saveTransform(wfile, T, R):

@@ -17,13 +17,15 @@ import SimpleITK as sitk
 import util.RegistrationUtil as util
 import util.Hybrid.ElastixUtil as eutil
 
+from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
+
 class NonrigidHybridRegistration(RegistrationBase):
     def __init__(self, gui):
         super(NonrigidHybridRegistration, self).__init__(gui)
     def getName(self):
         return 'Nonrigid Hybrid Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, spacing = 20, w1 = 1.0, w2 = 1.0, type = "SSD"): # Type can be SSD or MI or CR
+    def register(self, fixedData, movingData, spacing = 20, w1 = 1.0, w2 = 1.0, type = "MI", isRigid = True, isWrite = False, isWriteMask = True): # Type can be SSD or MI or CR
         # Initial data
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -67,19 +69,24 @@ class NonrigidHybridRegistration(RegistrationBase):
         del new_movingData
         
         # Use GMMREG for centerline-based TPS registration
-        new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
-            {'Contour': moving_points, 'Centerline': moving_points_cen_result}) # The image has been resampled into fixed resolution
-        tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "EM_TPS")
-        result_points_cen = points['Centerline'].copy()
-        result_points_cen = result_points_cen[result_points_cen[:, 0] >= 0]
-        result_points_cen[:, :3] *= fixed_res
-        moving_points_cen_result[:, :3] *= fixed_res
-        del new_movingData
-        del new_fixedData
+        if not isRigid:
+            new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
+                {'Contour': moving_points, 'Centerline': moving_points_cen_result}) # The image has been resampled into fixed resolution
+            tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "EM_TPS")
+            result_points_cen = points['Centerline'].copy()
+            result_points_cen = result_points_cen[result_points_cen[:, 0] >= 0]
+            result_points_cen[:, :3] *= fixed_res
+            moving_points_cen_result[:, :3] *= fixed_res
+            del new_movingData
+            del new_fixedData
+        else:
+            moving_points_cen_result[:, :3] *= fixed_res
+            result_points_cen = moving_points_cen_result
         
         # Save the images for Elastix registration
-        #ee.writeImageFile(fixedData, "fix")
-        #ee.writeImageFile(movingData, "mov")
+        if isWrite:
+            ee.writeImageFile(fixedData, "fix")
+            ee.writeImageFile(movingData, "mov")
         if type == "SSD":
             mov_img = movingData.getData().copy()
             fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
@@ -97,11 +104,12 @@ class NonrigidHybridRegistration(RegistrationBase):
             useMask = True
             fixn = "fix.mhd"
             
-            
-        ee.writeImageFile(fix_binary_data, "fixm")
+        if isWriteMask:
+            ee.writeImageFile(fix_binary_data, "fixm")
         del fix_binary_data
         del fix_binary_mask
-        ee.writeImageFile(mov_binary_data, "movm")
+        if isWriteMask:
+            ee.writeImageFile(mov_binary_data, "movm")
         del mov_binary_data
         del mov_binary_mask
         
@@ -126,40 +134,95 @@ class NonrigidHybridRegistration(RegistrationBase):
         else:
             ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transpara.txt", outDir = "")
             ee.run_executable(type = "transformix", mov = "mov.mhd", tp = "transpara.txt")
-
+        
+        
         # Use Elastix for hybrid registration
-        code = ee.run_executable(type = "elastix", para = ["para_rigid.txt", "para_spline.txt"], 
+        if isRigid:
+            para_elastix = ["para_rigid.txt"]
+        else:
+            para_elastix = ["para_rigid.txt", "para_spline.txt"]
+        code = ee.run_executable(type = "elastix", para = para_elastix, 
             fix = fixn, mov = "Output/result.mhd", movm = "result.mhd", movp = "movp0.txt", mask = useMask)
         if code != 0:
             print "Elastix error!"
             return None, None, None
-            
+        
         # Read the output files into self data formats
         if type == "SSD":
+            # Transform the segmentation result for evaluation
+            ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transpara.txt") # Transform the moving image using initial transformation
+            if not isRigid:
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+            else:
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.0.txt")
+            result_img_mask = ee.readImageFile("Output/result.mhd")
+            fix_img_mask = ee.readImageFile("fixm.mhd")
+            
+            ee.changeOutputBSplineOrder("transpara.txt", 3)
+            ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 3)
             ee.run_executable(type = "transformix", mov = "mov.mhd", tp = "transpara.txt") # Transform the moving image using initial transformation
-            ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.0.txt") # Transform the moving image using rigid transformation
-            ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+            if not isRigid:
+                ee.changeOutputBSplineOrder("Output/TransformParameters.1.txt", 3)
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+                ee.changeOutputInitTransform("Output/TransformParameters.1.txt")
+            else:
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.0.txt")
             result_img = ee.readImageFile("Output/result.mhd")
         else:
             result_img = ee.readImageFile("Output/result.1.mhd")
-        '''
+            
+            mov_img = movingData.getData().copy()
+            fix_img_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
+            mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
+            mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
+            
+            if isWriteMask:
+                ee.writeImageFile(mov_binary_data, "movmm")
+            del mov_binary_data
+            del mov_binary_mask
+            
+            ee.changeOutputBSplineOrder("transpara.txt", 0)
+            ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 0)
+            ee.run_executable(type = "transformix", mov = "movmm.mhd", tp = "transpara.txt") # Transform the moving image using initial transformation
+            if not isRigid:
+                ee.changeOutputBSplineOrder("Output/TransformParameters.1.txt", 0)
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+                ee.changeOutputInitTransform("Output/TransformParameters.1.txt")
+            else:
+                ee.run_executable(type = "transformix", mov = "Output/result.mhd", tp = "Output/TransformParameters.0.txt")
+            
+            result_img_mask = ee.readImageFile("Output/result.mhd")
+            
         tmp = moving_points_ori.copy()
         tmp[:, :3] *= moving_res
         ee.writePointsetFile(tmp, "mov.txt")
+        
+        # Transform the pointset
         ee.run_executable(type = "transformix", mov = "mov.txt", tp = "transpara2.txt") # Transform the moving segmentation result using initial transformation
-        # Need the inverse transformation?
-        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
-        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
-        result_con = ee.readPointsetFile("Output/outputpoints.txt")
+        ee.generateInverseTransformFile("Output/TransformParameters.0.txt", "fix.mhd")
+        ee.writePointsetFile(ee.readPointsetFile("Output/outputpoints.txt"), "Output/outputpoints1.txt")
+        ee.run_executable(type = "transformix", mov = "Output/outputpoints1.txt", tp = "TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
+        if not isRigid:
+            ee.generateInverseTransformFile("Output/TransformParameters.1.txt", "fix.mhd")
+            ee.writePointsetFile(ee.readPointsetFile("Output/outputpoints.txt"), "Output/outputpoints2.txt")
+            ee.run_executable(type = "transformix", mov = "Output/outputpoints2.txt", tp = "TransformParameters.0.txt") # Non-rigid transformation
+        
+        result_con = moving_points_ori.copy()
+        result_con[:, :3] = ee.readPointsetFile("Output/outputpoints.txt")
         result_con[:, :3] /= fixed_res
         
-        ee.writePointsetFile(moving_points_cen_result, "movc.txt")
-        ee.run_executable(type = "transformix", mov = "movc.txt", tp = "transpara2.txt") # Transform the moving centerline result using initial transformation
-        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.0.txt") # Transform the moving centerline using rigid transformation
-        ee.run_executable(type = "transformix", mov = "Output/outputpoints.txt", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
-        result_cen = ee.readPointsetFile("Output/outputpoints.txt")
-        result_cen[:, :3] /= fixed_res
-        '''
-        #return result_img, {'Contour': result_con, 'Centerline': result_cen}, [0, 0, 0]
-        return result_img, {}, [0, 0, 0]
+        result_pointset = {'Contour': result_con}
+
+        sa = SurfaceErrorAnalysis(None)
+        dataset = db.BasicData(result_img, fixedData.getInfo(), result_pointset)
+        mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixedData.getPointSet('Contour').copy(), useResult = True)
+        print mean_whole
+        del dataset
+        
+        dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
+        print dice_index
+        del fix_img_mask
+        del result_img_mask
+        
+        return result_img, result_pointset, [mean_whole, dice_index]
         

@@ -15,7 +15,7 @@ import vtk
 class SurfaceErrorAnalysis(AnalysisBase):
     def getName(self):
         return 'Surface Registration Error'
-    def analysis(self, data, point_data_fix = None, point_data_mov = None, spacing_mov = None, point_data_result = None):
+    def analysis(self, data, point_data_fix = None, point_data_mov = None, spacing_mov = None, useResult = False):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
             point_data_mov = self.gui.dataModel[data.getMovingIndex()].getPointSet('Contour').copy()
@@ -23,13 +23,14 @@ class SurfaceErrorAnalysis(AnalysisBase):
         
         self.spacing = data.getResolution().tolist()
         point_data_fix = point_data_fix[point_data_fix[:, 0] >= 0]
-        point_data_mov = point_data_mov[point_data_mov[:, 0] >= 0]
         bif = db.getBifurcation(point_data_fix)
         point_data_fix = util.augmentPointset(point_data_fix, 3, -1, bif, nn = 20)
         point_data_fix[:, :3] *= self.spacing[:3]
-        point_data_mov[:, :3] *= spacing_mov[:3]
+        if point_data_mov is not None:
+            point_data_mov = point_data_mov[point_data_mov[:, 0] >= 0]
+            point_data_mov[:, :3] *= spacing_mov[:3]
 
-        if point_data_result is None:
+        if not useResult:
             para = npy.array(data.info.getData('transform')).flatten()
             point_data_result = point_data_mov.copy()
             R = ml.mat(para[:9]).reshape(3, 3)
@@ -42,7 +43,8 @@ class SurfaceErrorAnalysis(AnalysisBase):
             T = -T
             point_data_result[:, :3] = util.applyTransformForPoints(point_data_mov[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, C)
         else:
-            point_data_reuslt = point_data_reuslt[point_data_reuslt[:, -1] >= 0]
+            point_data_result = data.getPointSet('Contour').copy()
+            point_data_result = point_data_result[point_data_result[:, -1] >= 0]
             point_data_result[:, :3] *= self.spacing[:3]
         
         Locator = vtk.vtkCellLocator()

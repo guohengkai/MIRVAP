@@ -7,8 +7,11 @@ Created on 2014-04-27
 
 import numpy as npy
 import cv2, cv
+from MIRVAP.GUI.qvtk.Plugin.util.acontour.ac_function import ac_mask
 
-def calCenterlineFromContour(data):
+def calCenterlineFromContour(data, func = None, image = None):
+    if func is None:
+        func = calCentroidFromContour
     # Get the input information (begin, end, bifurcation)
     point_data_result = npy.array(data['Contour'])
     center_data = npy.array([[-1, -1, -1, -1]])
@@ -30,12 +33,15 @@ def calCenterlineFromContour(data):
                 ind = sortContourPoints(data)
                 data = data[ind]
                 
-                current_center = calCentroidFromContour(data[:, :2])
+                if image is not None:
+                    current_center = func(data[:, :2], image = image[i, :, :])
+                else:
+                    current_center = func(data[:, :2], image = image)
                 current_center = npy.append(current_center, [[i, cnt]], axis = 1)
                 center_data = npy.append(center_data, current_center, axis = 0)
     return center_data            
 
-def calCentroidFromContour(data, area = False):
+def calCentroidFromContour(data, area = False, image = None):
     temp_area = npy.zeros([data.shape[0]])
     data = npy.append(data, [[data[0, 0], data[0, 1]]], axis = 0)
     for j in range(temp_area.shape[0]):
@@ -53,7 +59,7 @@ def calCentroidFromContour(data, area = False):
         return current_center, npy.abs(npy.sum(temp_area) / 2)
 
 # Need to be tested
-def calIntensityCentroidFromContour(image, pointset):
+def calIntensityCentroidFromContour(pointset, image):
     mask = ac_mask(pointset[:, :2].transpose(), image.transpose().shape).transpose()
     result = image * mask
     cnt = npy.sum(mask)
@@ -62,12 +68,12 @@ def calIntensityCentroidFromContour(image, pointset):
     m10 = npy.sum(xx * result) / cnt
     m01 = npy.sum(yy * result) / cnt
     
-    center = npy.array([m10 / m00, m01 / m00])
+    center = npy.array([[m01 / m00, m10 / m00]])
     return center
 
 # Most distant point in the contour(max(min(d(x, edge)))), need to be tested
-def calCenterFromContour(image_size_trans, pointset):
-    mask = ac_mask(pointset[:, :2].transpose(), image_size_trans).transpose()
+def calCenterFromContour(pointset, image):
+    mask = ac_mask(pointset[:, :2].transpose(), image.transpose().shape).transpose()
     dist = cv2.distanceTransform(mask, cv.CV_DIST_L2, 3)
     value = npy.max(dist)
 
@@ -75,7 +81,7 @@ def calCenterFromContour(image_size_trans, pointset):
     indx = npy.cast['float32'](indx)
     indy = npy.cast['float32'](indy)
 
-    center = npy.array([npy.mean(indx), npy.mean(indy)])
+    center = npy.array([[npy.mean(indy), npy.mean(indx)]])
     return center
 
 def sortConvexContourPoints(point_array): # Input: 2D pointset array

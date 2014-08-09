@@ -8,7 +8,7 @@ Created on 2014-04-04
 import numpy as npy
 
 from ContourPlugin import ContourPlugin
-from util.PluginUtil import calCenterlineFromContour
+from util.PluginUtil import calCenterlineFromContour, calCentroidFromContour, calIntensityCentroidFromContour, calCenterFromContour
 
 # Only in z direction
 class AutoCenterlineFromContourPlugin(ContourPlugin):
@@ -16,7 +16,10 @@ class AutoCenterlineFromContourPlugin(ContourPlugin):
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'Return':
             point_array_result = self.parent.parent.getData().pointSet
-            center_data = calCenterlineFromContour(point_array_result.data)            
+            func = None
+            #func = calIntensityCentroidFromContour
+            #func = calCenterFromContour
+            center_data = calCenterlineFromContour(point_array_result.data, func = func, image = self.parent.parent.getData().getData())            
             point_array_result.data['Centerline'] = center_data
             self.parent.updateAfter()
             self.parent.render_window.Render()

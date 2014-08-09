@@ -180,3 +180,28 @@ def cropCenterline(fix, mov, fix_res, mov_res, fix_bif, mov_bif):
     fix_index = npy.where((fix[:, 2] <= fix_bif + up_dis / fix_res[2]) & (fix[:, 2] >= fix_bif - down_dis / fix_res[2]))
     mov_index = npy.where((mov[:, 2] <= mov_bif + up_dis / mov_res[2]) & (mov[:, 2] >= mov_bif - down_dis / mov_res[2]))
     return fix_index, mov_index
+    
+def calDiceIndexFromMask(fix, result):
+    if fix.dtype != npy.uint8:
+        fix = npy.cast['uint8'](fix)
+        result = npy.cast['uint8'](result)
+        
+    n = fix.shape[0]
+    total_area = 0
+    union_area = 0
+    for z in range(n):
+        fix_z = fix[z, :, :]
+        result_z = result[z, :, :]
+        sum_fix = npy.sum(fix_z)
+        sum_result = npy.sum(result_z)
+        
+        if sum_fix == 0 or sum_result == 0:
+            continue
+        
+        total_area += sum_fix + sum_result
+        union_area += npy.sum(fix_z | result_z)
+        
+    intersect_area = total_area - union_area
+    dice_index = 2.0 * intersect_area / total_area
+    
+    return dice_index
