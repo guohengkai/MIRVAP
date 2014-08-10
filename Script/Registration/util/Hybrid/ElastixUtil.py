@@ -38,7 +38,9 @@ def getMaskFromCenterline(image, pointset, spacing, radius = 10):
                 
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point.transpose(), image_size).transpose()
                 
-    return npy.cast['float32'](data)
+    result =  npy.cast['float32'](data)
+    del data
+    return result
     
 def getBinaryImageFromSegmentation(image, pointset):
     data = npy.zeros(image.shape, dtype = npy.uint8)
@@ -63,7 +65,9 @@ def getBinaryImageFromSegmentation(image, pointset):
                 data_point = data_point[:, :2].transpose()
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point, image_size).transpose()
                         
-    return npy.cast['float32'](data)
+    result =  npy.cast['float32'](data)
+    del data
+    return result
 
 def getBifurcationOfCenterline(pointset):
     z = pointset[:, 2]

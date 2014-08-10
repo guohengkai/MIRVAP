@@ -286,6 +286,10 @@ def generateInverseTransformFile(file_name, fix_img_name, new_file_name = None):
 
 def renameImage(file_name, new_file_name):
     dir = get_exe_path() + "/"
+    if os.path.exists(dir + new_file_name + ".mhd"):
+        os.remove(dir + new_file_name + ".mhd")
+    if os.path.exists(dir + new_file_name + ".raw"):
+        os.remove(dir + new_file_name + ".raw")
     os.rename(dir + file_name + ".mhd", dir + new_file_name + ".mhd")
     os.rename(dir + file_name + ".raw", dir + new_file_name + ".raw")
     

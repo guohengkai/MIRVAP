@@ -25,7 +25,7 @@ class NonrigidHybridRegistration(RegistrationBase):
     def getName(self):
         return 'Nonrigid Hybrid Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, spacing = [20], w1 = [1.0], w2 = 1.0, type = ["MI"]): # Type can be SSD or MI or CR
+    def register(self, fixedData, movingData, spacing = [20], w1 = [1000.0], w2 = 1.0, type = ["MI"]): # For simple test
         # Initial data
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -45,8 +45,8 @@ class NonrigidHybridRegistration(RegistrationBase):
         fixed_points_cen = fixed_points_cen_ori.copy()
         moving_points_cen = moving_points_cen_ori.copy()
         
-        fix_img = fixedData.getData().copy()
-        mov_img = movingData.getData().copy()
+        fix_img = fixedData.getData()
+        mov_img = movingData.getData()
         
         # Calculate the initial rigid transformation for 9 points T0
         fix_key_point = eutil.getKeyPoints(fixed_points_cen, fixed_res)
@@ -58,9 +58,9 @@ class NonrigidHybridRegistration(RegistrationBase):
         
         # Use GMMREG for centerline-based rigid registration T1
         gmm = GmmregPointsetRegistration(self.gui)
-        new_fixedData = db.BasicData(fix_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
+        new_fixedData = db.BasicData(fix_img, db.ImageInfo(fixedData.getInfo().data), 
             {'Contour': fixed_points, 'Centerline': fixed_points_cen[crop_fixed_index]})
-        new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(movingData.getInfo().data), 
+        new_movingData = db.BasicData(mov_img, db.ImageInfo(movingData.getInfo().data), 
             {'Contour': moving_points, 'Centerline': moving_points_cen_result[crop_moving_index]})
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "rigid")
         T1 = eutil.getMatrixFromGmmPara(para)
@@ -70,7 +70,7 @@ class NonrigidHybridRegistration(RegistrationBase):
         del new_movingData
         
         # Use GMMREG for centerline-based TPS registration
-        new_movingData = db.BasicData(mov_img.copy(), db.ImageInfo(fixedData.getInfo().data), 
+        new_movingData = db.BasicData(mov_img, db.ImageInfo(fixedData.getInfo().data), 
             {'Contour': moving_points, 'Centerline': moving_points_cen_result}) # The image has been resampled into fixed resolution
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "EM_TPS")
         result_points_cen = points['Centerline'].copy()
@@ -83,25 +83,24 @@ class NonrigidHybridRegistration(RegistrationBase):
         # Save the images for Elastix registration
         ee.writeImageFile(fixedData, "fix")
         ee.writeImageFile(movingData, "mov")
-        mov_img = movingData.getData().copy()
         fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, fixed_points_ori)
-        mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
         fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
-        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         ee.writeImageFile(fix_binary_data, "fixmm")
         del fix_binary_data
         del fix_binary_mask
+        mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
+        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         ee.writeImageFile(mov_binary_data, "movmm")
         del mov_binary_data
         del mov_binary_mask
         
         fix_binary_mask = eutil.getMaskFromCenterline(fix_img, fixed_points_cen_ori, fixed_res)
-        mov_binary_mask = eutil.getMaskFromCenterline(mov_img, moving_points_cen_ori, moving_res)
         fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
-        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         ee.writeImageFile(fix_binary_data, "fixm")
         del fix_binary_data
         del fix_binary_mask
+        mov_binary_mask = eutil.getMaskFromCenterline(mov_img, moving_points_cen_ori, moving_res)
+        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         ee.writeImageFile(mov_binary_data, "movm")
         del mov_binary_data
         del mov_binary_mask
@@ -128,12 +127,12 @@ class NonrigidHybridRegistration(RegistrationBase):
         
         ee.changeOutputBSplineOrder("transpara.txt", 3)
         ee.run_executable(type = "transformix", mov = "mov.mhd", tp = "transpara.txt", outDir = "")
-        ee.renameImage("result.mhd", "mov0.mhd")
+        ee.renameImage("result", "mov0")
         ee.changeOutputBSplineOrder("transpara.txt", 0)
         ee.run_executable(type = "transformix", mov = "movmm.mhd", tp = "transpara.txt", outDir = "")
-        ee.renameImage("result.mhd", "movmm0.mhd")
+        ee.renameImage("result", "movmm0")
         ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transpara.txt", outDir = "")
-        ee.renameImage("result.mhd", "movm0.mhd")
+        ee.renameImage("result", "movm0")
         
         sa = SurfaceErrorAnalysis(None)
         
@@ -141,11 +140,15 @@ class NonrigidHybridRegistration(RegistrationBase):
         cnt = len(spacing) * len(w1) * len(type)
         result = npy.zeros([len(spacing), len(w1), len(type), 2], dtype = npy.float32)
         for i in range(len(spacing)):
-            for j in range(len(w1)):
-                for k in range(len(type)):
+            for k in range(len(type)):
+                for j in range(len(w1)):
+                    if type[k] == "MI" and w1[j] > 0:
+                        ww = w1[j] / 1000
+                    else:
+                        ww = w1[j]
                     # Save Elastix registration configuration
-                    ee.writeParameterFile("para_rigid.txt", "rigid", type[k], spacing[i], w1[j], w2)
-                    ee.writeParameterFile("para_spline.txt", "bspline", type[k], spacing[i], w1[j], w2)
+                    ee.writeParameterFile("para_rigid.txt", "rigid", type[k], spacing[i], ww, w2)
+                    ee.writeParameterFile("para_spline.txt", "bspline", type[k], spacing[i], ww, w2)
                     
                     # Use Elastix for hybrid registration
                     isRigid = spacing[i] < 0
@@ -156,17 +159,19 @@ class NonrigidHybridRegistration(RegistrationBase):
                     
                     if type[k] == "SSD":
                         mov_name = "movmm0.mhd"
+                        fix_name = "fixmm.mhd"
                     else:
                         mov_name = "mov0.mhd"
+                        fix_name = "fix.mhd"
                     code = ee.run_executable(type = "elastix", para = para_elastix, 
-                        fix = fixn, mov = mov_name, movm = "movm0.mhd", movp = "movp0.txt", mask = (type[k] != "SSD"))
+                        fix = fix_name, mov = mov_name, movm = "movm0.mhd", movp = "movp0.txt", mask = (type[k] != "SSD"))
                     if code != 0:
                         print "Elastix error!"
                         continue
                         #return None, None, None
                     
                     # Read the output files into self data formats
-                    fix_img_mask = ee.readImageFile("fixm.mhd")
+                    fix_img_mask = ee.readImageFile("fixmm.mhd")
                     if type[k] == "SSD":
                         # Transform the segmentation result for evaluation
                         if isRigid:
@@ -224,8 +229,8 @@ class NonrigidHybridRegistration(RegistrationBase):
                         del result_pointset
                         del result_con
                         
-                    result[i, j, k, :] = [mean_whole. dice_index]
-                    print "Result of spacing %fmm, weight %f and metric %s: %fmm, %f. " % (spacing[i], w1[j], type[k], mean_whole, dice_index)
+                    result[i, j, k, :] = [mean_whole, dice_index]
+                    print "Result of spacing %fmm, weight %f and metric %s: %fmm, %f. " % (spacing[i], ww, type[k], mean_whole, dice_index)
                     
         if cnt > 1:
             result_img = None
