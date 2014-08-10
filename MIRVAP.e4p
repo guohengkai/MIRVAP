@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-08-10, 14:16:19 -->
+<!-- Saved: 2014-08-10, 23:47:08 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -138,6 +138,10 @@
     <Source>Script/Load/LoadRawFile.py</Source>
     <Source>Script/Macro/TestAllCenterType.py</Source>
     <Source>Script/Macro/TestNonrigidRegistration.py</Source>
+    <Source>GUI/qvtk/Plugin/MCPCenterlinePlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/util/MCPUtil.py</Source>
+    <Source>GUI/qvtk/Plugin/AutoUSCenterlinePlugin.py</Source>
+    <Source>GUI/qvtk/Plugin/util/USUtil.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

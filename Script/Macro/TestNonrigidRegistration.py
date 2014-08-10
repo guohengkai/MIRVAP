@@ -26,7 +26,7 @@ class TestNonrigidRegistration(MacroBase):
         
         self.spacing = [-1.0, 40.0, 32.0, 16.0, 8.0, 4.0]
         self.w1 = [-1.0, 0.0, 1.0, 10.0, 100.0, 1000.0, 10000.0]
-        self.type = ['MI', 'CR', 'MAX']
+        self.type = ['SSD', 'MI', 'CR']
         n = len(self.w1) * len(self.spacing)
         
         self.savepath = self.path + self.ini.file.savedir
