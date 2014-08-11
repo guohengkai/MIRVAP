@@ -223,7 +223,7 @@ class NonrigidHybridRegistration(RegistrationBase):
                     result_pointset = {'Contour': result_con}
                     
                     if cnt > 1:
-                        dataset = db.BasicData(None, fixedData.getInfo(), result_pointset)
+                        dataset = db.BasicData(npy.array([[[0]]]), fixedData.getInfo(), result_pointset)
                         mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixedData.getPointSet('Contour').copy(), useResult = True)
                         del dataset
                         
