@@ -143,6 +143,8 @@ class NonrigidHybridRegistration(RegistrationBase):
         for i in range(len(spacing)):
             for k in range(len(type)):
                 for j in range(len(w1)):
+                    if type[k] == "SSD" and w1[j] > 0:
+                        break
                     if type[k] == "MI" and w1[j] > 0:
                         ww = w1[j] / 1000
                     else:

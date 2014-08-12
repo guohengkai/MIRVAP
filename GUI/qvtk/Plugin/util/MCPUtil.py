@@ -5,6 +5,7 @@ Created on 2014-08-10
 @author: Hengkai Guo
 """
 import numpy as npy
+import scipy.ndimage.filters as flt
 
 def getCropImageFromCenter(image, d, res, center):
     return image[npy.ceil(center[1] - d / res[1]) : npy.floor(center[1] + d / res[1]), npy.ceil(center[0] - d / res[0]) : npy.floor(center[0] + d / res[0])]
@@ -24,8 +25,48 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
     center_up2 -= [bottom, down, up]
     
     # Get medialness of image
-    bound
-    medial
+    n = 24 # Number of angles
+    Rmax = 15
+    Rmin = 3
+    step = 0.2
+    sigma = [0.5, 0.75, 1, 1.25, 1.5]
+    medial = npy.zeros(current_img.shape)
+    ux = npy.cos(2 * npy.pi * npy.arange(n) / n) * img_res[0]
+    uy = npy.sin(2 * npy.pi * npy.arange(n) / n) * img_res[1]
+    for z in range(current_img.shape[0]):
+        m = npy.zeros([int((Rmax - Rmin) / step + 0.5), current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
+        for i in range(n):
+            # Get the directional gradient image
+            template = getDirectionGradientTemplate(ux[i], uy[i])
+            grad_img = npy.zeros([5, current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
+            for j in range(len(sigma)):
+                grad_img[j, :, :] = flt.gaussian_filter(current_img[z, :, :], sigma[j])
+                grad_img[j, :, :] = flt.convolve(grad_img[j, :, :], template)
+            
+            # Get the boundary messure along the ray
+            ind = npy.argmax(npy.abs(grad_img), axis = 0)
+            b = npy.zeros(current_img.shape[1:], dtype = npy.float32)
+            for p in range(b.shape[0]):
+                for q in range(b.shape[1]):
+                    b[p, q] = grad_img[ind[p, q], p, q]
+            del grad_img, ind
+            
+            # Get the normalized edge response of different radius
+            j = 0
+            for y0 in range(b.shape[0]):
+                for x0 in range(b.shape[1]):
+                    x = x0 + ux[i] * Rmin
+                    y = y0 + uy[i] * Rmin
+                    for R in range(Rmin, Rmax + step, step):
+                        # TO BE DONE
+                        
+                        j += 1
+                        x += ux[i] * step
+                        y += uy[i] * step
+            
+        medial[z, :, :] = npy.max(m, axis = 0) / n
+        
+    
     
     # Get the intensity thresold from three seed points
     tmp = npy.array(getCropImageFromCenter(current_img, 2.5, img_res, center_bottom).tolist() + \
