@@ -13,6 +13,11 @@ import MIRVAP.Script.Registration.util.RegistrationUtil as util
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import sortContourPoints
 import MIRVAP.Core.DataBase as db
 
+def fixPoints(points, image_size):
+    for point in points:
+        for i in range(points.shape[1]):
+            point[i] = npy.max([point[i], 0])
+            point[i] = npy.min([point[i], image_size[i] - 1])
 def getMaskFromCenterline(image, pointset, spacing, radius = 10):
     data = npy.zeros(image.shape, dtype = npy.uint8)
     image_size = image[0, :, :].transpose().shape
@@ -36,6 +41,7 @@ def getMaskFromCenterline(image, pointset, spacing, radius = 10):
                     data_point[i, 0] = center_point[0, 0] + radius * npy.cos(2 * npy.pi * i / n_pt) / spacing[0]
                     data_point[i, 1] = center_point[0, 1] + radius * npy.sin(2 * npy.pi * i / n_pt) / spacing[1]
                 
+                fixPoints(data_point, image_size)
                 data[z, :, :] = data[z, :, :] | ac_mask(data_point.transpose(), image_size).transpose()
                 
     result =  npy.cast['float32'](data)

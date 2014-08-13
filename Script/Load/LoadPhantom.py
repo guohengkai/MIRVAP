@@ -16,24 +16,29 @@ class LoadPhantom(LoadBase):
     def getName(self):
         return 'Generate Phantom Data'
     def run(self, *args, **kwargs):
-        num, ok = self.gui.getInputPara(self.gui.win, 'centerX')
-        if not ok or num is None:
-            return []
+        #num, ok = self.gui.getInputPara(self.gui.win, 'centerX')
+        #if not ok or num is None:
+        #    return []
+        num = 100
         centerx = float(num)
-        num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
-        if not ok or num is None:
-            return []
+        #num, ok = self.gui.getInputPara(self.gui.win, 'centerY')
+        #if not ok or num is None:
+        #    return []
+        num = 100
         centery = float(num)
-        num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
-        if not ok or num is None:
-            return []
+        #num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
+        #if not ok or num is None:
+        #    return []
+        num = 30
         radius = float(num)
-        num, ok = self.gui.getInputPara(self.gui.win, 'ResolutionX', 1.0)
-        if not ok or num is None:
-            return []
+        #num, ok = self.gui.getInputPara(self.gui.win, 'ResolutionX', 1.0)
+        #if not ok or num is None:
+        #    return []
+        num = 1
         info = self.getInfo(res = [1.0, 1.0, float(num)], ori = 0)
         image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0])
-        point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
+        #point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
+        point = {}
 
         phantomData = db.BasicData(data = image, info = info, pointSet = point)
         return [phantomData]
