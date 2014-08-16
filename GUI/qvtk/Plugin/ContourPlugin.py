@@ -60,7 +60,7 @@ class ContourPlugin(PluginBase):
         self.contourRep[0].GetProperty().SetColor(color[0])
         self.contourRep[1].GetProperty().SetColor(color[1])
         self.contourRep[2].GetProperty().SetColor(color[2])
-        if self.editable or self.key == 'Centerline':
+        if self.editable or self.key == 'Centerline' or self.key == 'Mask':
             self.contourRep[0].GetProperty().SetOpacity(1)
             self.contourRep[1].GetProperty().SetOpacity(1)
             self.contourRep[2].GetProperty().SetOpacity(1)
@@ -175,7 +175,7 @@ class ContourPlugin(PluginBase):
             self.parent.window_interactor.GetPicker().Pick(pos[0], pos[1], 0, self.parent.renderer)
             picker = self.parent.window_interactor.GetPicker().GetPickPosition()
             
-            if self.key == 'Centerline' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
+            if self.key == 'Centerline' or self.key == 'Mask' or self.contourWidget[self.currentContour].GetWidgetState() == 1:
                 self.contourRep[self.currentContour].ClearAllNodes()
             self.contourRep[self.currentContour].AddNodeAtWorldPosition(picker)
             self.contourWidget[self.currentContour].SetWidgetState(2)
@@ -191,8 +191,10 @@ class ContourPlugin(PluginBase):
         if ch in ['v', 'V']:
             if self.key == 'Contour':
                 self.key = 'Centerline'
-            else:
+            elif self.key == 'Centerline':
                 self.key = 'Contour'
+            else:
+                return
 
             if self.editable or self.key == 'Centerline':
                 self.contourRep[0].GetProperty().SetOpacity(1)
@@ -214,7 +216,7 @@ class ContourPlugin(PluginBase):
             self.contourWidget[self.currentContour].SetWidgetState(1)
             self.parent.render_window.Render()
         if ch == 'c':
-            if self.key == 'Centerline':
+            if self.key == 'Centerline' or self.key == 'Mask':
                 return
 
             if self.contour[self.currentContour]:
@@ -225,7 +227,7 @@ class ContourPlugin(PluginBase):
             self.parent.render_window.Render()
             return
         if ch == 's':
-            if self.key == 'Centerline':
+            if self.key == 'Centerline' or self.key == 'Mask':
                 return
 
             point_array = self.getAllPoint()

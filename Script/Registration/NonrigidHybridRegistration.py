@@ -143,8 +143,8 @@ class NonrigidHybridRegistration(RegistrationBase):
         for i in range(len(spacing)):
             for k in range(len(type)):
                 for j in range(len(w1)):
-                    if type[k] == "SSD" and w1[j] > 0:
-                        break
+                    #if type[k] == "SSD" and w1[j] > 0:
+                    #    break
                     if type[k] == "MI" and w1[j] > 0:
                         ww = w1[j] / 1000
                     else:
@@ -212,13 +212,22 @@ class NonrigidHybridRegistration(RegistrationBase):
                         result_img_mask = ee.readImageFile("Output/result.mhd")
                         
                     ee.generateInverseTransformFile("Output/TransformParameters.0.txt", "fix.mhd")
-                    ee.run_executable(type = "transformix", mov = "mov0.txt", tp = "TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
+                    
+                    # Delete the mask slice from the moving points
+                    tmp = moving_points_ori.copy()
+                    for point in movingData.getPointSet('Mask'):
+                        tmp = npy.delete(tmp, npy.where((npy.abs(tmp[:, 2] - point[2]) < 0.0001) & (npy.round(tmp[:, -1]) == point[3])), axis = 0)
+                    tmp[:, :3] *= moving_res
+                    ee.writePointsetFile(tmp, "movm.txt")
+                    ee.run_executable(type = "transformix", mov = "movm.txt", tp = "transpara2.txt") # Transform the moving segmentation result using initial transformation
+                    ee.writePointsetFileFromResult("Output/outputpoints.txt", "mov0m.txt")
+                    ee.run_executable(type = "transformix", mov = "mov0m.txt", tp = "TransformParameters.0.txt") # Transform the moving segmentation result using rigid transformation
                     if not isRigid:
                         ee.generateInverseTransformFile("Output/TransformParameters.1.txt", "fix.mhd")
                         ee.writePointsetFile(ee.readPointsetFile("Output/outputpoints.txt"), "Output/outputpoints2.txt")
                         ee.run_executable(type = "transformix", mov = "Output/outputpoints2.txt", tp = "TransformParameters.0.txt") # Non-rigid transformation
                     
-                    result_con = moving_points_ori.copy()
+                    result_con = tmp.copy()
                     result_con[:, :3] = ee.readPointsetFile("Output/outputpoints.txt")
                     result_con[:, :3] /= fixed_res
                     
@@ -230,7 +239,7 @@ class NonrigidHybridRegistration(RegistrationBase):
                         del dataset
                         
                         dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
-                        #del fix_img_mask
+                        del fix_img_mask
                         del result_img_mask
                         
                         del result_pointset

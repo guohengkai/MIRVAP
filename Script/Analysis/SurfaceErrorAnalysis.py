@@ -15,10 +15,11 @@ import vtk
 class SurfaceErrorAnalysis(AnalysisBase):
     def getName(self):
         return 'Surface Registration Error'
-    def analysis(self, data, point_data_fix = None, point_data_mov = None, spacing_mov = None, useResult = False):
+    def analysis(self, data, point_data_fix = None, point_data_mov = None, point_data_mask = None, spacing_mov = None, useResult = False):
         if point_data_fix is None:
             point_data_fix = self.gui.dataModel[data.getFixedIndex()].getPointSet('Contour').copy()
             point_data_mov = self.gui.dataModel[data.getMovingIndex()].getPointSet('Contour').copy()
+            point_data_mask = self.gui.dataModel[data.getMovingIndex()].getPointSet('Mask').copy()
             spacing_mov = self.gui.dataModel[data.getMovingIndex()].getResolution().tolist()
         
         self.spacing = data.getResolution().tolist()
@@ -28,11 +29,14 @@ class SurfaceErrorAnalysis(AnalysisBase):
         point_data_fix[:, :3] *= self.spacing[:3]
         if point_data_mov is not None:
             point_data_mov = point_data_mov[point_data_mov[:, 0] >= 0]
-            point_data_mov[:, :3] *= spacing_mov[:3]
 
         if not useResult:
             para = npy.array(data.info.getData('transform')).flatten()
             point_data_result = point_data_mov.copy()
+            for point in point_data_mask:
+                point_data_result = npy.delete(point_data_result, npy.where((npy.abs(point_data_result[:, 2] - point[2]) < 0.0001) & (npy.round(point_data_result[:, -1]) == point[3])), axis = 0)
+            point_data_result[:, :3] *= spacing_mov[:3]
+            
             R = ml.mat(para[:9]).reshape(3, 3)
             T = ml.mat(para[9:12]).T
             if para.shape[0] > 12:
@@ -41,7 +45,7 @@ class SurfaceErrorAnalysis(AnalysisBase):
                 C = ml.zeros([3, 1], dtype = npy.float32)
             T = R.I * T
             T = -T
-            point_data_result[:, :3] = util.applyTransformForPoints(point_data_mov[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, C)
+            point_data_result[:, :3] = util.applyTransformForPoints(point_data_result[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, C)
         else:
             point_data_result = data.getPointSet('Contour').copy()
             point_data_result = point_data_result[point_data_result[:, -1] >= 0]
