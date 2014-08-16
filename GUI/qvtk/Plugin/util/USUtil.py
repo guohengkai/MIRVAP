@@ -7,11 +7,17 @@ Created on 2014-08-10
 
 import cv
 import numpy as npy
+import scipy.ndimage.filters as flt
+
 def getThreshold(image, center, d, res, sigmaMin):
     temp = image[npy.ceil(center[0] - d / res[0]) : npy.floor(center[0] + d / res[0]), npy.ceil(center[1] - d / res[1]) : npy.floor(center[1] + d / res[1])]
     mu = npy.mean(temp)
     sigma = npy.min([npy.std(temp), sigmaMin])
     return mu + 2.5 * sigma
+def getGradientThresholdAndImage(image, center, d, res):
+    gradient_img = flt.gaussian_gradient_magnitude(image, 1)
+    th = npy.max(gradient_img[npy.ceil(center[0] - d / res[0]) : npy.floor(center[0] + d / res[0]), npy.ceil(center[1] - d / res[1]) : npy.floor(center[1] + d / res[1])])
+    return th * 0.75, gradient_img
 def isPointValid(x, y, image, th):
     h, w = image.shape
     if x < 0 or x >= h or y < 0 or y >= w:

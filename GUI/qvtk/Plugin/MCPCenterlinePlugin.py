@@ -31,9 +31,9 @@ class MCPCenterlinePlugin(ContourPlugin):
             center_bottom = npy.zeros([3], dtype = npy.float32)
             center_up1 = npy.zeros([3], dtype = npy.float32)
             center_up2 = npy.zeros([3], dtype = npy.float32)
-            center_bottom[:2] = calCentroidFromContour([npy.round(point_vital[0][:, 2]) == bottom]).reshape(2)
-            center_up1[:2] = calCentroidFromContour([npy.round(point_vital[1][:, 2]) == up1]).reshape(2)
-            center_up2[:2] = calCentroidFromContour([npy.round(point_vital[2][:, 2]) == up2]).reshape(2)
+            center_bottom[:2] = calCentroidFromContour(point_vital[0][npy.round(point_vital[0][:, 2]) == bottom][:, :2]).reshape(2)
+            center_up1[:2] = calCentroidFromContour(point_vital[1][npy.round(point_vital[1][:, 2]) == up1][:, :2]).reshape(2)
+            center_up2[:2] = calCentroidFromContour(point_vital[2][npy.round(point_vital[2][:, 2]) == up2][:, :2]).reshape(2)
             center_bottom[-1] = bottom
             center_up1[-1] = up1
             center_up2[-1] = up2

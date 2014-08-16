@@ -16,7 +16,7 @@ class AutoCenterlineFromContourPlugin(ContourPlugin):
         ch = self.parent.window_interactor.GetKeySym()
         if ch == 'Return':
             point_array_result = self.parent.parent.getData().pointSet
-            center_data = calCenterlineFromContour(point_array_result.data, image = self.parent.parent.getData().getData())            
+            center_data = calCenterlineFromContour(point_array_result.data, image = self.parent.parent.getData().getData(), type = 0)            
             point_array_result.data['Centerline'] = center_data
             self.parent.updateAfter()
             self.parent.render_window.Render()

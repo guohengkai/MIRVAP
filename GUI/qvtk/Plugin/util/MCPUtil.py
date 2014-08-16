@@ -14,11 +14,29 @@ def getCropImageFromCenter(image, d, res, center):
 def isOutOfBound(point, size):
     for i in range(len(point)):
         if point[i] < 0 or point[i] > size[i] - 1:
-            return False
-    return True
+            return True
+    return False
 def isPointEqual(pointx, pointy):
     delta = npy.round(npy.abs(pointx - pointy))
     return delta[0] <= 1e-6 and delta[1] <= 1e-6 and delta[2] <= 1e-6
+def getImageDataAt(img, point):
+    #if isOutOfBound(point, img.shape):
+    #    return 0
+        
+    x = int(npy.floor(point[0]))
+    y = int(npy.floor(point[1]))
+    if x == point[0] and y == point[1]:
+        return img[x, y]
+    r1 = point[0] - x
+    r2 = point[1] - y
+    if x == point[0]:
+        return img[x, y] * (1 - r2) + img[x, y + 1] * r2
+    if y == point[1]:
+        return img[x, y] * (1 - r1) + img[x + 1, y] * r1
+   
+    i = img[x, y] * (1 - r1) + img[x + 1, y] * r1
+    j = img[x, y + 1] * (1 - r1) + img[x + 1, y + 1] * r1
+    return i * (1 - r2) + j * r2
     
 def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img_res):
     # Get the calculation scope of image
@@ -30,30 +48,28 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
     up = int(npy.min([npy.max([center_bottom[1], center_up1[1], center_up2[1]]) + 10.0 / img_res[1], img.shape[1] - 1]) + 0.5) + 1
     
     current_img = img[bottom : top, down : up, left : right].copy()
-    center_bottom -= [bottom, down, up]
-    center_up1 -= [bottom, down, up]
-    center_up2 -= [bottom, down, up]
+    center_bottom -= [left, down, bottom]
+    center_up1 -= [left, down, bottom]
+    center_up2 -= [left, down, bottom]
     
     # Get medialness of image
     n = 24 # Number of angles
     Rmax = 15
-    Rmin = 3
-    step = 0.2
+    Rmin = 1
+    step = 0.20
     sigma = [0.5, 0.75, 1, 1.25, 1.5]
     medial = npy.zeros(current_img.shape)
-    ux = npy.cos(2 * npy.pi * npy.arange(n) / n) * img_res[0]
-    uy = npy.sin(2 * npy.pi * npy.arange(n) / n) * img_res[1]
-    grid_x, grid_y = npy.mgrid[0:current_img.shape[1], 0:current_img.shape[2]]
-    grid = npy.zeros([current_img[0, :, :].size, 2])
-    grid[:, 0] = grid_x.flatten()
-    grid[:, 1] = grid_y.flatten()
-    del grid_x, grid_y
+    ux = npy.cos(2 * npy.pi * npy.arange(n) / n)
+    uy = npy.sin(2 * npy.pi * npy.arange(n) / n)
+    
     for z in range(current_img.shape[0]):
-        m = npy.zeros([int((Rmax - Rmin) / step + 0.5), current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
+        print "Slice %d..." % z
+        m = npy.zeros([int((Rmax - Rmin) / step + 1.5), current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
+        
         for i in range(n):
             # Get the directional gradient image
             template = getDirectionGradientTemplate(ux[i], uy[i])
-            grad_img = npy.zeros([5, current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
+            grad_img = npy.zeros([len(sigma), current_img.shape[1], current_img.shape[2]], dtype = npy.float32)
             for j in range(len(sigma)):
                 grad_img[j, :, :] = flt.gaussian_filter(current_img[z, :, :], sigma[j])
                 grad_img[j, :, :] = flt.convolve(grad_img[j, :, :], template)
@@ -67,36 +83,45 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
             del grad_img, ind
             
             # Get the normalized edge response of different radius
-            j = 0
+            print i
             tmp = npy.zeros([m.shape[0]], dtype = npy.float32)
-            max = 1.0
-            min = 999.0
+            
             for y0 in range(b.shape[0]):
                 for x0 in range(b.shape[1]):
-                    x = x0 + ux[i] * Rmin
-                    y = y0 + uy[i] * Rmin
-                    tmp[:] = 0
-                    for R in range(Rmin, Rmax + step, step):
+                    min = 0.0
+                    for R in npy.arange(step, Rmin, step):
+                        x = x0 + ux[i] * R / img_res[0]
+                        y = y0 + uy[i] * R / img_res[1]
                         if isOutOfBound([x, y], current_img.shape[:0:-1]):
                             break
-                        tmp[j] = itp.griddata(grid, current_img[z, :, :].flatten(), [[y, x]])[0]
+                        min = npy.min([getImageDataAt(b, [y, x]), min])
+                    x = x0 + ux[i] * Rmin / img_res[0]
+                    y = y0 + uy[i] * Rmin / img_res[1]
+                    tmp[:] = 0
+                    max = 1.0
+                    
+                    for j in range(m.shape[0]):
+                        if isOutOfBound([x, y], current_img.shape[:0:-1]):
+                            break
+                        tmp[j] = getImageDataAt(b, [y, x])
+                        
                         max = npy.max([max, tmp[j]])
                         min = npy.min([min, tmp[j]])
-                        tmp[j] = npy.max([tmp[j] + npy.min([min, 0]), 0])
+                        tmp[j] = npy.max([tmp[j] + min, 0])
                         
-                        j += 1
-                        x += ux[i] * step
-                        y += uy[i] * step
-                    m[:, y, x] += tmp / npy.max([npy.max(tmp), 1.0])
+                        x += ux[i] * step / img_res[0]
+                        y += uy[i] * step / img_res[1]
+                    m[:, y0, x0] += tmp / max
             del b
         medial[z, :, :] = npy.max(m, axis = 0) / n
         del m
-    del grid
+    print "Finish medialness calculation!"
+    
     # Get the intensity thresold from three seed points
     eps = 1e-6
-    tmp = npy.array(getCropImageFromCenter(current_img, 2.5, img_res, center_bottom).tolist() + \
-        getCropImageFromCenter(current_img, 1.5, img_res, center_up1).tolist() + \
-        getCropImageFromCenter(current_img, 1.5, img_res, center_up2).tolist())
+    tmp = npy.array(getCropImageFromCenter(current_img, 2.5, img_res, center_bottom).flatten().tolist() + \
+        getCropImageFromCenter(current_img, 1.5, img_res, center_up1).flatten().tolist() + \
+        getCropImageFromCenter(current_img, 1.5, img_res, center_up2).flatten().tolist(), dtype = npy.float32)
     mu = npy.mean(tmp)
     sigma = npy.std(tmp) + eps
     del tmp
@@ -105,11 +130,13 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
     similarity = npy.exp(-((current_img - mu) / npy.sqrt(2.0) / sigma) ** 2)
     ind = npy.where(current_img <= mu)
     similarity[ind] = 1
+    print "Finish similarity calculation!"
     
     # Get image cost
     alpha = beta = 1
     cost = 1 / (eps + (medial ** alpha) * (similarity ** beta))
     del medial, similarity
+    print "Finish image cost calculation!"
     
     # Initialize the Dijkstra Algorithm
     dis = npy.zeros(cost.shape, dtype = npy.float32)
@@ -146,14 +173,16 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
                         
         pos = npy.array(ind)
         ind = tuple(ind)
-        if visit[ind]:
+        if not visit[ind]:
             print "Fail to extract the centerline!"
             return npy.array([[-1, -1, -1.0, -1]])
         visit[ind] = False
+        print "%d points remains. " % npy.sum(visit)
         
         # See if successful
         if isPointEqual(pos[::-1], center_up1) or isPointEqual(pos[::-1], center_up2):
             cnt += 1
+            print "Find the %d point!" % cnt
             if cnt == 2:
                 break
         
@@ -167,28 +196,29 @@ def calMinimumCostPathCenterline(center_bottom, center_up1, center_up2, img, img
             if dis[tmp_ind] > new_dis + cost[tmp_ind] * dd[i]:
                 dis[tmp_ind] = new_dis + cost[tmp_ind] * dd[i]
                 pre[tmp_ind] = ind
+    print "Finish Dijkstra algorithm!"
     
     # Get the minimum cost path
     result = npy.array([[-1, -1, -1.0, -1]])
-    pos = tuple(center_up1[::-1])
+    pos = tuple(npy.round(center_up1[::-1]))
     visit[tuple(center_bottom[::-1])] = True
     while not visit[pos]:
         visit[pos] = True
-        result = npy.append(result, [list(pos) + [0]], axis = 0)
+        result = npy.append(result, [(npy.array(pos[::-1]) + [left, down, bottom]).tolist() + [0]], axis = 0)
         pos = pre[pos]
-    result = npy.append(result, [list(pos) + [0]], axis = 0)
-    pos = tuple(center_up2[::-1])
+    result = npy.append(result, [list(pos[::-1]) + [0]], axis = 0)
+    pos = tuple(npy.round(center_up2[::-1]))
     while not visit[pos]:
         visit[pos] = True
-        result = npy.append(result, [list(pos) + [2]], axis = 0)
+        result = npy.append(result, [(npy.array(pos[::-1]) + [left, down, bottom]).tolist() + [2]], axis = 0)
         pos = pre[pos]
         
     return result
 
 def getDirectionGradientTemplate(ux, uy):
-    if ux == 0:
+    if npy.abs(ux) < 1e-6:
         template = npy.array([[uy, uy, uy], [0.0, 0, 0], [-uy, -uy, -uy]])
-    elif uy == 0:
+    elif npy.abs(uy) < 1e-6:
         template = npy.array([[-ux, 0.0, ux], [-ux, 0, ux], [-ux, 0, ux]])
     else:
         template = npy.zeros([3, 3], dtype = npy.float32)
@@ -199,9 +229,8 @@ def getDirectionGradientTemplate(ux, uy):
         if ux * uy > 0:
             template[0, 2] = ux * uy * npy.sign(ux)
             template[2, 0] = -template[0, 2]
-            
         else:
-            template[0, 0] = ux * uy * npy.sign(uy)
+            template[0, 0] = ux * uy * npy.sign(ux)
             template[2, 2] = -template[0, 0]
         template[2, 1] = -template[0, 1]
         template[1, 0] = -template[1, 2]

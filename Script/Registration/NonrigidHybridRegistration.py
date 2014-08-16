@@ -25,7 +25,7 @@ class NonrigidHybridRegistration(RegistrationBase):
     def getName(self):
         return 'Nonrigid Hybrid Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, spacing = [40], w1 = [100.0, 1000.0], w2 = 1.0, type = ["SSD"]): # For simple test
+    def register(self, fixedData, movingData, spacing = [40], w1 = [1000.0], w2 = 1.0, type = ["SSD"]): # For simple test
         # Initial data
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()

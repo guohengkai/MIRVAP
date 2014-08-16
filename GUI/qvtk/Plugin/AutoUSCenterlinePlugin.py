@@ -58,8 +58,9 @@ class AutoUSCenterlinePlugin(ContourPlugin):
             sigmaMin = 4
             n = 1000
             d = 1.0 / self.parent.parent.getData().getResolution()[-1]
-            th = util.getThreshold(image, center, d, space[0:2], sigmaMin)
-            resultPoints, distance = util.getRayPoints(image, center, n, th)
+            #th = util.getThreshold(image, center, d, space[0:2], sigmaMin)
+            th, gradient_img = util.getGradientThresholdAndImage(image, center, d, space[0:2])
+            resultPoints, distance = util.getRayPoints(gradient_img, center, n, th)
             h, w = image.shape
             prunedPoints = util.finePrune(resultPoints, distance, center, diameter, angle, h, w)
 #            center, diameter, angle = util.ransac(prunedPoints, util.EllipseLeastSquaresModel(),
@@ -134,19 +135,27 @@ class AutoUSCenterlinePlugin(ContourPlugin):
         center, diameter, angle = util.ellipseFitting(points)
         
         for i in range(be, en + step, step):
-            print cnt, ': ', i
+            print cnt, ': slice ', i
             image = self.parent.parent.getData().getData()[i, :, :].transpose()
-            th = util.getThreshold(image, center, d, space[0:2], sigmaMin)
-            resultPoints, distance = util.getRayPoints(image, center, n, th)
+            #th = util.getThreshold(image, center, d, space[0:2], sigmaMin)
+            th, gradient_img = util.getGradientThresholdAndImage(image, center, d, space[0:2])
+            #resultPoints, distance = util.getRayPoints(image, center, n, th)
+            resultPoints, distance = util.getRayPoints(gradient_img, center, n, th)
             h, w = image.shape
             prunedPoints = util.finePrune(resultPoints, distance, center, diameter, angle, h, w)
             new_center, new_diameter, new_angle = util.ransac(prunedPoints, util.EllipseLeastSquaresModel(),
                 50, 200, 50, 800)
+            #new_center, new_diameter, new_angle = util.ellipseFitting(prunedPoints)
             if new_angle != -1:
-                print diameter[0] - new_diameter[0], diameter[1] - new_diameter[1]
-                center, diameter, angle = new_center, new_diameter, new_angle
+                rate = new_diameter[0] * new_diameter[1] / (diameter[0] * diameter[1])
+                if rate <= 1.5 and rate >= 0.7:
+                    
+                #print diameter[0] - new_diameter[0], diameter[1] - new_diameter[1]
+                    center, diameter, angle = new_center, new_diameter, new_angle
             temp_array = util.getPointsFromEllipse(center, diameter, angle, 20)
+            #temp_array = npy.array([[center[0], center[1], i]], dtype = npy.float32)
             temp_array = npy.insert(temp_array, [temp_array.shape[1]], npy.ones((temp_array.shape[0], 1), int) * i, axis = 1)
+            #self.parent.parent.getData().pointSet.setSlicePoint('Centerline', temp_array, 2, i, cnt)
             self.parent.parent.getData().pointSet.setSlicePoint('Contour', temp_array, 2, i, cnt)
         
     def getName(self):

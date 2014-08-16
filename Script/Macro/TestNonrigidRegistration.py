@@ -50,7 +50,7 @@ class TestNonrigidRegistration(MacroBase):
                     self.sheet2.write(p, 1, "beta = %fmm, w1 = %f" % (self.spacing[i], self.w1[j]))
                     p += 1
                     
-        for i in range(3, self.cnt):
+        for i in range(7, self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset

@@ -102,6 +102,9 @@ class ContourPlugin(PluginBase):
             if not point_array[self.currentContour].shape[0]:
                 point_array[self.currentContour] = self.parent.parent.getData(self.datakey).pointSet.getSlicePoint(self.key, view, slice - 1 + arg[0])[self.currentContour]
         result = False
+        space = self.parent.space
+        if len(space) == 2:
+            space += [1]
         
         for i in range(3):
             self.contourRep[i].ClearAllNodes()
@@ -113,9 +116,6 @@ class ContourPlugin(PluginBase):
                 #point_array[i] = point_array[i][ind]
                 
                 for row in point_array[i]:
-                    space = self.parent.space
-                    if len(space) == 2:
-                        space += [1]
                     point = (row * space).tolist()
                     if self.parent.dimension:
                         self.contourRep[i].AddNodeAtWorldPosition(point[0], point[1], 0)
@@ -129,7 +129,13 @@ class ContourPlugin(PluginBase):
             else:
                 self.contourWidget[i].ProcessEventsOff()
                 self.contourWidget[i].SetWidgetState(1)
-        
+        # Sometimes the points will disappear in the view, but they exist both in the array and the contour widget, I don't know why:(
+        '''
+        if slice == 155 or slice == 154:
+            print point_array
+            print self.getAllPoint(1) / space
+            print self.getAllPoint(2) / space
+        '''
         self.parent.render_window.Render()
         return result
     def saveCurrentSlicePoint(self, view, slice):

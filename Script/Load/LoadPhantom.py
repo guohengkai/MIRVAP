@@ -29,14 +29,14 @@ class LoadPhantom(LoadBase):
         #num, ok = self.gui.getInputPara(self.gui.win, 'Radius', 30.0)
         #if not ok or num is None:
         #    return []
-        num = 30
+        num = 5
         radius = float(num)
         #num, ok = self.gui.getInputPara(self.gui.win, 'ResolutionX', 1.0)
         #if not ok or num is None:
         #    return []
         num = 1
         info = self.getInfo(res = [1.0, 1.0, float(num)], ori = 0)
-        image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0])
+        image = self.getImage(size = [150, 200, 300], radius = radius, center = [centerx, centery, 0], black = 100, gray = 0)
         #point = self.getPointSet(size = [150, 200, 300], radius = radius, ori = 0, center = [centerx, centery, 0])
         point = {}
 
