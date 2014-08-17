@@ -22,26 +22,32 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False, useMask = False):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
             return None, None, None
         if index == 0:
-            fixed_points = fixedData.getPointSet('Contour')
-            moving_points = movingData.getPointSet('Contour')
+            fixed_points = fixedData.getPointSet('Contour').copy()
+            moving_points = movingData.getPointSet('Contour').copy()
         else:
-            fixed_points = fixedData.getPointSet('Centerline')
-            moving_points = movingData.getPointSet('Centerline')
+            fixed_points = fixedData.getPointSet('Centerline').copy()
+            moving_points = movingData.getPointSet('Centerline').copy()
         
-        fixed_res = fixedData.getResolution().tolist()
-        moving_res = movingData.getResolution().tolist()
-        fixed_points = fixed_points.copy()[npy.where(fixed_points[:, 0] >= 0)]
-        moving_points = moving_points.copy()[npy.where(moving_points[:, 0] >= 0)]
-        
-        # Use the bifurcation as the initial position
         fixed_bif = db.getBifurcation(fixed_points)
         moving_bif = db.getBifurcation(moving_points)
+        
+        if useMask:
+            mask_points = movingData.getPointSet('Mask')
+            for point in mask_points:
+                moving_points = npy.delete(moving_points, npy.where((npy.abs(moving_points[:, 2] - point[2]) < 0.0001) & (npy.round(moving_points[:, -1]) == point[3])), axis = 0)
+            
+        fixed_res = fixedData.getResolution().tolist()
+        moving_res = movingData.getResolution().tolist()
+        fixed_points = fixed_points[npy.where(fixed_points[:, 0] >= 0)]
+        moving_points = moving_points[npy.where(moving_points[:, 0] >= 0)]
+        
+        # Use the bifurcation as the initial position
         if (fixed_bif < 0) or (moving_bif < 0):
             fixed_min = 0
         else:
