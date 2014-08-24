@@ -10,12 +10,11 @@ import MIRVAP.Core.DataBase as db
 from util.dict4ini import DictIni
 from MIRVAP.Script.Registration.IcpPointsetRegistration import IcpPointsetRegistration
 from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
-from MIRVAP.Script.Analysis.ContourErrorAnalysis import ContourErrorAnalysis
 from MIRVAP.Script.Analysis.AreaIndexAnalysis import AreaIndexAnalysis
-from MIRVAP.Script.Analysis.CenterlineErrorAnalysis import CenterlineErrorAnalysis
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCenterlineFromContour
 import xlwt
 import os, sys
+import time
 
 class TestAllRegistration(MacroBase):
     def getName(self):
@@ -29,35 +28,47 @@ class TestAllRegistration(MacroBase):
         self.cnt = len(self.ini.file.name_fix)
         
         self.icp = IcpPointsetRegistration(None)
-        self.contourerror = ContourErrorAnalysis(None)
         self.areaerror = AreaIndexAnalysis(None)
-        self.centerlineerror = CenterlineErrorAnalysis(None)
         self.surfaceerror = SurfaceErrorAnalysis(None)
         self.savepath = self.path + self.ini.file.savedir
         self.book = xlwt.Workbook()
         title = ['CCA', 'ECA', 'ICA', 'Overall']
-        '''
+        
         self.sheet1 = self.book.add_sheet('icp_con')
-        self.sheet1.write(1, 0, 'MRE')
-        self.sheet1.write(5, 0, 'MAXE')
+        self.sheet1.write(1, 0, 'SRE')
+        self.sheet1.write(5, 0, 'SMAXE')
         self.sheet1.write(9, 0, 'Dice Index')
-        #self.sheet1.write(13, 0, 'MCRE')
-        #self.sheet1.write(17, 0, 'MAXCRE')
-        #for j in range(5):
+        self.sheet1.write(13, 0, 'time')
         for j in range(3):
             for i in range(4):
                 self.sheet1.write(j * 4 + i + 1, 1, title[i])
-        '''
+        
         self.sheet2 = self.book.add_sheet('icp_cen')
         self.sheet2.write(1, 0, 'SRE')
         self.sheet2.write(5, 0, 'SMAXE')
-        #self.sheet2.write(9, 0, 'Dice Index')
-        #self.sheet2.write(13, 0, 'MCRE')
-        #self.sheet2.write(17, 0, 'MAXCRE')
-        #for j in range(5):
-        for j in range(2):
+        self.sheet2.write(9, 0, 'Dice Index')
+        self.sheet2.write(13, 0, 'time')
+        for j in range(3):
             for i in range(4):
                 self.sheet2.write(j * 4 + i + 1, 1, title[i])
+                
+        self.sheet3 = self.book.add_sheet('icp_con_label')
+        self.sheet3.write(1, 0, 'SRE')
+        self.sheet3.write(5, 0, 'SMAXE')
+        self.sheet3.write(9, 0, 'Dice Index')
+        self.sheet3.write(13, 0, 'time')
+        for j in range(3):
+            for i in range(4):
+                self.sheet3.write(j * 4 + i + 1, 1, title[i])
+        
+        self.sheet4 = self.book.add_sheet('icp_cen_label')
+        self.sheet4.write(1, 0, 'SRE')
+        self.sheet4.write(5, 0, 'SMAXE')
+        self.sheet4.write(9, 0, 'Dice Index')
+        self.sheet4.write(13, 0, 'time')
+        for j in range(3):
+            for i in range(4):
+                self.sheet4.write(j * 4 + i + 1, 1, title[i])
         
         for i in range(self.cnt):
             dataset = self.load(i)
@@ -87,70 +98,104 @@ class TestAllRegistration(MacroBase):
             
         return dataset
     def process(self, dataset, i):
-        '''
-        # ICP with contour
-        print 'Register Data %s with ICP(contour)...' % self.ini.file.name_result[i]
-        data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 0) 
+        # ICP with contour without label
+        print 'Register Data %s with ICP(contour) without label...' % self.ini.file.name_result[i]
+        data, point, para, time = self.icp.register(dataset['fix'], dataset['mov'], 0, op = False, isTime = True) 
         resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
         resultData.info.addData('fix', 1)
         resultData.info.addData('move', 2)
         resultData.info.addData('transform', para)
-        print 'Saving Data %s...' % self.ini.file.name_result[i]
-        db.saveMatData(self.savepath + self.ini.file.name_result[i] + '_icp_con.mat', [resultData, dataset['fix'], dataset['mov']], 0)
         print 'Done!'
-        mean_dis, mean_whole, max_dis, max_whole = self.contourerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
         dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
         print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        #cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
-        #print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
         
         self.sheet1.write(0, i + 2, self.ini.file.name_result[i])
         for j in range(3):
             self.sheet1.write(j + 1, i + 2, mean_dis[j])
             self.sheet1.write(j + 5, i + 2, max_dis[j])
             self.sheet1.write(j + 9, i + 2, dice_index[j])
-            #self.sheet1.write(j + 13, i + 2, cmean_dis[j])
-            #self.sheet1.write(j + 17, i + 2, cmax_dis[j])
         self.sheet1.write(4, i + 2, mean_whole)
         self.sheet1.write(8, i + 2, max_whole)
         self.sheet1.write(12, i + 2, dice_index_all)
-        #self.sheet1.write(16, i + 2, cmean_whole)
-        #self.sheet1.write(20, i + 2, cmax_whole)
-        self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
+        self.sheet1.write(13, i + 2, time)
+        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
         del data, point, resultData
-        '''
-        # ICP with centerline
-        print 'Register Data %s with ICP(centerline)...' % self.ini.file.name_result[i]
-        data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 1) 
+        
+        # ICP with centerline without label
+        print 'Register Data %s with ICP(centerline) without label...' % self.ini.file.name_result[i]
+        data, point, para, time = self.icp.register(dataset['fix'], dataset['mov'], 1, op = True, isTime = True) 
         resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
         resultData.info.addData('fix', 1)
         resultData.info.addData('move', 2)
         resultData.info.addData('transform', para)
-        #print 'Saving Data %s...' % self.ini.file.name_result[i]
-        #db.saveMatData(self.savepath + self.ini.file.name_result[i] + '_icp_cen.mat', [resultData, dataset['fix'], dataset['mov']], 0)
         print 'Done!'
-        #mean_dis, mean_whole, max_dis, max_whole = self.contourerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
-        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getResolution().tolist())
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
-        #dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
-        #print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
-        #cmean_dis, cmean_whole, cmax_dis, cmax_whole = self.centerlineerror.analysis(resultData, dataset['fix'].getPointSet('Centerline').copy())
-        #print 'Centerline Error Done! Whole mean is %0.2fmm.' % cmean_whole
+        dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
+        print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
         
         self.sheet2.write(0, i + 2, self.ini.file.name_result[i])
         for j in range(3):
             self.sheet2.write(j + 1, i + 2, mean_dis[j])
             self.sheet2.write(j + 5, i + 2, max_dis[j])
-            #self.sheet2.write(j + 9, i + 2, dice_index[j])
-            #self.sheet2.write(j + 13, i + 2, cmean_dis[j])
-            #self.sheet2.write(j + 17, i + 2, cmax_dis[j])
+            self.sheet2.write(j + 9, i + 2, dice_index[j])
         self.sheet2.write(4, i + 2, mean_whole)
         self.sheet2.write(8, i + 2, max_whole)
-        #self.sheet2.write(12, i + 2, dice_index_all)
-        #self.sheet2.write(16, i + 2, cmean_whole)
-        #self.sheet2.write(20, i + 2, cmax_whole)
-        self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
+        self.sheet2.write(12, i + 2, dice_index_all)
+        self.sheet2.write(13, i + 2, time)
+        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        del data, point, resultData
+        
+        # ICP with contour with label
+        print 'Register Data %s with ICP(contour) with label...' % self.ini.file.name_result[i]
+        data, point, para, time = self.icp.register(dataset['fix'], dataset['mov'], 0, op = True, isTime = True) 
+        resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
+        resultData.info.addData('fix', 1)
+        resultData.info.addData('move', 2)
+        resultData.info.addData('transform', para)
+        print 'Done!'
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
+        print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
+        dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
+        print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
+        
+        self.sheet3.write(0, i + 2, self.ini.file.name_result[i])
+        for j in range(3):
+            self.sheet3.write(j + 1, i + 2, mean_dis[j])
+            self.sheet3.write(j + 5, i + 2, max_dis[j])
+            self.sheet3.write(j + 9, i + 2, dice_index[j])
+        self.sheet3.write(4, i + 2, mean_whole)
+        self.sheet3.write(8, i + 2, max_whole)
+        self.sheet3.write(12, i + 2, dice_index_all)
+        self.sheet3.write(13, i + 2, time)
+        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        del data, point, resultData
+        
+        # ICP with centerline with label
+        print 'Register Data %s with ICP(centerline) with label...' % self.ini.file.name_result[i]
+        data, point, para, time = self.icp.register(dataset['fix'], dataset['mov'], 1, op = False, isTime = True) 
+        resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
+        resultData.info.addData('fix', 1)
+        resultData.info.addData('move', 2)
+        resultData.info.addData('transform', para)
+        print 'Done!'
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
+        print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
+        dice_index, dice_index_all = self.areaerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
+        print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
+        
+        self.sheet4.write(0, i + 2, self.ini.file.name_result[i])
+        for j in range(3):
+            self.sheet4.write(j + 1, i + 2, mean_dis[j])
+            self.sheet4.write(j + 5, i + 2, max_dis[j])
+            self.sheet4.write(j + 9, i + 2, dice_index[j])
+        self.sheet4.write(4, i + 2, mean_whole)
+        self.sheet4.write(8, i + 2, max_whole)
+        self.sheet4.write(12, i + 2, dice_index_all)
+        self.sheet4.write(13, i + 2, time)
+        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
         del data, point, resultData
          
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
 import sys, os
+import time
 
 class IcpPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -22,7 +23,8 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False, useMask = False):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = -10, fov = 9999999.0, down = 1, occ = 9999999.0, op = False, useMask = False, isTime = False):
+        time1 = time.time()
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -50,10 +52,10 @@ class IcpPointsetRegistration(RegistrationBase):
         # Use the bifurcation as the initial position
         if (fixed_bif < 0) or (moving_bif < 0):
             fixed_min = 0
-        else:
-            temp = moving_points[:, 2:]
-            moving_delta = moving_bif - npy.min(temp[npy.where(npy.round(temp[:, 1]) == 0), 0])
-            fixed_min = fixed_bif - moving_delta * moving_res[-1] / fixed_res[-1]
+        #else:
+            #temp = moving_points[:, 2:]
+            #moving_delta = moving_bif - npy.min(temp[npy.where(npy.round(temp[:, 1]) == 0), 0])
+            #fixed_min = fixed_bif - moving_delta * moving_res[-1] / fixed_res[-1]
         #print moving_res
         #print fixed_res
         
@@ -73,11 +75,11 @@ class IcpPointsetRegistration(RegistrationBase):
         '''
         #fixed = fixed[fixed[:, 2] != fixed_bif]
         #moving = moving[moving[:, 2] != moving_bif]
-        moving = moving[npy.cast[npy.int32](npy.abs(moving[:, 2] - moving_bif)) % down == 0]
+        #moving = moving[npy.cast[npy.int32](npy.abs(moving[:, 2] - moving_bif)) % down == 0]
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
-        moving = moving[(npy.max(moving[:, 2]) - moving[:, 2] <= occ) | (moving[:, 2] - npy.min(moving[:, 2]) <= occ)]
-        moving = moving[npy.abs(moving[:, 2] - moving_bif * moving_res[2]) <= fov]
+        #moving = moving[(npy.max(moving[:, 2]) - moving[:, 2] <= occ) | (moving[:, 2] - npy.min(moving[:, 2]) <= occ)]
+        #moving = moving[npy.abs(moving[:, 2] - moving_bif * moving_res[2]) <= fov]
         #print moving.shape
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
@@ -236,7 +238,7 @@ class IcpPointsetRegistration(RegistrationBase):
             saveTransform(wfile, T, R)
             '''
             b, a = a, b
-            
+        time2 = time.time()
         #wfile.close()
         # Get the result transformation parameters
         matrix = accumulate.GetMatrix()
@@ -281,7 +283,8 @@ class IcpPointsetRegistration(RegistrationBase):
         del fix_img_mask
         del result_img_mask
         '''
-        
+        if isTime:
+            return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0], time2 - time1
         return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]
             
 def saveTransform(wfile, T, R):
