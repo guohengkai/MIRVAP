@@ -81,27 +81,57 @@ class CVModelLevelsetPlugin(ContourPlugin):
             up2 = int(npy.round(npy.max(point_vital[2][:, 2])))
             print bottom, bif, up1, up2
             
-            self.autoDetectContour(point_vital[0], 0, bottom, bif, 1)
-            self.autoDetectContour(point_vital[1], 1, up1, bif, -1)
-            self.autoDetectContour(point_vital[2], 2, up2, bif, -1)
+            resolution = self.parent.parent.getData().getResolution().tolist()
+            self.autoDetectContour(point_vital[0], 0, bottom, bif, 1, resolution)
+            self.autoDetectContour(point_vital[1], 1, up1, bif, -1, resolution)
+            self.autoDetectContour(point_vital[2], 2, up2, bif, -1, resolution)
             
             self.parent.render_window.Render()
             return
+        if ch == 'a' or ch == 'A':
+            resolution = self.parent.parent.getData().getResolution().tolist()
+            space = self.parent.space
+            if len(space) == 2:
+                space += [1]
+            point_array = self.getAllPoint() / space
+            if point_array.shape[0] == 0:
+                return
+            z = int(point_array[0, self.parent.view] + 0.5)
+            image = self.parent.parent.getData().getData()[z, :, :].transpose().copy()
+            image = (image - npy.min(image)) / (npy.max(image) - npy.min(image)) * 255
+            result = ac_segmentation(point_array[:, :2], image)
+            print result
+            point_array = result.transpose().copy()
+            point_array = npy.insert(point_array, self.parent.view, z, axis = 1) * space
+            self.contourRep[self.currentContour].ClearAllNodes()
+            for i in range(point_array.shape[0]):
+                self.contourRep[self.currentContour].AddNodeAtWorldPosition(point_array[i, :].tolist())
+            self.parent.render_window.Render()
+            return
         super(CVModelLevelsetPlugin, self).KeyPressCallback(obj, event)
-    def autoDetectContour(self, point, cnt, start, end, delta):
+    def autoDetectContour(self, point, cnt, start, end, delta, res):
         points = point[npy.round(point[:, 2]) == start]
+        d = 20
         if points is None:
             return
         points = points[:, :-2]
         count = 0
         for i in range(start + delta, end + delta, delta):
             center = calCentroidFromContour(points).reshape(2)
+            #center = points
             image = self.parent.parent.getData().getData()[i, :, :].transpose().copy()
             image = (image - npy.min(image)) / (npy.max(image) - npy.min(image)) * 255
-            result = ac_segmentation(center, image)
+            down = npy.max([npy.ceil(center[0] - d / res[0]), 0])
+            up = npy.min([npy.floor(center[0] + d / res[0]), image.shape[0]])
+            left = npy.max([npy.ceil(center[1] - d / res[1]), 0])
+            right = npy.min([npy.floor(center[1] + d / res[1]), image.shape[1]])
+            crop_image = image[down : up, left : right]
+            center -= [down, left]
+            
+            result = ac_segmentation(center, crop_image)
             
             a1 = ac_area(points.transpose(), image.shape)
-            a2 = ac_area(result, image.shape)
+            a2 = ac_area(result, crop_image.shape)
             rate = a2 * 1.0 / a1
             if rate >= min(1.5 + count * 0.2, 2.1) or rate <= 0.7:
                 temp_array = points.copy()
@@ -109,8 +139,10 @@ class CVModelLevelsetPlugin(ContourPlugin):
                     count += 1
             else:
                 temp_array = result.transpose().copy()
+                temp_array[:, :2] += [down, left]
                 count = 0
             points = temp_array.copy()
+            
             
             temp_array = npy.insert(temp_array, [temp_array.shape[1]], npy.ones((temp_array.shape[0], 1), int) * i, axis = 1)
             self.parent.parent.getData().pointSet.setSlicePoint('Contour', temp_array, 2, i, cnt)

@@ -10,7 +10,7 @@ import scipy.interpolate as itp
 import scipy.optimize as opt
 from mahotas.polygon import fill_polygon
 from skimage.draw import polygon
-from po_function import po_orientation
+from po_function import po_orientation, po_circle
 
 class ac_energy(object):
     def start(self, width_of_window = 15, conv_slope = 0.1):
@@ -70,7 +70,7 @@ class ac_evolution(object):
             return npy.array([])
 def ac_flattening(acontour):
     return acontour[:, :-1]
-def ac_normal(acontour):
+def ac_normal(acontour, isCurvature = False):
     #sgn = npy.sign(po_orientation(acontour))
     s = acontour.shape[1]
     cnt = npy.arange(0, s)
@@ -85,7 +85,18 @@ def ac_normal(acontour):
         direction[0, j] = tangent[1]
         direction[1, j] = -tangent[0]
         direction[:, j] /= npy.sqrt(npy.sum(direction[:, j] ** 2))
-    return direction
+    if not isCurvature:
+        return direction
+    
+    curvature = npy.zeros([s - 1])
+    for j in range(s - 1):
+        x1 = spline[0].derivatives(j)[1]
+        x2 = spline[0].derivatives(j)[2]
+        y1 = spline[1].derivatives(j)[1]
+        y2 = spline[1].derivatives(j)[2]
+        curvature[j] = npy.abs(x1 * y2 - x2 * y1) / npy.sqrt((x1 ** 2 + y1 ** 2) ** 3)
+    return direction, curvature
+    
 def ac_amplitude(vertices, amplitude, amplitude_limit, framesize, o_acontour = None, \
         o_direction = None, o_previous_steps = None, o_current_energy = None, o_energy_function = None, o_resolution = None, o_context = None):
     def n_optimal_step(amplitude_tmp):
@@ -239,7 +250,7 @@ def ac_resampling(acontour, resolution):
         resampled = vertices
     return resampled
     
-def ac_resampling_spline(acontour, resolution):
+def ac_resampling_spline(acontour, resolution, flag = False):
     import vtk
     points = vtk.vtkPoints()
     for i in range(acontour.shape[1] - 1):
@@ -253,6 +264,8 @@ def ac_resampling_spline(acontour, resolution):
     t = 0.05
     para_spline.Evaluate([t, t, t], pt, [0] * 9)
     l = npy.sqrt((pt[0] - acontour[0, 0]) ** 2 + (pt[1] - acontour[1, 0]) ** 2) / t
+    if flag:
+        return l # Return the length of the contour
     cnt = max(int(l / resolution + 0.5), 5)
     
     resampled = npy.zeros([2, cnt], dtype = npy.float32)
@@ -266,8 +279,14 @@ def ac_resampling_spline(acontour, resolution):
 def ac_area(acontour, framesize):
     mask = ac_mask(acontour, framesize)
     return npy.sum(mask)
+def ac_length(acontour):
+    #return ac_resampling_spline(acontour, 1, True)
+    length = npy.sum(npy.sqrt(npy.sum(npy.diff(acontour, 1, 1) ** 2, 0)))
+    return length
     
 if __name__ == "__main__":
     acontour = npy.array([[0, -10, 0, 10, 0],[10, 0, -10, 0, 10.0]])
     result = ac_resampling(acontour, 2)
     print result.shape
+    print ac_normal(po_circle([5, 5], 3, 0, 1), True)
+    print ac_length(po_circle([5, 5], 3, 0, 1))
