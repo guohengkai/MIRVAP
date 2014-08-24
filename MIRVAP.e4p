@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-08-17, 23:14:55 -->
+<!-- Saved: 2014-08-25, 00:02:41 -->
 <!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -126,7 +126,6 @@
     <Source>GUI/qvtk/Plugin/util/acontour/ac_function.py</Source>
     <Source>GUI/qvtk/Plugin/CVModelLevelsetPlugin.py</Source>
     <Source>Script/Macro/TestAllSegmentation.py</Source>
-    <Source>Script/Macro/TestAllWithoutSegmentation.py</Source>
     <Source>Script/Macro/TestSegmentationRate.py</Source>
     <Source>Script/Save/SaveRawFile.py</Source>
     <Source>ThirdParty/Elastix/executeElastix.py</Source>
@@ -144,6 +143,7 @@
     <Source>GUI/qvtk/Plugin/util/USUtil.py</Source>
     <Source>GUI/qvtk/Plugin/MaskPlugin.py</Source>
     <Source>Script/Macro/TestMaskRegistration.py</Source>
+    <Source>Script/Macro/TestAllSegRegistration.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

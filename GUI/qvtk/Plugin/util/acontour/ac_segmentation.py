@@ -68,7 +68,7 @@ def ac_segmentation(center, frame, resolution = 4, amplitude_limit = 1, iteratio
         energy, object_mean, backgnd_mean = s_energy(acontour, frame)
         #energy = s_energy_area(acontour)
         #print "   Iteration %d: energy %d, object_mean %d, backgnd_mean %d" % (iteration, energy, object_mean, backgnd_mean)
-        print "   Iteration %d: energy %d" % (iteration, energy)
+        #print "   Iteration %d: energy %d" % (iteration, energy)
         #print "     Vertices: ", acontour
         if energy_class.store(energy):
             descending = False

@@ -24,33 +24,24 @@ class TestNonrigidRegistration(MacroBase):
         self.ini = DictIni(self.path + '/Script/Macro/test.ini')
         self.cnt = len(self.ini.file.name_fix)
         
-        self.spacing = [-1.0, 40.0, 32.0, 16.0, 8.0, 4.0]
-        self.w1 = [-1.0, 0.0, 1.0, 10.0, 100.0, 1000.0, 10000.0]
-        self.type = ['SSD', 'MI', 'CR']
-        n = len(self.w1) * len(self.spacing)
+        #self.spacing = [-1.0, 40.0, 32.0, 16.0, 8.0, 4.0]
+        #self.w1 = [-1.0, 0.0, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+        #self.type = ['SSD', 'MI', 'CR']
+        #n = len(self.w1) * len(self.spacing)
+        self.regPara = [(-1, -1, 'SSD'), (4.0, -1, 'SSD'), (-1, 1000, 'MI'), (32.0, 1000, 'MI')]
         
         self.savepath = self.path + self.ini.file.savedir
         self.book = xlwt.Workbook()
         
-        self.sheet1 = self.book.add_sheet('DSC')
-        p = 1
-        for k in range(len(self.type)):
-            self.sheet1.write(p, 0, self.type[k])
-            for i in range(len(self.spacing)):
-                for j in range(len(self.w1)):
-                    self.sheet1.write(p, 1, "beta = %fmm, w1 = %f" % (self.spacing[i], self.w1[j]))
-                    p += 1
+        self.sheet1 = self.book.add_sheet('MSD')
+        for i in range(len(self.regPara)):
+            self.sheet1.write(i + 1, 1, "type = %s beta = %fmm, w1 = %f" % (self.regPara[i][2], self.regPara[i][0], self.regPara[i][1]))
         
-        self.sheet2 = self.book.add_sheet('MSD')
-        p = 1
-        for k in range(len(self.type)):
-            self.sheet2.write(p, 0, self.type[k])
-            for i in range(len(self.spacing)):
-                for j in range(len(self.w1)):
-                    self.sheet2.write(p, 1, "beta = %fmm, w1 = %f" % (self.spacing[i], self.w1[j]))
-                    p += 1
+        self.sheet2 = self.book.add_sheet('DSC')
+        for i in range(len(self.regPara)):
+            self.sheet2.write(i + 1, 1, "type = %s beta = %fmm, w1 = %f" % (self.regPara[i][2], self.regPara[i][0], self.regPara[i][1]))
                     
-        for i in range(7, self.cnt):
+        for i in range(0, self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset
@@ -80,19 +71,15 @@ class TestNonrigidRegistration(MacroBase):
     def process(self, dataset, i):
         hybrid = NonrigidHybridRegistration(None)
         print 'Register Data %s with Hybrid Method...' % (self.ini.file.name_result[i])
-        data, point, para = hybrid.register(dataset['fix'], dataset['mov'], spacing = self.spacing, w1 = self.w1, type = self.type)
+        data, point, para = hybrid.register(dataset['fix'], dataset['mov'], regPara = self.regPara)
         print 'Done!'
         
-        p = 1
-        for k in range(len(self.type)):
-            for q in range(len(self.spacing)):
-                for j in range(len(self.w1)):
-                    self.sheet1.write(p, i + 2, float(para[q, j, k, 0]))
-                    self.sheet2.write(p, i + 2, float(para[q, j, k, 1]))
-                    p += 1
+        for k in range(len(self.regPara)):
+            self.sheet1.write(k + 1, i + 2, float(para[k, 0]))
+            self.sheet2.write(k + 1, i + 2, float(para[k, 1]))
         
         self.sheet1.write(0, i + 2, self.ini.file.name_result[i])
         self.sheet2.write(0, i + 2, self.ini.file.name_result[i])
-        self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'nonrigid.xls')
         del para
         del hybrid
