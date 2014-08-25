@@ -16,6 +16,7 @@ import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
 import util.Hybrid.ElastixUtil as eutil
+import time
 
 from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
 
@@ -48,6 +49,8 @@ class NonrigidHybridRegistration(RegistrationBase):
         fix_img = fixedData.getData()
         mov_img = movingData.getData()
         
+        init_time = 0.0
+        time1 = time.time()
         # Calculate the initial rigid transformation for 9 points T0
         fix_key_point = eutil.getKeyPoints(fixed_points_cen, fixed_res)
         mov_key_point = eutil.getKeyPoints(moving_points_cen, moving_res)
@@ -139,8 +142,10 @@ class NonrigidHybridRegistration(RegistrationBase):
         
         # Start registration of different parameters
         cnt = len(regPara)
-        result = npy.zeros([cnt, 2], dtype = npy.float32)
+        result = npy.zeros([cnt, 3], dtype = npy.float32)
         fix_img_mask = ee.readImageFile("fixmm.mhd")
+        time2 = time.time()
+        init_time = time2 - time1
         for i in range(cnt):
             if regPara[i][2] == "MI" and regPara[i][1] > 0:
                 ww = regPara[i][1] / 1000
@@ -165,8 +170,10 @@ class NonrigidHybridRegistration(RegistrationBase):
             else:
                 mov_name = "mov0.mhd"
                 fix_name = "fix.mhd"
+            time1 = time.time()
             code = ee.run_executable(type = "elastix", para = para_elastix, 
                 fix = fix_name, mov = mov_name, movm = "movm0.mhd", movp = "movp0.txt", mask = (regPara[i][2] != "SSD"))
+            time2 = time.time()
             if code != 0:
                 print "Elastix error!"
                 continue
@@ -241,7 +248,7 @@ class NonrigidHybridRegistration(RegistrationBase):
                 del result_pointset
                 del result_con
                     
-                result[i, :] = [mean_whole, dice_index]
+                result[i, :] = [mean_whole, dice_index, time2 - time1 + init_time]
                 print "Result of spacing %fmm, weight %f and metric %s: %fmm, %f. " % (regPara[i][0], ww, regPara[i][2], mean_whole, dice_index)
                     
         if cnt > 1:

@@ -40,7 +40,11 @@ class TestNonrigidRegistration(MacroBase):
         self.sheet2 = self.book.add_sheet('DSC')
         for i in range(len(self.regPara)):
             self.sheet2.write(i + 1, 1, "type = %s beta = %fmm, w1 = %f" % (self.regPara[i][2], self.regPara[i][0], self.regPara[i][1]))
-                    
+        
+        self.sheet3 = self.book.add_sheet('Time')
+        for i in range(len(self.regPara)):
+            self.sheet3.write(i + 1, 1, "type = %s beta = %fmm, w1 = %f" % (self.regPara[i][2], self.regPara[i][0], self.regPara[i][1]))
+        
         for i in range(0, self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
@@ -77,9 +81,11 @@ class TestNonrigidRegistration(MacroBase):
         for k in range(len(self.regPara)):
             self.sheet1.write(k + 1, i + 2, float(para[k, 0]))
             self.sheet2.write(k + 1, i + 2, float(para[k, 1]))
+            self.sheet3.write(k + 1, i + 2, float(para[k, 2]))
         
         self.sheet1.write(0, i + 2, self.ini.file.name_result[i])
         self.sheet2.write(0, i + 2, self.ini.file.name_result[i])
+        self.sheet3.write(0, i + 2, self.ini.file.name_result[i])
         self.book.save(self.path + self.ini.file.savedir + 'nonrigid.xls')
         del para
         del hybrid
