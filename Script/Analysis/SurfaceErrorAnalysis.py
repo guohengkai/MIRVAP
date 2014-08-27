@@ -51,6 +51,26 @@ class SurfaceErrorAnalysis(AnalysisBase):
             point_data_result = point_data_result[point_data_result[:, -1] >= 0]
             point_data_result[:, :3] *= self.spacing[:3]
         
+        targetPoints = [vtk.vtkPoints(), vtk.vtkPoints(), vtk.vtkPoints()]
+        targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
+        target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
+        Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
+        
+        label_dis = [3, 2, 1]
+        
+        for i in range(3):
+            for x in point_data_fix[npy.round(point_data_fix[:, 3]) != label_dis[i]]:
+                id = targetPoints[i].InsertNextPoint(x[0], x[1], x[2])
+                targetVertices[i].InsertNextCell(1)
+                targetVertices[i].InsertCellPoint(id)
+            target[i].SetPoints(targetPoints[i])
+            target[i].SetVerts(targetVertices[i])
+            
+            Locator[i].SetDataSet(target[i])
+            Locator[i].SetNumberOfCellsPerBucket(1)
+            Locator[i].BuildLocator()
+        
+        '''
         Locator = vtk.vtkCellLocator()
         targetPoints = vtk.vtkPoints()
         targetVertices = vtk.vtkCellArray()
@@ -67,6 +87,7 @@ class SurfaceErrorAnalysis(AnalysisBase):
         Locator.SetDataSet(target)
         Locator.SetNumberOfCellsPerBucket(1)
         Locator.BuildLocator()
+        '''
         
         id1 = id2 = vtk.mutable(0)
         dist = vtk.mutable(0.0)
@@ -78,7 +99,7 @@ class SurfaceErrorAnalysis(AnalysisBase):
         
         for pt in point_data_result:
             cnt = int(pt[-1] + 0.5)
-            Locator.FindClosestPoint(pt[:3].tolist(), outPoint, id1, id2, dist)
+            Locator[cnt].FindClosestPoint(pt[:3].tolist(), outPoint, id1, id2, dist)
             dis = npy.sqrt(npy.sum((npy.array(outPoint) - pt[:3]) ** 2))
             mean_dis[cnt] += dis
             max_dis[cnt] = npy.max([max_dis[cnt], dis])

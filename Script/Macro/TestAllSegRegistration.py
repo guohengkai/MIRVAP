@@ -88,6 +88,7 @@ class TestAllSegRegistration(MacroBase):
         
         data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_mov[i] + '.mat', None)
+        point['Centerline'] = calCenterlineFromContour(point)
         fileData = db.BasicData(data, info, point)
         dataset['mov'] = fileData
         print 'Data %s loaded!' % self.ini.file.name_result[i]
