@@ -76,13 +76,15 @@ def getBinaryImageFromSegmentation(image, pointset):
     return result
 
 def getBifurcationOfCenterline(pointset):
-    z = pointset[:, 2]
-    ind0 = npy.argmax(z[npy.round(pointset[:, -1]) == 0])
-    ind1 = npy.argmin(z[npy.round(pointset[:, -1]) == 1])
-    ind2 = npy.argmin(z[npy.round(pointset[:, -1]) == 2])
-
-    point = npy.mean(pointset[[ind0, ind1, ind2], :3], axis = 0)
-    return point
+    z =  pointset[:, 2]
+    ind = (npy.argmax(z[npy.round(pointset[:, -1]) == 0]), npy.argmin(z[npy.round(pointset[:, -1]) == 1]),
+        npy.argmin(z[npy.round(pointset[:, -1]) == 2]))
+    
+    point = npy.zeros([3, 3], dtype = npy.float32)
+    for cnt in range(3):
+        point[cnt, :] = pointset[npy.round(pointset[:, -1]) == cnt][ind[cnt], :3]
+    
+    return npy.mean(point, axis = 0)
     
 def getKeyPoints(pointset, res, radius = [5.0, 8.0, 10.0]):
     l = len(radius)
@@ -98,7 +100,7 @@ def getKeyPoints(pointset, res, radius = [5.0, 8.0, 10.0]):
                  ((point_tmp[:, 2] - result[0, 2]) * res[2]) ** 2)
 
     # Get the points for each radius
-    i = 0
+    i = 1
     for r in radius:
         # Get the points for vessel
         for cnt in range(3):
@@ -189,6 +191,7 @@ def cropCenterline(fix, mov, fix_res, mov_res, fix_bif, mov_bif):
 
     fix_index = npy.where((fix[:, 2] <= fix_bif + up_dis / fix_res[2]) & (fix[:, 2] >= fix_bif - down_dis / fix_res[2]))
     mov_index = npy.where((mov[:, 2] <= mov_bif + up_dis / mov_res[2]) & (mov[:, 2] >= mov_bif - down_dis / mov_res[2]))
+    
     return fix_index, mov_index
     
 def calDiceIndexFromMask(fix, result):

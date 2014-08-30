@@ -26,7 +26,7 @@ class NonrigidHybridRegistration(RegistrationBase):
     def getName(self):
         return 'Nonrigid Hybrid Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, regPara = [(40.0, 1000.0, "SSD")], w2 = 1.0): # For simple test
+    def register(self, fixedData, movingData, regPara = [(40.0, 1000.0, "SSD")], w2 = 1.0, true_fixed_points = None, true_moving_points = None): # For simple test
         # Initial data
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
@@ -40,6 +40,11 @@ class NonrigidHybridRegistration(RegistrationBase):
         moving_points_ori = moving_points.copy()[npy.where(moving_points[:, 0] >= 0)]
         fixed_points_cen_ori = fixed_points_cen.copy()[npy.where(fixed_points_cen[:, 0] >= 0)]
         moving_points_cen_ori = moving_points_cen.copy()[npy.where(moving_points_cen[:, 0] >= 0)]
+        
+        if true_fixed_points is None:
+            true_fixed_points = fixed_points_ori
+        if true_moving_points is None:
+            true_moving_points = moving_points_ori
         
         fixed_points = fixed_points_ori.copy()
         moving_points = moving_points_ori.copy()
@@ -77,7 +82,7 @@ class NonrigidHybridRegistration(RegistrationBase):
             {'Contour': moving_points, 'Centerline': moving_points_cen_result}) # The image has been resampled into fixed resolution
         tmp_img, points, para = gmm.register(new_fixedData, new_movingData, 1, False, "EM_TPS")
         result_points_cen = points['Centerline'].copy()
-        result_points_cen = result_points_cen[result_points_cen[:, 0] >= 0]
+        result_points_cen = result_points_cen[result_points_cen[:, -1] >= 0]
         result_points_cen[:, :3] *= fixed_res
         del new_movingData
         del new_fixedData
@@ -91,9 +96,19 @@ class NonrigidHybridRegistration(RegistrationBase):
         ee.writeImageFile(fix_binary_data, "fixmm")
         del fix_binary_data
         del fix_binary_mask
+        fix_binary_mask = eutil.getBinaryImageFromSegmentation(fix_img, true_fixed_points)
+        fix_binary_data = db.BasicData(fix_binary_mask, db.ImageInfo(fixedData.getInfo().data))
+        ee.writeImageFile(fix_binary_data, "fixmmm")
+        del fix_binary_data
+        del fix_binary_mask
         mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, moving_points_ori)
         mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
         ee.writeImageFile(mov_binary_data, "movmm")
+        del mov_binary_data
+        del mov_binary_mask
+        mov_binary_mask = eutil.getBinaryImageFromSegmentation(mov_img, true_moving_points)
+        mov_binary_data = db.BasicData(mov_binary_mask, db.ImageInfo(movingData.getInfo().data))
+        ee.writeImageFile(mov_binary_data, "movmmm")
         del mov_binary_data
         del mov_binary_mask
         
@@ -110,7 +125,7 @@ class NonrigidHybridRegistration(RegistrationBase):
         
         tmp = moving_points_cen.copy()
         tmp[:, :3] *= moving_res
-        ee.writePointsetFile(tmp, "movp.txt")
+        ee.writePointsetFile(tmp[crop_moving_index], "movp.txt")
         ee.writePointsetFile(result_points_cen, "fixp.txt")
         
         init_para_inv = eutil.getElastixParaFromMatrix(T_init.I)
@@ -137,13 +152,15 @@ class NonrigidHybridRegistration(RegistrationBase):
         ee.renameImage("result", "movmm0")
         ee.run_executable(type = "transformix", mov = "movm.mhd", tp = "transparassd.txt", outDir = "")
         ee.renameImage("result", "movm0")
+        ee.run_executable(type = "transformix", mov = "movmmm.mhd", tp = "transparassd.txt", outDir = "")
+        ee.renameImage("result", "movmmm0")
         
         sa = SurfaceErrorAnalysis(None)
         
         # Start registration of different parameters
         cnt = len(regPara)
         result = npy.zeros([cnt, 3], dtype = npy.float32)
-        fix_img_mask = ee.readImageFile("fixmm.mhd")
+        fix_img_mask = ee.readImageFile("fixmmm.mhd")
         time2 = time.time()
         init_time = time2 - time1
         for i in range(cnt):
@@ -179,13 +196,24 @@ class NonrigidHybridRegistration(RegistrationBase):
                 continue
             
             # Read the output files into self data formats
+            ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 0)
+            if not isRigid:
+                ee.changeOutputBSplineOrder("Output/TransformParameters.1.txt", 0)
+                ee.run_executable(type = "transformix", mov = "movmmm0.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
+                ee.changeOutputInitTransform("Output/TransformParameters.1.txt")
+            else:
+                ee.run_executable(type = "transformix", mov = "movmmm0.mhd", tp = "Output/TransformParameters.0.txt")
+                ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 0)
+                
+            result_img_mask = ee.readImageFile("Output/result.mhd")
             if regPara[i][2] == "SSD":
                 # Transform the segmentation result for evaluation
+                '''
                 if isRigid:
                     result_img_mask = ee.readImageFile("Output/result.0.mhd")
                 else:
                     result_img_mask = ee.readImageFile("Output/result.1.mhd")
-                
+                '''
                 if cnt == 1:
                     ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 3)
                     if not isRigid:
@@ -204,20 +232,12 @@ class NonrigidHybridRegistration(RegistrationBase):
                     else:
                         result_img = ee.readImageFile("Output/result.1.mhd")
                 
-                ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 0)
-                if not isRigid:
-                    ee.changeOutputBSplineOrder("Output/TransformParameters.1.txt", 0)
-                    ee.run_executable(type = "transformix", mov = "movmm0.mhd", tp = "Output/TransformParameters.1.txt") # Non-rigid transformation
-                    ee.changeOutputInitTransform("Output/TransformParameters.1.txt")
-                else:
-                    ee.run_executable(type = "transformix", mov = "movmm0.mhd", tp = "Output/TransformParameters.0.txt")
                 
-                result_img_mask = ee.readImageFile("Output/result.mhd")
                 
             ee.generateInverseTransformFile("Output/TransformParameters.0.txt", "fix.mhd")
             
             # Delete the mask slice from the moving points
-            tmp = moving_points_ori.copy()
+            tmp = true_moving_points.copy()
             for point in movingData.getPointSet('Mask'):
                 tmp = npy.delete(tmp, npy.where((npy.abs(tmp[:, 2] - point[2]) < 0.0001) & (npy.round(tmp[:, -1]) == point[3])), axis = 0)
             tmp[:, :3] *= moving_res
@@ -238,11 +258,10 @@ class NonrigidHybridRegistration(RegistrationBase):
             
             if cnt > 1:
                 dataset = db.BasicData(npy.array([[[0]]]), fixedData.getInfo(), result_pointset)
-                mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixedData.getPointSet('Contour').copy(), useResult = True)
+                mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = true_fixed_points, useResult = True)
                 del dataset
                 
                 dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
-                del fix_img_mask
                 del result_img_mask
                 
                 del result_pointset
@@ -250,7 +269,8 @@ class NonrigidHybridRegistration(RegistrationBase):
                     
                 result[i, :] = [mean_whole, dice_index, time2 - time1 + init_time]
                 print "Result of spacing %fmm, weight %f and metric %s: %fmm, %f. " % (regPara[i][0], ww, regPara[i][2], mean_whole, dice_index)
-                    
+        
+        del fix_img_mask
         if cnt > 1:
             result_img = None
             result_pointset = None

@@ -36,8 +36,8 @@ class GmmregPointsetRegistration(RegistrationBase):
         
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
-        fixed_points = fixed_points.copy()[npy.where(fixed_points[:, 0] >= 0)]
-        moving_points = moving_points.copy()[npy.where(moving_points[:, 0] >= 0)]
+        fixed_points = fixed_points.copy()[npy.where(fixed_points[:, -1] >= 0)]
+        moving_points = moving_points.copy()[npy.where(moving_points[:, -1] >= 0)]
         # Use the bifurcation as the initial position
         fixed_bif = db.getBifurcation(fixed_points)
         moving_bif = db.getBifurcation(moving_points)
@@ -51,7 +51,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         # Augmentation of pointset
         fixed = fixed_points.copy()
         tmp_fix = fixedData.getPointSet('Centerline')
-        tmp_fix = tmp_fix[tmp_fix[:, 0] >= 0].copy()
+        tmp_fix = tmp_fix[tmp_fix[:, -1] >= 0].copy()
         ctrl_pts = gutil.getControlPoints(tmp_fix, 1.0 / fixed_res[2])
         moving = moving_points.copy()
         if index == 0:

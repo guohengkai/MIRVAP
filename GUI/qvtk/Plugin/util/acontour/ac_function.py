@@ -208,6 +208,10 @@ def ac_mask(acontour, framesize):
             for i in range(2):
                 new_acontour[i, j] = spline[i](j)
     #print new_acontour
+    for i in range(2):
+        for j in range(new_acontour.shape[1]):
+            new_acontour[i, j] = npy.max([new_acontour[i, j], 0])
+            new_acontour[i, j] = npy.min([new_acontour[i, j], framesize[i] - 1])
     fill_polygon([(int(x[0] + 0.5), int(x[1] + 0.5)) for x in new_acontour.transpose()], mask)
     return mask
 def ac_mask_simple(acontour, framesize):
