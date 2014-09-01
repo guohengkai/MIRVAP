@@ -163,7 +163,7 @@ class NonrigidHybridRegistration(RegistrationBase):
         fix_img_mask = ee.readImageFile("fixmmm.mhd")
         time2 = time.time()
         init_time = time2 - time1
-        for i in range(cnt):
+        for i in range(cnt - 1, cnt):
             if regPara[i][2] == "MI" and regPara[i][1] > 0:
                 ww = regPara[i][1] / 1000
             else:

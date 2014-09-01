@@ -18,6 +18,9 @@ def run_executable(exe = None, type = "elastix", fix = "fix.mhd", mov = "mov.mhd
     if exe is None:
         exe = "%s.exe" % type
     gen_path = get_exe_path() + "/"
+    
+    if not os.path.isdir(gen_path + outDir):
+        os.makedirs(gen_path + outDir)
     if type == "elastix":
         cmd = '"%s" -f "%s" -m "%s" -out "%s" -fp "%s" -mp "%s"' % \
             (gen_path + exe, gen_path + fix, gen_path + mov, gen_path + outDir, 
