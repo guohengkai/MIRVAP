@@ -18,6 +18,8 @@ import xlwt
 import os, sys
 import time
 import numpy as npy
+import MIRVAP.Script.Registration.util.RegistrationUtil as util
+import numpy.matlib as ml
 
 class TestAllSegRegistration(MacroBase):
     def getName(self):
@@ -27,7 +29,7 @@ class TestAllSegRegistration(MacroBase):
         if os.path.isfile(self.path):
             self.path = os.path.dirname(self.path)
         
-        self.ini = DictIni(self.path + '/Script/Macro/test.ini')
+        self.ini = DictIni(self.path + '/Script/Macro/test_contrast.ini')
         self.cnt = len(self.ini.file.name_fix)
         
         self.icp = IcpPointsetRegistration(None)
@@ -69,7 +71,7 @@ class TestAllSegRegistration(MacroBase):
             for i in range(4):
                 self.sheet4.write(j * 4 + i + 1, 1, title[i])
         
-        for i in range(self.cnt):
+        for i in range(0, 2):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset
@@ -88,7 +90,6 @@ class TestAllSegRegistration(MacroBase):
         
         data, info, point = db.loadMatData(self.path + self.ini.file.datadir + '/Contour/'
             + self.ini.file.name_mov[i] + '.mat', None)
-        point['Centerline'] = calCenterlineFromContour(point)
         fileData = db.BasicData(data, info, point)
         dataset['mov'] = fileData
         print 'Data %s loaded!' % self.ini.file.name_result[i]
@@ -96,14 +97,14 @@ class TestAllSegRegistration(MacroBase):
             
         return dataset
     def process(self, dataset, i):
-        def autoDetectContour(point, cnt, start, end, delta, res):
+        def autoDetectContour(point, cnt, start, end, delta, res, type):
             self.new_points = npy.append(self.new_points, point, 0)
             points = point[:, :-2]
             d = 20
             count = 0
             for i in range(start + delta, end + delta, delta):
                 center = calCentroidFromContour(points).reshape(2)
-                image = dataset['fix'].getData()[i, :, :].transpose().copy()
+                image = dataset[type].getData()[i, :, :].transpose().copy()
                 image = (image - npy.min(image)) / (npy.max(image) - npy.min(image)) * 255
                 down = npy.max([npy.ceil(center[0] - d / res[0]), 0])
                 up = npy.min([npy.floor(center[0] + d / res[0]), image.shape[0]])
@@ -141,23 +142,49 @@ class TestAllSegRegistration(MacroBase):
         tmp = tmp[tmp[:, 0] >= 0]
         
         self.new_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
-        time1 = time.time()
         bottom = int(npy.round(npy.min(tmp[:, 2])))
         bif = int(db.getBifurcation(tmp) + 0.5)
         up = int(npy.round(npy.max(tmp[:, 2])))
+        bottom += (bif - bottom) / 2
+        up -= (up - bif) / 2
+        
+        point_vital = [0] * 3
+        point_vital[0] = tmp[(npy.round(tmp[:, -1]) == 0) & (npy.round(tmp[:, 2]) == bottom)].copy()
+        point_vital[1] = tmp[(npy.round(tmp[:, -1]) == 1) & (npy.round(tmp[:, 2]) == up)].copy()
+        point_vital[2] = tmp[(npy.round(tmp[:, -1]) == 2) & (npy.round(tmp[:, 2]) == up)].copy()
+        
+        autoDetectContour(point_vital[0], 0, bottom, bif, 1, dataset['fix'].getResolution().tolist(), 'fix')
+        autoDetectContour(point_vital[1], 1, up, bif, -1, dataset['fix'].getResolution().tolist(), 'fix')
+        autoDetectContour(point_vital[2], 2, up, bif, -1, dataset['fix'].getResolution().tolist(), 'fix')
+        print ' '
+        print 'Finish segmentation for fix data. '
+        pointset = {'Contour': self.new_points}
+        dataset['fix'].pointSet.data['Centerline'] = calCenterlineFromContour(pointset)
+        self.new_points_fix = self.new_points.copy()
+        # For mov data
+        tmp = dataset['mov'].pointSet.data['Contour']
+        tmp = tmp[tmp[:, 0] >= 0]
+        
+        self.new_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+        bottom = int(npy.round(npy.min(tmp[:, 2])))
+        bif = int(db.getBifurcation(tmp) + 0.5)
+        up = int(npy.round(npy.max(tmp[:, 2])))
+        bottom += (bif - bottom) / 2
+        up -= (up - bif) / 2
         
         point_vital = [0] * 3
         point_vital[0] = tmp[(npy.round(tmp[:, -1]) == 0) & (npy.round(tmp[:, 2]) == bottom)].copy()
         point_vital[1] = tmp[(npy.round(tmp[:, -1]) == 1) & (npy.round(tmp[:, 2]) == up)].copy()
         point_vital[2] = tmp[(npy.round(tmp[:, -1]) == 2) & (npy.round(tmp[:, 2]) == up)].copy()
             
-        autoDetectContour(point_vital[0], 0, bottom, bif, 1, dataset['fix'].getResolution().tolist())
-        autoDetectContour(point_vital[1], 1, up, bif, -1, dataset['fix'].getResolution().tolist())
-        autoDetectContour(point_vital[2], 2, up, bif, -1, dataset['fix'].getResolution().tolist())
+        autoDetectContour(point_vital[0], 0, bottom, bif, 1, dataset['mov'].getResolution().tolist(), 'mov')
+        autoDetectContour(point_vital[1], 1, up, bif, -1, dataset['mov'].getResolution().tolist(), 'mov')
+        autoDetectContour(point_vital[2], 2, up, bif, -1, dataset['mov'].getResolution().tolist(), 'mov')
         print ' '
-        print 'Finish segmentation. '
+        print 'Finish segmentation for mov data. '
         pointset = {'Contour': self.new_points}
-        dataset['fix'].pointSet.data['Centerline'] = calCenterlineFromContour(pointset)
+        dataset['mov'].pointSet.data['Centerline'] = calCenterlineFromContour(pointset)
+        self.new_points_mov = self.new_points.copy()
         
         # ICP with centerline without label
         print 'Register Data %s with ICP(centerline) without label...' % self.ini.file.name_result[i]
@@ -180,7 +207,7 @@ class TestAllSegRegistration(MacroBase):
         self.sheet2.write(4, i + 2, mean_whole)
         self.sheet2.write(8, i + 2, max_whole)
         self.sheet2.write(12, i + 2, dice_index_all)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_seg_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'multicontrast_seg_feature.xls')
         del data, point, resultData
         
         # ICP with centerline with label
@@ -204,11 +231,17 @@ class TestAllSegRegistration(MacroBase):
         self.sheet4.write(4, i + 2, mean_whole)
         self.sheet4.write(8, i + 2, max_whole)
         self.sheet4.write(12, i + 2, dice_index_all)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_seg_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'multicontrast_seg_feature.xls')
         del data, point, resultData
         
         fix_points = dataset['fix'].getPointSet('Contour').copy()
-        dataset['fix'].pointSet.data['Contour'] = self.new_points
+        dataset['fix'].pointSet.data['Contour'] = self.new_points_fix
+        mov_points = dataset['mov'].getPointSet('Contour').copy()
+        dataset['mov'].pointSet.data['Contour'] = self.new_points_mov
+        print 'Saving Data %s...' % self.ini.file.name_result[i]
+        db.saveMatData(self.path + self.ini.file.savedir + self.ini.file.name_result[i] + '_snap.mat', [dataset['fix']], 0)
+        db.saveMatData(self.path + self.ini.file.savedir + self.ini.file.name_result[i] + '_merge.mat', [dataset['mov']], 0)
+        print 'Done!'
         
         # ICP with contour without label
         print 'Register Data %s with ICP(contour) without label...' % self.ini.file.name_result[i]
@@ -218,8 +251,16 @@ class TestAllSegRegistration(MacroBase):
         resultData.info.addData('move', 2)
         resultData.info.addData('transform', para)
         print 'Done!'
-        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, fix_points.copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, fix_points.copy(), mov_points.copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
+        para = resultData.info.getData('transform')
+        R = ml.mat(para[:9]).reshape(3, 3)
+        T = ml.mat(para[9:12]).T
+        T = R.I * T
+        T = -T
+        tmp_con, result_center_points = util.resliceTheResultPoints(mov_points, None, 20, dataset['mov'].getResolution().tolist(), 
+            dataset['fix'].getResolution().tolist(), False, R, T)
+        resultData.pointSet.data['Contour'] = tmp_con
         dice_index, dice_index_all = self.areaerror.analysis(resultData, fix_points.copy())
         print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
         
@@ -231,7 +272,7 @@ class TestAllSegRegistration(MacroBase):
         self.sheet1.write(4, i + 2, mean_whole)
         self.sheet1.write(8, i + 2, max_whole)
         self.sheet1.write(12, i + 2, dice_index_all)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_seg_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'multicontrast_seg_feature.xls')
         del data, point, resultData
         
         # ICP with contour with label
@@ -242,8 +283,16 @@ class TestAllSegRegistration(MacroBase):
         resultData.info.addData('move', 2)
         resultData.info.addData('transform', para)
         print 'Done!'
-        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, fix_points.copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, fix_points.copy(), mov_points.copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
+        para = resultData.info.getData('transform')
+        R = ml.mat(para[:9]).reshape(3, 3)
+        T = ml.mat(para[9:12]).T
+        T = R.I * T
+        T = -T
+        tmp_con, result_center_points = util.resliceTheResultPoints(mov_points, None, 20, dataset['mov'].getResolution().tolist(), 
+            dataset['fix'].getResolution().tolist(), False, R, T)
+        resultData.pointSet.data['Contour'] = tmp_con
         dice_index, dice_index_all = self.areaerror.analysis(resultData, fix_points.copy())
         print 'Area Error Done! Whole Dice index is %0.3f.' % dice_index_all
         
@@ -255,10 +304,10 @@ class TestAllSegRegistration(MacroBase):
         self.sheet3.write(4, i + 2, mean_whole)
         self.sheet3.write(8, i + 2, max_whole)
         self.sheet3.write(12, i + 2, dice_index_all)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_seg_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'multicontrast_seg_feature.xls')
         del data, point, resultData
         
-        del self.new_points, fix_points
+        del self.new_points, fix_points, self.new_points_fix, self.new_points_mov, mov_points, tmp_con, result_center_points
          
 if __name__ == "__main__":
     test = TestAllRegistration(None)

@@ -28,9 +28,9 @@ class TestNonrigidRegistration(MacroBase):
         #self.w1 = [-1.0, 0.0, 1.0, 10.0, 100.0, 1000.0, 10000.0]
         #self.type = ['SSD', 'MI', 'CR']
         #n = len(self.w1) * len(self.spacing)
-        self.regPara = [(-1, -1, 'SSD'), (4.0, -1, 'SSD'), (-1, 1000, 'MI'), (32.0, 1000, 'MI'), (-1, -1, 'MI'), (32.0, -1, 'MI')]
-        #self.regPara = [(-1, 1000, 'MI'), (32.0, 1000, 'MI'), (-1, 0, 'MI'), (32.0, 0, 'MI')]
-        #self.regPara = [(-1, 0, 'MI'), (32.0, 0, 'MI')]
+        #self.regPara = [(-1, -1, 'SSD'), (4.0, -1, 'SSD'), (-1, 1000, 'MI'), (32.0, 1000, 'MI'), (-1, -1, 'MI'), (32.0, -1, 'MI')]
+        self.regPara = [(-1, -1, 'SSD'), (-1, 1000, 'MI'), (-1, -1, 'MI')]
+        #self.regPara = [(-1, -1, 'SSD'), (15.0, -1, 'SSD'), (-1, -1, 'MI'), (15.0, -1, 'MI')]
         
         self.savepath = self.path + self.ini.file.savedir
         self.book = xlwt.Workbook()
@@ -46,7 +46,7 @@ class TestNonrigidRegistration(MacroBase):
         self.sheet3 = self.book.add_sheet('Time')
         for i in range(len(self.regPara)):
             self.sheet3.write(i + 1, 1, "type = %s beta = %fmm, w1 = %f" % (self.regPara[i][2], self.regPara[i][0], self.regPara[i][1]))
-        for i in range(11, 12): #11
+        for i in range(17, self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset
@@ -87,6 +87,7 @@ class TestNonrigidRegistration(MacroBase):
         self.sheet1.write(0, i + 2, self.ini.file.name_result[i])
         self.sheet2.write(0, i + 2, self.ini.file.name_result[i])
         self.sheet3.write(0, i + 2, self.ini.file.name_result[i])
-        self.book.save(self.path + self.ini.file.savedir + 'nonrigid.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'nonrigid_snap10.xls')
+        
         del para
         del hybrid

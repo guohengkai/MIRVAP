@@ -10,6 +10,7 @@ import MIRVAP.Core.DataBase as db
 from util.dict4ini import DictIni
 from MIRVAP.Script.Registration.IcpPointsetRegistration import IcpPointsetRegistration
 from MIRVAP.Script.Analysis.ContourErrorAnalysis import ContourErrorAnalysis
+from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCenterlineFromContour
 import xlwt
 import os, sys
@@ -27,6 +28,7 @@ class TestAllCenterType(MacroBase):
         
         self.icp = IcpPointsetRegistration(None)
         self.contourerror = ContourErrorAnalysis(None)
+        self.surfaceerror = SurfaceErrorAnalysis(None)
         self.savepath = self.path + self.ini.file.savedir
         self.book = xlwt.Workbook()
         title = ['CCA', 'ECA', 'ICA', 'Overall']
@@ -78,11 +80,11 @@ class TestAllCenterType(MacroBase):
         resultData.info.addData('transform', para)
         
         print 'Done!'
-        mean_dis, mean_whole, max_dis, max_whole = self.contourerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy())
+        mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
         print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
         
         for j in range(3):
-            self.sheet.write(j + 1 + 4 * k, i + 2, mean_dis[j])
+            self.sheet.write(j + 1 + 4 * k, i + 2, float(mean_dis[j]))
         self.sheet.write(4 + 4 * k, i + 2, mean_whole)
-        self.book.save(self.path + self.ini.file.savedir + self.ini.file.name + '.xls')
+        self.book.save('./Result/Center_snap.xls')
         del data, point, resultData

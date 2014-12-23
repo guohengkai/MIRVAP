@@ -29,15 +29,9 @@ class LoadAllMRDicomAsMat(MacroBase):
         dir = self.path + self.ini.file.datadir + 'crop' + str(self.cnt) + '/'
         mdir = dir + "3D Merge/"
         namelist = os.listdir(mdir)
-        dataset[0] = load.load([str(mdir.replace('/', '\\') + x) for x in namelist])[0]
-        dataset[0].setName('MR_%d_Merge_Full' % self.cnt)
+        dataset = load.load([str(mdir.replace('/', '\\') + x) for x in namelist])[0]
+        dataset.setName('Patient%d_Merge_Full' % self.cnt)
         print '3D Merge Data %d loaded!' % self.cnt
-        
-        sdir = dir + "SNAP/"
-        namelist = os.listdir(sdir)
-        dataset[1] = load.load([str(sdir.replace('/', '\\') + x) for x in namelist])[0]
-        dataset[1].setName('MR_%d_SNAP_Full' % self.cnt)
-        print 'SNAP Data %d loaded!' % self.cnt
             
         return dataset
     def process(self, dataset):

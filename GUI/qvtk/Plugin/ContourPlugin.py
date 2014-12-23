@@ -57,6 +57,9 @@ class ContourPlugin(PluginBase):
         self.contourRep[0].GetLinesProperty().SetColor(color[0])
         self.contourRep[1].GetLinesProperty().SetColor(color[1])
         self.contourRep[2].GetLinesProperty().SetColor(color[2])
+        self.contourRep[0].GetLinesProperty().SetLineWidth(3.0)
+        self.contourRep[1].GetLinesProperty().SetLineWidth(3.0)
+        self.contourRep[2].GetLinesProperty().SetLineWidth(3.0)
         self.contourRep[0].GetProperty().SetColor(color[0])
         self.contourRep[1].GetProperty().SetColor(color[1])
         self.contourRep[2].GetProperty().SetColor(color[2])
@@ -112,8 +115,8 @@ class ContourPlugin(PluginBase):
                 result = True
                 
                 # Comment them for a more efficient view
-                #ind = util.sortContourPoints(point_array[i])
-                #point_array[i] = point_array[i][ind]
+                ind = util.sortContourPoints(point_array[i])
+                point_array[i] = point_array[i][ind]
                 
                 for row in point_array[i]:
                     point = (row * space).tolist()

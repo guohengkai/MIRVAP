@@ -23,7 +23,7 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0, op = False, useMask = False, isTime = False):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0, op = True, useMask = False, isTime = False, MaxRate = 0.2):
         time1 = time.time()
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
@@ -52,45 +52,23 @@ class IcpPointsetRegistration(RegistrationBase):
         # Use the bifurcation as the initial position
         if (fixed_bif < 0) or (moving_bif < 0):
             fixed_min = 0
-        #else:
-            #temp = moving_points[:, 2:]
-            #moving_delta = moving_bif - npy.min(temp[npy.where(npy.round(temp[:, 1]) == 0), 0])
-            #fixed_min = fixed_bif - moving_delta * moving_res[-1] / fixed_res[-1]
-        #print moving_res
-        #print fixed_res
         
         # Augmentation of pointset
-        #fixed = fixed_points[npy.where(fixed_points[:, 2] >= fixed_min)]
         fixed = fixed_points.copy()
         moving = moving_points.copy()
-        if index == 0:
-            fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
-            moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
-            #fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif, 8)
-            #moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif, 8)
-        '''
-        if index == 1:
-            fixed = util.augmentCenterline(fixed, fixed_res[-1] / moving_res[-1], 5)
-            moving = util.augmentCenterline(moving, moving_res[-1] / fixed_res[-1], 5)
-        '''
-        #fixed = fixed[fixed[:, 2] != fixed_bif]
-        #moving = moving[moving[:, 2] != moving_bif]
-        #moving = moving[npy.cast[npy.int32](npy.abs(moving[:, 2] - moving_bif)) % down == 0]
+        
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
-        #moving = moving[(npy.max(moving[:, 2]) - moving[:, 2] <= occ) | (moving[:, 2] - npy.min(moving[:, 2]) <= occ)]
-        #moving = moving[npy.abs(moving[:, 2] - moving_bif * moving_res[2]) <= fov]
-        #print moving.shape
+        
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
-        #print fixed.shape[0], moving.shape[0]
-        #return None, None, None
         
         # Prepare for ICP
         LandmarkTransform = vtk.vtkLandmarkTransform()
         LandmarkTransform.SetModeToRigidBody()
         MaxIterNum = 50
-        MaxNum = 600
+        #MaxNum = 600
+        MaxNum = int(MaxRate * moving.shape[0] + 0.5)
         
         targetPoints = [vtk.vtkPoints(), vtk.vtkPoints(), vtk.vtkPoints()]
         targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
@@ -122,6 +100,8 @@ class IcpPointsetRegistration(RegistrationBase):
         
         step = 1
         if moving.shape[0] > MaxNum:
+            ind = moving[:, 2].argsort()
+            moving = moving[ind, :]
             step = moving.shape[0] / MaxNum
         nb_points = moving.shape[0] / step
         
@@ -256,9 +236,8 @@ class IcpPointsetRegistration(RegistrationBase):
         # Resample the moving contour
         moving_points = movingData.getPointSet('Contour').copy()
         moving_center = movingData.getPointSet('Centerline').copy()
-        #discard = True
-        new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
-        
+        #new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
+        new_trans_points, result_center_points = moving_points, moving_center
         T = -T
         T = R * T
         

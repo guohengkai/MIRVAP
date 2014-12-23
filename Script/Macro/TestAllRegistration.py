@@ -24,7 +24,7 @@ class TestAllRegistration(MacroBase):
         if os.path.isfile(self.path):
             self.path = os.path.dirname(self.path)
         
-        self.ini = DictIni(self.path + '/Script/Macro/test.ini')
+        self.ini = DictIni(self.path + '/Script/Macro/test_time.ini')
         self.cnt = len(self.ini.file.name_fix)
         
         self.icp = IcpPointsetRegistration(None)
@@ -70,7 +70,7 @@ class TestAllRegistration(MacroBase):
             for i in range(4):
                 self.sheet4.write(j * 4 + i + 1, 1, title[i])
         
-        for i in range(self.cnt):
+        for i in range(0, self.cnt):
             dataset = self.load(i)
             self.process(dataset, i)
             del dataset
@@ -120,7 +120,7 @@ class TestAllRegistration(MacroBase):
         self.sheet1.write(8, i + 2, max_whole)
         self.sheet1.write(12, i + 2, dice_index_all)
         self.sheet1.write(13, i + 2, time)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'snap_feature.xls')
         del data, point, resultData
         
         # ICP with centerline without label
@@ -145,7 +145,7 @@ class TestAllRegistration(MacroBase):
         self.sheet2.write(8, i + 2, max_whole)
         self.sheet2.write(12, i + 2, dice_index_all)
         self.sheet2.write(13, i + 2, time)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'snap_feature.xls')
         del data, point, resultData
         
         # ICP with contour with label
@@ -170,7 +170,7 @@ class TestAllRegistration(MacroBase):
         self.sheet3.write(8, i + 2, max_whole)
         self.sheet3.write(12, i + 2, dice_index_all)
         self.sheet3.write(13, i + 2, time)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'snap_feature.xls')
         del data, point, resultData
         
         # ICP with centerline with label
@@ -195,9 +195,9 @@ class TestAllRegistration(MacroBase):
         self.sheet4.write(8, i + 2, max_whole)
         self.sheet4.write(12, i + 2, dice_index_all)
         self.sheet4.write(13, i + 2, time)
-        self.book.save(self.path + self.ini.file.savedir + 'multimodal_feature.xls')
+        self.book.save(self.path + self.ini.file.savedir + 'time_feature.xls')
         del data, point, resultData
-         
+        
 if __name__ == "__main__":
     test = TestAllRegistration(None)
     test.run()

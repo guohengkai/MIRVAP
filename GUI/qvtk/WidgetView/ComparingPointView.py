@@ -11,10 +11,11 @@ from MIRVAP.GUI.qvtk.Plugin.ContourViewPlugin import ContourViewPlugin
 class ComparingPointView(RegistrationDataView):
     def setWidgetView(self, widget):
         self.initView(self.parent.getData('fix'), widget)
-        color = ((0.6, 0.2, 0.2), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6))
+        #color = ((0.6, 0.2, 0.2), (0.2, 0.6, 0.2), (0.2, 0.2, 0.6))
+        color = ((1, 0, 0), (0, 1, 0), (1, 0, 0))
         self.plugin = [ContourViewPlugin(), ContourViewPlugin()]
         self.plugin[0].enable(parent = self, color = color, dash = True, show = False)
-        self.plugin[1].enable(parent = self, key = 'fix', show = False)
+        self.plugin[1].enable(parent = self, key = 'fix', show = False, color = color)
     def getName(self):
         return "Comparing PointSet View"
     def updateAfter(self, *arg):

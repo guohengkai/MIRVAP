@@ -20,7 +20,7 @@ class CountAllSlice(MacroBase):
         if os.path.isfile(self.path):
             self.path = os.path.dirname(self.path)
         
-        self.ini = DictIni(self.path + '/Script/Macro/test.ini')
+        self.ini = DictIni(self.path + '/Script/Macro/test_contrast.ini')
         self.cnt = len(self.ini.file.name_fix)
         self.uspoints = 0
         self.usslices = 0
@@ -29,10 +29,10 @@ class CountAllSlice(MacroBase):
         self.mr = [0, 0, 0, 0]
         self.book = xlwt.Workbook()
         title = ['Bottom', 'Bifurcation', 'Top', 'X', 'Y', 'Z']
-        self.sheet_us = self.book.add_sheet('US')
+        self.sheet_us = self.book.add_sheet('Merge')
         for i in range(1, 7):
             self.sheet_us.write(0, i, title[i - 1])
-        self.sheet_mr = self.book.add_sheet('MR')
+        self.sheet_mr = self.book.add_sheet('SNAP')
         for i in range(1, 7):
             self.sheet_mr.write(0, i, title[i - 1])
         

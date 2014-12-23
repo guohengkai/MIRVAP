@@ -163,7 +163,7 @@ class NonrigidHybridRegistration(RegistrationBase):
         fix_img_mask = ee.readImageFile("fixmmm.mhd")
         time2 = time.time()
         init_time = time2 - time1
-        for i in range(cnt - 1, cnt):
+        for i in range(0, cnt):
             if regPara[i][2] == "MI" and regPara[i][1] > 0:
                 ww = regPara[i][1] / 1000
             else:
@@ -215,6 +215,7 @@ class NonrigidHybridRegistration(RegistrationBase):
                     result_img_mask = ee.readImageFile("Output/result.1.mhd")
                 '''
                 if cnt == 1:
+                #if True:
                     ee.changeOutputBSplineOrder("Output/TransformParameters.0.txt", 3)
                     if not isRigid:
                         ee.changeOutputBSplineOrder("Output/TransformParameters.1.txt", 3)
@@ -224,11 +225,14 @@ class NonrigidHybridRegistration(RegistrationBase):
                         ee.run_executable(type = "transformix", mov = "mov0.mhd", tp = "Output/TransformParameters.0.txt")
                     
                     result_img = ee.readImageFile("Output/result.mhd")
+                    print i, 'SSD'
                 
             else:
                 if cnt == 1:
+                #if True:
                     if isRigid:
                         result_img = ee.readImageFile("Output/result.0.mhd")
+                        print i, 'Other'
                     else:
                         result_img = ee.readImageFile("Output/result.1.mhd")
                 
@@ -257,6 +261,7 @@ class NonrigidHybridRegistration(RegistrationBase):
             result_pointset = {'Contour': result_con}
             
             if cnt > 1:
+            #if False:
                 dataset = db.BasicData(npy.array([[[0]]]), fixedData.getInfo(), result_pointset)
                 mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = true_fixed_points, useResult = True)
                 del dataset
@@ -267,8 +272,18 @@ class NonrigidHybridRegistration(RegistrationBase):
                 del result_pointset
                 del result_con
                     
-                result[i, :] = [mean_whole, dice_index, time2 - time1 + init_time]
+                result[i, :] = [mean_whole, dice_index, time2 - time1]# + init_time]
                 print "Result of spacing %fmm, weight %f and metric %s: %fmm, %f. " % (regPara[i][0], ww, regPara[i][2], mean_whole, dice_index)
+            
+            '''
+            # Save the result
+            resultData = db.ResultData(result_img, db.ImageInfo(fixedData.info.data), result_pointset)
+            resultData.info.addData('fix', 1)
+            resultData.info.addData('move', 2)
+            resultData.info.addData('transform', [0, 0, 0])
+            db.saveMatData('D:/Python src/MIRVAP/Result/Result' + str(i) + '_37L.mat', [resultData, fixedData, movingData], 0)
+            del resultData
+            '''
         
         del fix_img_mask
         if cnt > 1:
