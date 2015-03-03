@@ -7,6 +7,7 @@ Created on 2014-04-24
 
 import numpy as npy
 import numpy.matlib as ml
+from scipy.optimize import leastsq
 import vtk
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCentroidFromContour, sortContourPoints
 
@@ -438,4 +439,45 @@ def isDifferent(p1, p2):
         
     return True
 
+def resampleCenterline(ori_points, distance):
+    trans_points = npy.array([[-1, -1, -1, -1]], dtype = npy.float32)
+    
+    for cnt in range(3):
+        resampled_points = ori_points[npy.where(npy.round(ori_points[:, -1]) == cnt)]
+        ind = resampled_points[:, 2].argsort()
+        resampled_points = resampled_points[ind]
+        if cnt == 0:
+            pre = resampled_points[-1, 2]
+            for i in range(resampled_points.shape[0] - 1, -1, -1):
+                if resampled_points[i, 2] <= pre:
+                    trans_points = npy.append(trans_points, [resampled_points[i, :]], axis = 0)
+                    pre -= distance
+        else:
+            pre = resampled_points[0, 2]
+            for i in range(0, resampled_points.shape[0]):
+                if resampled_points[i, 2] >= pre:
+                    trans_points = npy.append(trans_points, [resampled_points[i, :]], axis = 0)
+                    pre += distance
+    return trans_points
 
+def residuals(p, x):
+    res = npy.zeros(x.shape[0], dtype = npy.float32)
+    for i in range(x.shape[0]):
+        cross = npy.cross(x[i, :] - p[:3], p[3:])
+        res[i] = npy.sqrt(cross.dot(cross)) / npy.sqrt(p[3:].dot(p[3:]))
+    return res
+def getAxisSin(ori_points, distance):
+    cal_points = ori_points[npy.round(ori_points[:, -1]) == 0]
+    cal_points = cal_points[:, :3]
+    cal_points = cal_points[cal_points[:, 2] >= npy.max(cal_points[:, 2]) - distance]
+    
+    # Fit the line
+    result = leastsq(residuals, [cal_points[0, 0], cal_points[0, 1], cal_points[0, 2],
+        cal_points[-1, 0] - cal_points[0, 0], cal_points[-1, 1] - cal_points[0, 1],
+        cal_points[-1, 2] - cal_points[0, 2]], args = (cal_points))
+    #print result
+    result = result[0]
+    
+    # Calculate the angle
+    x, y, z = result[3], result[4], result[5]
+    return z / npy.sqrt(x * x + y * y + z * z)

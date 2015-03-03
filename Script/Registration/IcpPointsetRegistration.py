@@ -23,7 +23,9 @@ class IcpPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'ICP Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0, down = 1, occ = 9999999.0, op = True, useMask = False, isTime = False, MaxRate = 0.2):
+    def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0,
+            down_fix = 1, down_mov = 1, occ = 9999999.0, op = False, useMask = False, isTime = False, MaxRate = 0.2,
+            aug = False, distance_fix = 0.3, distance_mov = 0.1):
         time1 = time.time()
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
@@ -56,6 +58,17 @@ class IcpPointsetRegistration(RegistrationBase):
         # Augmentation of pointset
         fixed = fixed_points.copy()
         moving = moving_points.copy()
+        
+        if index == 1 and aug:
+            fixed = util.augmentCenterline(fixed, 1, 10)
+            moving = util.augmentCenterline(moving, 1, 10)
+            fix_dis = util.getAxisSin(fixed, 3 / fixed_res[2]) * distance_fix
+            mov_dis = util.getAxisSin(moving, 3 / moving_res[2]) * distance_mov
+            fixed = util.resampleCenterline(fixed, fix_dis / fixed_res[2])
+            moving = util.resampleCenterline(moving, mov_dis / moving_res[2])
+        
+        fixed = fixed[npy.cast[npy.int32](npy.abs(fixed[:, 2] - fixed_bif)) % down_fix == 0]
+        moving = moving[npy.cast[npy.int32](npy.abs(moving[:, 2] - moving_bif)) % down_mov == 0]
         
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
@@ -118,43 +131,6 @@ class IcpPointsetRegistration(RegistrationBase):
             points1.SetPoint(i, moving[j][0], moving[j][1], moving[j][2])
             label[i] = moving[j][3]
             j += step
-        '''
-        j = 0
-        k = 0
-        temp = moving[moving[:, 3] == 0]
-        step = 1
-        if temp.shape[0] > MaxNum / 3:
-            step = temp.shape[0] * 3 / MaxNum
-        nb_points = temp.shape[0] / step
-        for i in range(nb_points):
-            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
-            label[k] = 0
-            j += step
-            k += 1
-        j = 0
-        temp = moving[moving[:, 3] == 2]
-        step = 1
-        if temp.shape[0] > MaxNum / 3:
-            step = temp.shape[0] * 3 / MaxNum
-        nb_points = temp.shape[0] / step
-        for i in range(nb_points):
-            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
-            label[k] = 2
-            j += step
-            k += 1
-        j = 0
-        temp = moving[moving[:, 3] == 1]
-        step = 1
-        if temp.shape[0] > MaxNum / 3:
-            step = temp.shape[0] * 3 / MaxNum
-        nb_points = temp.shape[0] / step
-        for i in range(nb_points):
-            points1.InsertNextPoint(temp[j][0], temp[j][1], temp[j][2])
-            label[k] = 1
-            j += step
-            k += 1
-        nb_points = k
-        '''
         
         closestp = vtk.vtkPoints()
         closestp.SetNumberOfPoints(nb_points)
@@ -223,7 +199,7 @@ class IcpPointsetRegistration(RegistrationBase):
         # Get the result transformation parameters
         matrix = accumulate.GetMatrix()
         
-        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
+        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T
         R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
                     [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
                     [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
