@@ -25,7 +25,7 @@ class TestNoiseRobust(MacroBase):
         if os.path.isfile(self.path):
             self.path = os.path.dirname(self.path)
         
-        self.ini = DictIni(self.path + '/Script/Macro/test_contrast.ini')
+        self.ini = DictIni(self.path + '/Script/Macro/test_merge_suc.ini')
         self.cnt = len(self.ini.file.name_fix)
         self.repeat = 3
         
@@ -55,14 +55,14 @@ class TestNoiseRobust(MacroBase):
             self.sheet.write(i + 9, 1, title[i])
             self.sheet.write(i + 13, 1, title[i])
         for i in range(0, 16):
-            self.sheet.write(0, i, float(i) / 5)
+            self.sheet.write(0, i + 2, float(i) / 5)
         for i in range(4):
             for j in range(0, 16):
                 self.sheet.write(i + 1, j + 2, float(self.error[0, j, i]))
                 self.sheet.write(i + 5, j + 2, float(self.error[1, j, i]))
                 self.sheet.write(i + 9, j + 2, float(self.error[2, j, i]))
                 self.sheet.write(i + 13, j + 2, float(self.error[3, j, i]))
-        self.book.save('./Result/Robust_Noise_contour.xls')
+        self.book.save('./Result/Robust_Noise_merge_suc.xls')
         
         if self.gui:
             self.gui.showErrorMessage('Success', 'Test sucessfully!')
@@ -90,7 +90,7 @@ class TestNoiseRobust(MacroBase):
         # ICP with centerline
         print 'Register Data %s with ICP...' % self.ini.file.name_result[i]
         tmp = dataset['mov'].pointSet.data['Contour'].copy()
-        for sd in range(0, 5):
+        for sd in range(0, 16):
             mean_dis_all = npy.zeros([4, 3], dtype = npy.float32)
             mean_whole_all = npy.zeros([4, 1], dtype = npy.float32)
             if sd > 0:
@@ -108,14 +108,6 @@ class TestNoiseRobust(MacroBase):
                 resultData.info.addData('move', 2)
                 resultData.info.addData('transform', para)
                 
-                para = resultData.info.getData('transform')
-                R = ml.mat(para[:9]).reshape(3, 3)
-                T = ml.mat(para[9:12]).T
-                T = R.I * T
-                T = -T
-                tmp_con, result_center_points = util.resliceTheResultPoints(tmp, None, 20, dataset['mov'].getResolution().tolist(), 
-                    dataset['fix'].getResolution().tolist(), False, R, T)
-                resultData.pointSet.data['Contour'] = tmp_con
                 mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
                 mean_dis_all[0, :] += mean_dis
                 mean_whole_all[0] += mean_whole
@@ -128,14 +120,6 @@ class TestNoiseRobust(MacroBase):
                 resultData.info.addData('move', 2)
                 resultData.info.addData('transform', para)
                 
-                para = resultData.info.getData('transform')
-                R = ml.mat(para[:9]).reshape(3, 3)
-                T = ml.mat(para[9:12]).T
-                T = R.I * T
-                T = -T
-                tmp_con, result_center_points = util.resliceTheResultPoints(tmp, None, 20, dataset['mov'].getResolution().tolist(), 
-                    dataset['fix'].getResolution().tolist(), False, R, T)
-                resultData.pointSet.data['Contour'] = tmp_con
                 mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
                 mean_dis_all[1, :] += mean_dis
                 mean_whole_all[1] += mean_whole
@@ -148,14 +132,6 @@ class TestNoiseRobust(MacroBase):
                 resultData.info.addData('move', 2)
                 resultData.info.addData('transform', para)
                 
-                para = resultData.info.getData('transform')
-                R = ml.mat(para[:9]).reshape(3, 3)
-                T = ml.mat(para[9:12]).T
-                T = R.I * T
-                T = -T
-                tmp_con, result_center_points = util.resliceTheResultPoints(tmp, None, 20, dataset['mov'].getResolution().tolist(), 
-                    dataset['fix'].getResolution().tolist(), False, R, T)
-                resultData.pointSet.data['Contour'] = tmp_con
                 mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
                 mean_dis_all[2, :] += mean_dis
                 mean_whole_all[2] += mean_whole
@@ -168,14 +144,6 @@ class TestNoiseRobust(MacroBase):
                 resultData.info.addData('move', 2)
                 resultData.info.addData('transform', para)
                 
-                para = resultData.info.getData('transform')
-                R = ml.mat(para[:9]).reshape(3, 3)
-                T = ml.mat(para[9:12]).T
-                T = R.I * T
-                T = -T
-                tmp_con, result_center_points = util.resliceTheResultPoints(tmp, None, 20, dataset['mov'].getResolution().tolist(), 
-                    dataset['fix'].getResolution().tolist(), False, R, T)
-                resultData.pointSet.data['Contour'] = tmp_con
                 mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
                 mean_dis_all[3, :] += mean_dis
                 mean_whole_all[3] += mean_whole

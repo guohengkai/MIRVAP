@@ -23,7 +23,7 @@ class TestAllCenterType(MacroBase):
         if os.path.isfile(self.path):
             self.path = os.path.dirname(self.path)
         
-        self.ini = DictIni(self.path + '/Script/Macro/test.ini')
+        self.ini = DictIni(self.path + '/Script/Macro/test_modal.ini')
         self.cnt = len(self.ini.file.name_fix)
         
         self.icp = IcpPointsetRegistration(None)
@@ -86,5 +86,5 @@ class TestAllCenterType(MacroBase):
         for j in range(3):
             self.sheet.write(j + 1 + 4 * k, i + 2, float(mean_dis[j]))
         self.sheet.write(4 + 4 * k, i + 2, mean_whole)
-        self.book.save('./Result/Center_snap.xls')
+        self.book.save('./Result/Center_merge.xls')
         del data, point, resultData

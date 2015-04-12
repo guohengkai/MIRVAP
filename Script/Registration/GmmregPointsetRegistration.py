@@ -15,6 +15,7 @@ import itk, vtk
 import SimpleITK as sitk
 import util.RegistrationUtil as util
 import util.Hybrid.GmmregUtil as gutil
+import time
 
 class GmmregPointsetRegistration(RegistrationBase):
     def __init__(self, gui):
@@ -22,7 +23,7 @@ class GmmregPointsetRegistration(RegistrationBase):
     def getName(self):
         return 'GMMREG Pointset Registration For Vessel'
                                  
-    def register(self, fixedData, movingData, index = -1, discard = False, method = "rigid", execute = True):
+    def register(self, fixedData, movingData, index = -1, discard = False, method = "EM_TPS", execute = True, isTime = False):
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
         if index is None:
@@ -33,7 +34,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         else:
             fixed_points = fixedData.getPointSet('Centerline')
             moving_points = movingData.getPointSet('Centerline')
-        
+        time1 = time.time()
         fixed_res = fixedData.getResolution().tolist()
         moving_res = movingData.getResolution().tolist()
         fixed_points = fixed_points.copy()[npy.where(fixed_points[:, -1] >= 0)]
@@ -79,6 +80,7 @@ class GmmregPointsetRegistration(RegistrationBase):
                 return None, None, None
         
         trans, para, para2 = eg.get_final_result(methodname = method)
+        time2 = time.time()
         
         # Clear the temp files
         #eg.clear_temp_file()
@@ -129,6 +131,8 @@ class GmmregPointsetRegistration(RegistrationBase):
             fixedImage = fixedData.getSimpleITKImage()
             resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
             
+            if isTime:
+                return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0], time2 - time1
             return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
             
         else: # EM_TPS
@@ -310,6 +314,7 @@ class GmmregPointsetRegistration(RegistrationBase):
         
             outputImage = resampler.GetOutput()
             image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
-            #print image
+            if isTime:
+                return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0], time2 - time1
             return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0]
         

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2014-04-24
+Created on 2015-03-05
 
 @author: Hengkai Guo
 """
@@ -16,16 +16,18 @@ import SimpleITK as sitk
 import util.RegistrationUtil as util
 import sys, os
 import time
+import copy
+from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
 
-class IcpPointsetRegistration(RegistrationBase):
+class NonrigidIcpRegistration(RegistrationBase):
     def __init__(self, gui):
-        super(IcpPointsetRegistration, self).__init__(gui)
+        super(NonrigidIcpRegistration, self).__init__(gui)
     def getName(self):
-        return 'ICP Pointset Registration For Vessel'
+        return 'Nonrigid Labeled ICP Pointset Registration For Vessel'
                                  
     def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0,
-            down_fix = 1, down_mov = 1, occ = 9999999.0, op = False, useMask = False, isTime = False, MaxRate = 0.2,
-            aug = False, distance_fix = 0.3, distance_mov = 0.1):
+            down_fix = 1, down_mov = 1, occ = 9999999.0, useMask = False, isTime = False, MaxRate = 1,
+            aug = False, distance_fix = 0.3, distance_mov = 0.1, w_wrong = 1.5):
         time1 = time.time()
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
@@ -77,8 +79,8 @@ class IcpPointsetRegistration(RegistrationBase):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         
         # Prepare for ICP
-        LandmarkTransform = vtk.vtkLandmarkTransform()
-        LandmarkTransform.SetModeToRigidBody()
+        LandmarkTransform = vtk.vtkThinPlateSplineTransform()
+        LandmarkTransform.SetBasisToR()
         MaxIterNum = 50
         #MaxNum = 600
         MaxNum = int(MaxRate * moving.shape[0] + 0.5)
@@ -87,20 +89,9 @@ class IcpPointsetRegistration(RegistrationBase):
         targetVertices = [vtk.vtkCellArray(), vtk.vtkCellArray(), vtk.vtkCellArray()]
         target = [vtk.vtkPolyData(), vtk.vtkPolyData(), vtk.vtkPolyData()]
         Locator = [vtk.vtkCellLocator(), vtk.vtkCellLocator(), vtk.vtkCellLocator()]
-        if index == 0:
-            if not op:
-                label_dis = [3, 3, 3]
-            else:
-                label_dis = [3, 2, 1]
-        else:
-            if op:
-                label_dis = [3, 3, 3]
-            else:
-                label_dis = [3, 2, 1]
-            
         
         for i in range(3):
-            for x in fixed[npy.round(fixed[:, 3]) != label_dis[i]]:
+            for x in fixed[npy.round(fixed[:, 3]) == i]:
                 id = targetPoints[i].InsertNextPoint(x[0], x[1], x[2])
                 targetVertices[i].InsertNextCell(1)
                 targetVertices[i].InsertCellPoint(id)
@@ -117,9 +108,6 @@ class IcpPointsetRegistration(RegistrationBase):
             moving = moving[ind, :]
             step = moving.shape[0] / MaxNum
         nb_points = moving.shape[0] / step
-        
-        accumulate = vtk.vtkTransform()
-        accumulate.PostMultiply()
         
         points1 = vtk.vtkPoints()
         points1.SetNumberOfPoints(nb_points)
@@ -145,111 +133,61 @@ class IcpPointsetRegistration(RegistrationBase):
         iternum = 0
         a = points1
         b = points2
+        w_mat = [[1, w_wrong, w_wrong], [w_wrong, 1, 99999999], [w_wrong, 99999999, 1]]
         
-        '''
-        path = sys.argv[0]
-        if os.path.isfile(path):
-            path = os.path.dirname(path)
-        path += '/Data/Transform'
-        wfile = open("%s/transform.txt" % path, 'w')
-        
-        matrix = accumulate.GetMatrix()
-        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
-        R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
-                    [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
-                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
-        if (fixed_bif >= 0) and (moving_bif >= 0):
-            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
-        saveTransform(wfile, T, R)
-        '''
+        # Resample the moving contour
+        new_trans_points = movingData.getPointSet('Contour').copy()
+        result_center_points = movingData.getPointSet('Centerline').copy()
+        new_trans_points = new_trans_points[new_trans_points[:, 3] >= 0]
+        result_center_points = result_center_points[result_center_points[:, 3] >= 0]
         
         while True:
             for i in range(nb_points):
-                Locator[label[i]].FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
-                closestp.SetPoint(i, outPoint)
+                min_dist = 99999999
+                min_outPoint = [0.0, 0.0, 0.0]
+                for j in range(3):
+                    Locator[j].FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
+                    dis = npy.sqrt(npy.sum((npy.array(outPoint) - a.GetPoint(i)) ** 2))
+                    if dis * w_mat[label[i]][j] < min_dist:
+                        min_dist = dis * w_mat[label[i]][j]
+                        min_outPoint = copy.deepcopy(outPoint)
+                    
+                closestp.SetPoint(i, min_outPoint)
                 
             LandmarkTransform.SetSourceLandmarks(a)
             LandmarkTransform.SetTargetLandmarks(closestp)
             LandmarkTransform.Update()
             
-            accumulate.Concatenate(LandmarkTransform.GetMatrix())
-            
+            for i in range(result_center_points.shape[0]):
+                LandmarkTransform.InternalTransformPoint([result_center_points[i, 0], result_center_points[i, 1], result_center_points[i, 2]], p2)
+                result_center_points[i, :3] = p2
+            for i in range(new_trans_points.shape[0]):
+                LandmarkTransform.InternalTransformPoint([new_trans_points[i, 0], new_trans_points[i, 1], new_trans_points[i, 2]], p2)
+                new_trans_points[i, :3] = p2
+                
             iternum += 1
             if iternum >= MaxIterNum:
                 break
             
-            dist_err = 0
             for i in range(nb_points):
                 a.GetPoint(i, p1)
                 LandmarkTransform.InternalTransformPoint(p1, p2)
                 b.SetPoint(i, p2)
-                dist_err += npy.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 + (p1[2] - p2[2]) ** 2)
-            dist_err /= nb_points
-            print "iter = %d: %f" % (iternum, dist_err)
-            '''
-            matrix = accumulate.GetMatrix()
-            T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T;
-            R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
-                        [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
-                        [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I;
-            if (fixed_bif >= 0) and (moving_bif >= 0):
-                T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2])
-            saveTransform(wfile, T, R)
-            '''
             b, a = a, b
         time2 = time.time()
-        #wfile.close()
-        # Get the result transformation parameters
-        matrix = accumulate.GetMatrix()
         
-        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T
-        R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
-                    [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
-                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
-        
-        #T = ml.mat([0, 0, 0]).T
-        #R = ml.mat([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).T
         if (fixed_bif >= 0) and (moving_bif >= 0):
-            T[2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
+            new_trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
+            result_center_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
+        resultImage = movingData.getData().copy()
         
-        # Resample the moving contour
-        moving_points = movingData.getPointSet('Contour').copy()
-        moving_center = movingData.getPointSet('Centerline').copy()
-        #new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
-        new_trans_points, result_center_points = moving_points, moving_center
-        T = -T
-        T = R * T
+        sa = SurfaceErrorAnalysis(None)
+        dataset = db.BasicData(npy.array([[[0]]]), fixedData.getInfo(), {'Contour': new_trans_points, 'Centerline': result_center_points})
+        mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixed_points.copy(), useResult = True)
+        del dataset
+        print mean_dis
+        print mean_whole
         
-        transform = sitk.Transform(3, sitk.sitkAffine)
-        para = R.reshape(1, -1).tolist()[0] + T.T.tolist()[0]
-        transform.SetParameters(para)
-        
-        movingImage = movingData.getSimpleITKImage()
-        fixedImage = fixedData.getSimpleITKImage()
-        resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
-        
-        '''
-        import util.Hybrid.ElastixUtil as eutil
-        fixed_points = fixedData.getPointSet('Contour').copy()
-        fixed_points[:, :3] *= fixed_res
-        fix_img_mask = eutil.getBinaryImageFromSegmentation(fixedData.getData(), fixed_points)
-        result_points = new_trans_points.copy()
-        result_points[:, :3] *= fixed_res
-        result_img_mask = eutil.getBinaryImageFromSegmentation(sitk.GetArrayFromImage(resultImage), result_points)
-        dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
-        print dice_index
-        del fix_img_mask
-        del result_img_mask
-        '''
         if isTime:
-            return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0], time2 - time1
-        return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]
-            
-def saveTransform(wfile, T, R):
-    for i in range(3):
-        wfile.write("%f " % T[i, 0])
-    for i in range(3):
-        for j in range(3):
-            wfile.write("%f " % R[i, j])
-    wfile.write("\n")
-
+            return resultImage, {'Contour': new_trans_points, 'Centerline': result_center_points}, [mean_dis, mean_whole], time2 - time1
+        return resultImage, {'Contour': new_trans_points, 'Centerline': result_center_points}, [mean_dis, mean_whole]

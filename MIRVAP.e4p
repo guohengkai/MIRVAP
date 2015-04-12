@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2014-11-03, 20:23:29 -->
-<!-- Copyright (C) 2014 Hengkai Guo, guohengkaighk@gmail.com -->
+<!-- Saved: 2015-03-05, 23:13:59 -->
+<!-- Copyright (C) 2015 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -146,6 +146,9 @@
     <Source>Script/Macro/TestAllSegRegistration.py</Source>
     <Source>Script/Macro/TestNonrigidSegRegistration.py</Source>
     <Source>Script/Macro/TestIcpPara.py</Source>
+    <Source>Script/Macro/TestCenterDistance.py</Source>
+    <Source>Script/Registration/WeightIcpRegistration.py</Source>
+    <Source>Script/Macro/TestWeightIcp.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

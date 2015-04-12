@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2015-03-03
+Created on 2015-03-05
 
 @author: Hengkai Guo
 """
@@ -8,7 +8,7 @@ Created on 2015-03-03
 from MIRVAP.Script.MacroBase import MacroBase
 import MIRVAP.Core.DataBase as db
 from util.dict4ini import DictIni
-from MIRVAP.Script.Registration.IcpPointsetRegistration import IcpPointsetRegistration
+from MIRVAP.Script.Registration.WeightIcpRegistration import WeightIcpRegistration
 from MIRVAP.Script.Analysis.ContourErrorAnalysis import ContourErrorAnalysis
 from MIRVAP.Script.Analysis.SurfaceErrorAnalysis import SurfaceErrorAnalysis
 from MIRVAP.GUI.qvtk.Plugin.util.PluginUtil import calCenterlineFromContour
@@ -16,9 +16,9 @@ import xlwt
 import os, sys
 import numpy as npy
 
-class TestCenterDistance(MacroBase):
+class TestWeightIcp(MacroBase):
     def getName(self):
-        return 'Test Center Distance'
+        return 'Test Weight ICP'
     def run(self, window = None):
         self.path = sys.argv[0]
         if os.path.isfile(self.path):
@@ -27,12 +27,12 @@ class TestCenterDistance(MacroBase):
         self.ini = DictIni(self.path + '/Script/Macro/test_modal.ini')
         self.cnt = len(self.ini.file.name_fix)
         
-        self.icp = IcpPointsetRegistration(None)
+        self.icp = WeightIcpRegistration(None)
         self.contourerror = ContourErrorAnalysis(None)
         self.surfaceerror = SurfaceErrorAnalysis(None)
         
-        self.dis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        self.error = npy.zeros([len(self.dis), len(self.dis)], dtype = npy.float32)
+        self.dis = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10, 100, 10000000]
+        self.error = npy.zeros([len(self.dis)], dtype = npy.float32)
         
         for i in range(self.cnt):
             dataset = self.load(i)
@@ -44,14 +44,11 @@ class TestCenterDistance(MacroBase):
         self.book = xlwt.Workbook()
         self.sheet = self.book.add_sheet('Initial Slice')
         
-        for i in self.dis:
-            self.sheet.write(0, i, i)
-            self.sheet.write(i, 0, i)
-        for i in self.dis:
-            for j in self.dis:
-                self.sheet.write(i, j, float(self.error[i - 1, j - 1]))
+        for i in range(len(self.dis)):
+            self.sheet.write(0, i, float(self.dis[i]))
+            self.sheet.write(1, i, float(self.error[i]))
                     
-        self.book.save('./Result/center_dis_merge.xls')
+        self.book.save('./Result/weight_icp_merge.xls')
         
         if self.gui:
             self.gui.showErrorMessage('Success', 'Test sucessfully!')
@@ -79,18 +76,15 @@ class TestCenterDistance(MacroBase):
     def process(self, dataset, i):
         # ICP with centerline
         print 'Register Data %s with ICP(centerline)...' % self.ini.file.name_result[i]
-        for i in self.dis:
-            for j in self.dis:
-                data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 1, down_fix = i, down_mov = j, MaxRate = 1.0) # CLICP
-                #data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 0, False, delta) #SICP
-                #data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 1, False, delta, op = True) #CICP
-                #data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 0, False, delta, op = True) #SLICP
-                resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
-                resultData.info.addData('fix', 1)
-                resultData.info.addData('move', 2)
-                resultData.info.addData('transform', para)
-                print 'Sample (%d, %d) Done!' % (i, j)
-                mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
-                print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
-                self.error[i - 1, j - 1] += mean_whole
-                del data, point, resultData
+        for i in range(len(self.dis)):
+            data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 1, w_wrong = self.dis[i]) # CLICP
+            #data, point, para = self.icp.register(dataset['fix'], dataset['mov'], 0, False, delta) #SICP
+            resultData = db.ResultData(data, db.ImageInfo(dataset['fix'].info.data), point)
+            resultData.info.addData('fix', 1)
+            resultData.info.addData('move', 2)
+            resultData.info.addData('transform', para)
+            print 'Weight %f Done!' % self.dis[i]
+            mean_dis, mean_whole, max_dis, max_whole = self.surfaceerror.analysis(resultData, dataset['fix'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Contour').copy(), dataset['mov'].getPointSet('Mask').copy(), dataset['mov'].getResolution().tolist())
+            print 'Contour Error Done! Whole mean is %0.2fmm.' % mean_whole
+            self.error[i] += mean_whole
+            del data, point, resultData
