@@ -217,6 +217,8 @@ class IcpPointsetRegistration(RegistrationBase):
         moving_center = movingData.getPointSet('Centerline').copy()
         #new_trans_points, result_center_points = util.resliceTheResultPoints(moving_points, moving_center, 20, moving_res, fixed_res, discard, R, T)
         new_trans_points, result_center_points = moving_points, moving_center
+        result_center_points[:, :3] = util.applyTransformForPoints(result_center_points[:, :3], moving_res, fixed_res, R, T, ml.zeros([3, 1], dtype = npy.float32))
+        new_trans_points[:, :3] = util.applyTransformForPoints(new_trans_points[:, :3], moving_res, fixed_res, R, T, ml.zeros([3, 1], dtype = npy.float32))
         T = -T
         T = R * T
         
@@ -228,19 +230,6 @@ class IcpPointsetRegistration(RegistrationBase):
         fixedImage = fixedData.getSimpleITKImage()
         resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
         
-        '''
-        import util.Hybrid.ElastixUtil as eutil
-        fixed_points = fixedData.getPointSet('Contour').copy()
-        fixed_points[:, :3] *= fixed_res
-        fix_img_mask = eutil.getBinaryImageFromSegmentation(fixedData.getData(), fixed_points)
-        result_points = new_trans_points.copy()
-        result_points[:, :3] *= fixed_res
-        result_img_mask = eutil.getBinaryImageFromSegmentation(sitk.GetArrayFromImage(resultImage), result_points)
-        dice_index = eutil.calDiceIndexFromMask(fix_img_mask, result_img_mask)
-        print dice_index
-        del fix_img_mask
-        del result_img_mask
-        '''
         if isTime:
             return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0], time2 - time1
         return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + [0, 0, 0]

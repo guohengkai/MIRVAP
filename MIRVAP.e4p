@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project MIRVAP -->
-<!-- Saved: 2015-03-05, 23:13:59 -->
+<!-- Saved: 2015-04-12, 22:11:47 -->
 <!-- Copyright (C) 2015 Hengkai Guo, guohengkaighk@gmail.com -->
 <Project version="4.6">
   <Language></Language>
@@ -149,6 +149,12 @@
     <Source>Script/Macro/TestCenterDistance.py</Source>
     <Source>Script/Registration/WeightIcpRegistration.py</Source>
     <Source>Script/Macro/TestWeightIcp.py</Source>
+    <Source>Script/Registration/NonrigidGMMRegistration.py</Source>
+    <Source>Script/Registration/NonrigidIcpRegistration.py</Source>
+    <Source>Script/Macro/TestGmmRegistration.py</Source>
+    <Source>Script/Macro/TestAllWithoutSegmentation.py</Source>
+    <Source>Script/Macro/TestNonrigidIcpRegistration.py</Source>
+    <Source>Script/Macro/TestNonrigidNoiseRobust.py</Source>
   </Sources>
   <Forms>
     <Form>GUI/MainWindow.ui</Form>

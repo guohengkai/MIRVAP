@@ -26,8 +26,8 @@ class NonrigidIcpRegistration(RegistrationBase):
         return 'Nonrigid Labeled ICP Pointset Registration For Vessel'
                                  
     def register(self, fixedData, movingData, index = -1, discard = False, delta = 0, fov = 9999999.0,
-            down_fix = 1, down_mov = 1, occ = 9999999.0, useMask = False, isTime = False, MaxRate = 1,
-            aug = False, distance_fix = 0.3, distance_mov = 0.1, w_wrong = 1.5):
+            down_fix = 1, down_mov = 1, occ = 9999999.0, op = False, useMask = False, isTime = False, MaxRate = 0.2,
+            aug = False, distance_fix = 0.3, distance_mov = 0.1, w_wrong = 1.5, truth_mov = None):
         time1 = time.time()
         if index == -1:
             index = self.gui.getDataIndex({'Contour': 0, 'Centerline': 1}, 'Select the object')
@@ -39,6 +39,8 @@ class NonrigidIcpRegistration(RegistrationBase):
         else:
             fixed_points = fixedData.getPointSet('Centerline').copy()
             moving_points = movingData.getPointSet('Centerline').copy()
+        if truth_mov is None:
+            truth_mov = moving_points.copy()
         
         fixed_bif = db.getBifurcation(fixed_points)
         moving_bif = db.getBifurcation(moving_points)
@@ -75,12 +77,18 @@ class NonrigidIcpRegistration(RegistrationBase):
         fixed[:, :3] *= fixed_res[:3]
         moving[:, :3] *= moving_res[:3]
         
+        new_trans_points = truth_mov
+        result_center_points = movingData.getPointSet('Centerline').copy()
+        new_trans_points = new_trans_points[new_trans_points[:, 3] >= 0]
+        result_center_points = result_center_points[result_center_points[:, 3] >= 0]
+        new_trans_points[:, :3] *= moving_res[:3]
+        result_center_points[:, :3] *= moving_res[:3]
+        
         if (fixed_bif >= 0) and (moving_bif >= 0):
             fixed[:, 2] -= (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
         
         # Prepare for ICP
-        LandmarkTransform = vtk.vtkThinPlateSplineTransform()
-        LandmarkTransform.SetBasisToR()
+        
         MaxIterNum = 50
         #MaxNum = 600
         MaxNum = int(MaxRate * moving.shape[0] + 0.5)
@@ -133,13 +141,15 @@ class NonrigidIcpRegistration(RegistrationBase):
         iternum = 0
         a = points1
         b = points2
-        w_mat = [[1, w_wrong, w_wrong], [w_wrong, 1, 99999999], [w_wrong, 99999999, 1]]
+        if (op and index == 0) or (not op and index == 1):
+            w_mat = [[1, w_wrong, w_wrong], [w_wrong, 1, 99999999], [w_wrong, 99999999, 1]]
+        else:
+            w_mat = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
         
-        # Resample the moving contour
-        new_trans_points = movingData.getPointSet('Contour').copy()
-        result_center_points = movingData.getPointSet('Centerline').copy()
-        new_trans_points = new_trans_points[new_trans_points[:, 3] >= 0]
-        result_center_points = result_center_points[result_center_points[:, 3] >= 0]
+        accumulate = vtk.vtkTransform()
+        accumulate.PostMultiply()
+        LandmarkTransform = vtk.vtkLandmarkTransform()
+        LandmarkTransform.SetModeToRigidBody()
         
         while True:
             for i in range(nb_points):
@@ -157,16 +167,60 @@ class NonrigidIcpRegistration(RegistrationBase):
             LandmarkTransform.SetSourceLandmarks(a)
             LandmarkTransform.SetTargetLandmarks(closestp)
             LandmarkTransform.Update()
+            accumulate.Concatenate(LandmarkTransform.GetMatrix())
+                
+            iternum += 1
             
+            for i in range(nb_points):
+                a.GetPoint(i, p1)
+                LandmarkTransform.InternalTransformPoint(p1, p2)
+                b.SetPoint(i, p2)
+            b, a = a, b
+            
+            if iternum >= MaxIterNum:
+                break
+        
+        matrix = accumulate.GetMatrix()
+        
+        T = ml.mat([matrix.GetElement(0, 3), matrix.GetElement(1, 3), matrix.GetElement(2, 3)]).T
+        R = ml.mat([[matrix.GetElement(0, 0), matrix.GetElement(0, 1), matrix.GetElement(0, 2)], 
+                    [matrix.GetElement(1, 0), matrix.GetElement(1, 1), matrix.GetElement(1, 2)], 
+                    [matrix.GetElement(2, 0), matrix.GetElement(2, 1), matrix.GetElement(2, 2)]]).I
+        result_center_points[:, :3] = util.applyTransformForPoints(result_center_points[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, ml.zeros([3, 1], dtype = npy.float32))
+        new_trans_points[:, :3] = util.applyTransformForPoints(new_trans_points[:, :3], npy.array([1.0, 1, 1]), npy.array([1.0, 1, 1]), R, T, ml.zeros([3, 1], dtype = npy.float32))
+        
+        LandmarkTransform = vtk.vtkThinPlateSplineTransform()
+        LandmarkTransform.SetBasisToR()
+        iternum = 0
+        # Non-rigid
+        while True:
+            for i in range(nb_points):
+                min_dist = 99999999
+                min_outPoint = [0.0, 0.0, 0.0]
+                for j in range(3):
+                    Locator[j].FindClosestPoint(a.GetPoint(i), outPoint, id1, id2, dist)
+                    dis = npy.sqrt(npy.sum((npy.array(outPoint) - a.GetPoint(i)) ** 2))
+                    if dis * w_mat[label[i]][j] < min_dist:
+                        min_dist = dis * w_mat[label[i]][j]
+                        min_outPoint = copy.deepcopy(outPoint)
+                    
+                closestp.SetPoint(i, min_outPoint)
+                
+            LandmarkTransform.SetSourceLandmarks(a)
+            LandmarkTransform.SetTargetLandmarks(closestp)
+            LandmarkTransform.Update()
+            
+            '''
             for i in range(result_center_points.shape[0]):
                 LandmarkTransform.InternalTransformPoint([result_center_points[i, 0], result_center_points[i, 1], result_center_points[i, 2]], p2)
                 result_center_points[i, :3] = p2
+            '''
             for i in range(new_trans_points.shape[0]):
                 LandmarkTransform.InternalTransformPoint([new_trans_points[i, 0], new_trans_points[i, 1], new_trans_points[i, 2]], p2)
                 new_trans_points[i, :3] = p2
                 
             iternum += 1
-            if iternum >= MaxIterNum:
+            if iternum >= 1:
                 break
             
             for i in range(nb_points):
@@ -174,16 +228,19 @@ class NonrigidIcpRegistration(RegistrationBase):
                 LandmarkTransform.InternalTransformPoint(p1, p2)
                 b.SetPoint(i, p2)
             b, a = a, b
+        
         time2 = time.time()
         
         if (fixed_bif >= 0) and (moving_bif >= 0):
             new_trans_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
             result_center_points[:, 2] += (fixed_bif * fixed_res[2] - moving_bif * moving_res[2] + delta)
+        new_trans_points[:, :3] /= fixed_res[:3]
+        result_center_points[:, :3] /= fixed_res[:3]
         resultImage = movingData.getData().copy()
         
         sa = SurfaceErrorAnalysis(None)
         dataset = db.BasicData(npy.array([[[0]]]), fixedData.getInfo(), {'Contour': new_trans_points, 'Centerline': result_center_points})
-        mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixed_points.copy(), useResult = True)
+        mean_dis, mean_whole, max_dis, max_whole = sa.analysis(dataset, point_data_fix = fixedData.getPointSet('Contour').copy(), useResult = True)
         del dataset
         print mean_dis
         print mean_whole

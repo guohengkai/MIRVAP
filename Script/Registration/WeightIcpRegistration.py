@@ -182,6 +182,8 @@ class WeightIcpRegistration(RegistrationBase):
         moving_points = movingData.getPointSet('Contour').copy()
         moving_center = movingData.getPointSet('Centerline').copy()
         new_trans_points, result_center_points = moving_points, moving_center
+        result_center_points[:, :3] = util.applyTransformForPoints(result_center_points[:, :3], moving_res, fixed_res, R, T, ml.zeros([3, 1], dtype = npy.float32))
+        new_trans_points[:, :3] = util.applyTransformForPoints(new_trans_points[:, :3], moving_res, fixed_res, R, T, ml.zeros([3, 1], dtype = npy.float32))
         T = -T
         T = R * T
         

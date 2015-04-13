@@ -55,9 +55,6 @@ class GmmregPointsetRegistration(RegistrationBase):
         tmp_fix = tmp_fix[tmp_fix[:, -1] >= 0].copy()
         ctrl_pts = gutil.getControlPoints(tmp_fix, 1.0 / fixed_res[2])
         moving = moving_points.copy()
-        if index == 0:
-            fixed = util.augmentPointset(fixed, int(fixed_res[-1] / moving_res[-1] + 0.5), moving.shape[0], fixed_bif)
-            moving = util.augmentPointset(moving, int(moving_res[-1] / fixed_res[-1] + 0.5), fixed.shape[0], moving_bif)
         
         fixed = fixed[:, :3]
         moving = moving[:, :3]
@@ -127,13 +124,15 @@ class GmmregPointsetRegistration(RegistrationBase):
             transform.SetParameters(para)
             transform.SetFixedParameters(C.T.tolist()[0])
             
-            movingImage = movingData.getSimpleITKImage()
-            fixedImage = fixedData.getSimpleITKImage()
-            resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
+            #movingImage = movingData.getSimpleITKImage()
+            #fixedImage = fixedData.getSimpleITKImage()
+            #resultImage = sitk.Resample(movingImage, fixedImage, transform, sitk.sitkLinear, 0, sitk.sitkFloat32)
             
             if isTime:
-                return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0], time2 - time1
-            return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
+                #return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0], time2 - time1
+                return movingData.getData().copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0], time2 - time1
+            #return sitk.GetArrayFromImage(resultImage), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
+            return movingData.getData().copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, para + C.T.tolist()[0]
             
         else: # EM_TPS
             moving_points = movingData.getPointSet('Contour').copy()
@@ -295,26 +294,26 @@ class GmmregPointsetRegistration(RegistrationBase):
             print moving
             """
             
-            image_type = fixedData.getITKImageType()
-            resampler = itk.ResampleImageFilter[image_type, image_type].New()
-            movingImage = movingData.getITKImage()
-            fixedImage = fixedData.getITKImage()
-            
-            resampler.SetTransform(transform)
-            resampler.SetInput(movingImage)
-            
-            region = fixedImage.GetLargestPossibleRegion()
-            
-            resampler.SetSize(region.GetSize())
-            resampler.SetOutputSpacing(fixedImage.GetSpacing())
-            resampler.SetOutputDirection(fixedImage.GetDirection())
-            resampler.SetOutputOrigin(fixedImage.GetOrigin())
-            resampler.SetDefaultPixelValue(0)
-            resampler.Update()
-        
-            outputImage = resampler.GetOutput()
-            image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
+#            image_type = fixedData.getITKImageType()
+#            resampler = itk.ResampleImageFilter[image_type, image_type].New()
+#            movingImage = movingData.getITKImage()
+#            fixedImage = fixedData.getITKImage()
+#            
+#            resampler.SetTransform(transform)
+#            resampler.SetInput(movingImage)
+#            
+#            region = fixedImage.GetLargestPossibleRegion()
+#            
+#            resampler.SetSize(region.GetSize())
+#            resampler.SetOutputSpacing(fixedImage.GetSpacing())
+#            resampler.SetOutputDirection(fixedImage.GetDirection())
+#            resampler.SetOutputOrigin(fixedImage.GetOrigin())
+#            resampler.SetDefaultPixelValue(0)
+#            resampler.Update()
+#        
+#            outputImage = resampler.GetOutput()
+#            image = itk.PyBuffer[image_type].GetArrayFromImage(outputImage)
             if isTime:
-                return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0], time2 - time1
-            return image.copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0]
+                return movingData.getData().copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0], time2 - time1
+            return movingData.getData().copy(), {'Contour': new_trans_points, 'Centerline': result_center_points}, [0, 0, 0]
         
